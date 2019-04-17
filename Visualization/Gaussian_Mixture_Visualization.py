@@ -24,15 +24,28 @@ def multivariate_gaussian(pos, mu, Sigma):
 
 def Plot_Gaussian_Mixture ():
 
+    weights = [0.2, 0.3, 0.5]
+
     # Our 2-dimensional distribution will be over variables X and Y
+
+    number_gaussian = len(weights)
     N = 60
     X = np.linspace(-3, 3, N)
     Y = np.linspace(-3, 4, N)
     X, Y = np.meshgrid(X, Y)
 
+    mu = np.zeros((number_gaussian,2))
+
+    Sigma = np.zeros((number_gaussian,2,2))
+
+    for i in range(number_gaussian):
+        mu[i] = np.array([0., float(i)])
+        Sigma[i] = np.array([[ 1. , -0.5], [-0.5,  1.5]])
+
+
     # Mean vector and covariance matrix
-    mu = np.array([0., 1.])
-    Sigma = np.array([[ 1. , -0.5], [-0.5,  1.5]])
+    #mu = np.array([0., 1.])
+    #Sigma = np.array([[ 1. , -0.5], [-0.5,  1.5]])
 
     # Pack X and Y into a single 3-dimensional array
     pos = np.empty(X.shape + (2,))
@@ -40,7 +53,9 @@ def Plot_Gaussian_Mixture ():
     pos[:, :, 1] = Y
 
     # The distribution on the variables X, Y packed into pos.
-    Z = multivariate_gaussian(pos, mu, Sigma)
+    Z = 0
+    for i in range(number_gaussian):
+        Z = Z +  weights[i]*multivariate_gaussian(pos, mu[i], Sigma[i])
 
     # Create a surface plot and projected filled contour plot under it.
     fig = plt.figure()
@@ -56,3 +71,6 @@ def Plot_Gaussian_Mixture ():
     ax.view_init(27, -21)
 
     plt.show()
+
+
+Plot_Gaussian_Mixture()
