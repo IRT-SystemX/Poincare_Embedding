@@ -4,6 +4,8 @@ from Math_Functions.Riemannian.Log_Riemannian import *
 from Math_Functions.Riemannian.Exp_Riemannian import *
 
 
+def Riemannian_barycenter_weighted(Z, tau, lmbd, )
+
 def Riemannian_barycenter(Z, tau, lmbd):
 
     norm_mu = 1e6           #Also called d
