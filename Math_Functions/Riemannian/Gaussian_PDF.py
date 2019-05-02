@@ -1,13 +1,13 @@
 import math
 from Math_Functions.Riemannian.Distance_Riemannian import *
 
-def omega_nu(z, weight, weights, variances, barycentres):
+def omega_nu(z, weight, weights, variances, barycentre, barycentres):
 
-    nominator = weight * Gaussian_PDF(z, barycentres, variances)
+    nominator = weight * Gaussian_PDF(z, barycentre, variances)
 
     denominator = 0
     for i in range(len(weights)):
-        denominator = denominator + weights[i]*Gaussian_PDF(z, barycentres, variances)
+        denominator = denominator + weights[i]*Gaussian_PDF(z, barycentres[i], variances)
 
 def N_nu (Z, weight, weights, variances, barycentres):
 
