@@ -23,6 +23,8 @@ def EM( iter, Z):
 
             barycentres[j] = Riemannian_barycenter_weighted(Z, tau, lmbd, weights[j], weights, barycentres[j], barycentres, variances)
 
+            variances[j]= Variance_update()
+
 
 
 

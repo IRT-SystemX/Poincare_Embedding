@@ -1,6 +1,10 @@
 import math
 from Math_Functions.Riemannian.Distance_Riemannian import *
 
+
+def Variance_update():
+    return 0
+
 def omega_nu(z, weight, weights, variances, barycentre, barycentres):
 
     nominator = weight * Gaussian_PDF(z, barycentre, variances)
