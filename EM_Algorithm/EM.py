@@ -21,7 +21,7 @@ def EM( iter, Z):
 
             weights[j] = N_nu(Z, weights[j], weights, variances, barycentres[j], barycentres)/N
 
-            barycentres[j] = Riemannian_barycenter_weighted(Z, tau, lmbd, weights)
+            barycentres[j] = Riemannian_barycenter_weighted(Z, tau, lmbd, weights[j], weights, barycentres[j], barycentres, variances)
 
 
 
