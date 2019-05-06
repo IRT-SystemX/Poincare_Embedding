@@ -5,19 +5,19 @@ from Math_Functions.Riemannian.Distance_Riemannian import *
 def Variance_update():
     return 0
 
-def omega_nu(z, weight, weights, variances, barycentre, barycentres):
+def omega_mu(z, weight, weights, variance, variances, barycentre, barycentres):
 
-    nominator = weight * Gaussian_PDF(z, barycentre, variances)
+    nominator = weight * Gaussian_PDF(z, barycentre, variance)
 
     denominator = 0
     for i in range(len(weights)):
-        denominator = denominator + weights[i]*Gaussian_PDF(z, barycentres[i], variances)
+        denominator = denominator + weights[i]*Gaussian_PDF(z, barycentres[i], variances[i])
 
-def N_nu (Z, weight, weights, variances, barycentre, barycentres):
+def N_mu (Z, weight, weights, variance, variances, barycentre, barycentres):
 
     result = 0
     for i in range(len(Z)):
-        result = result + omega_nu(Z[i], weight, weights, variances,barycentre, barycentres)
+        result = result + omega_mu(Z[i], weight, weights, variance, variances,barycentre, barycentres)
 
     return result
 
