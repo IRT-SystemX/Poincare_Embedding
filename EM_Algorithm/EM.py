@@ -25,7 +25,7 @@ def EM( iter, Z  ):
 
             weights[j] = N_mu(Z, weights[j], weights, variances[j], variances, barycentres[j], barycentres)/N
 
-            barycentres[j] = Riemannian_barycenter_weighted(Z, tau, lmbd, weights[j], weights, barycentres[j], barycentres, variances)
+            barycentres[j] = Riemannian_barycenter_weighted(Z, tau, lmbd, weights[j], weights, barycentres[j], barycentres,variances[j], variances)
 
             variances[j]= Variance_update()
 

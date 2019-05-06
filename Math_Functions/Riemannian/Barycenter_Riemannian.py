@@ -5,7 +5,7 @@ from Math_Functions.Riemannian.Exp_Riemannian import *
 from Math_Functions.Riemannian.Gaussian_PDF import *
 
 
-def Riemannian_barycenter_weighted(Z, tau, lmbd, weight, weights, barycentre, barycentres, variances):
+def Riemannian_barycenter_weighted(Z, tau, lmbd, weight, weights, barycentre, barycentres,variance, variances):
 
     norm_mu = 1e6  # Also called d
 
@@ -28,9 +28,9 @@ def Riemannian_barycenter_weighted(Z, tau, lmbd, weight, weights, barycentre, ba
 
         for j in range(0,n):
 
-            Z_moyenne = Z_moyenne + (Log_Riemannian(z_chapeau, Z[j]))/omega_nu(Z, weight, weights, variances, barycentre, barycentres)
+            Z_moyenne = Z_moyenne + (Log_Riemannian(z_chapeau, Z[j]))*omega_mu(Z, weight, weights, variance, variances, barycentre, barycentres)
 
-        Z_moyenne = Z_moyenne/n
+        #Z_moyenne = Z_moyenne/n
 
         z_chapeau = Exp_Riemannian(z_chapeau, lmbd*Z_moyenne)
 
