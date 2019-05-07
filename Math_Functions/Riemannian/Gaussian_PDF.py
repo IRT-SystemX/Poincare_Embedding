@@ -1,9 +1,11 @@
+import cmath
 import math
 from Math_Functions.Riemannian.Distance_Riemannian import *
 
 
 def Variance_update():
-    return 0
+
+    return 1
 
 def omega_mu(z, weight, weights, variance, variances, barycentre, barycentres):
 
@@ -12,6 +14,8 @@ def omega_mu(z, weight, weights, variance, variances, barycentre, barycentres):
     denominator = 0
     for i in range(len(weights)):
         denominator = denominator + weights[i]*Gaussian_PDF(z, barycentres[i], variances[i])
+
+    return nominator/denominator
 
 def N_mu (Z, weight, weights, variance, variances, barycentre, barycentres):
 
@@ -28,7 +32,10 @@ def Normalizing_Factor (Sigma):
 def Gaussian_PDF (X, Mean, Sigma):
 
     Z = Normalizing_Factor(Sigma)
-    return (1/Z)*math.exp(-pow(Riemannian_distance(X, Mean),2))
+
+    return Riemannian_distance(X, Mean)
+    #return (1/Z)*math.exp(-pow(Riemannian_distance(X, Mean),2))
+    #                       return (1/Z)*math.exp(-pow(2,2))
 
 
 def Gaussian_Mixture (X, Mean, Sigma, weights):
