@@ -15,6 +15,7 @@ def omega_mu(z, weight, weights, variance, variances, barycentre, barycentres):
     for i in range(len(weights)):
         denominator = denominator + weights[i]*Gaussian_PDF(z, barycentres[i], variances[i])
 
+    print('\t\tOmega_mu', nominator/denominator)
     return nominator/denominator
 
 def N_mu (Z, weight, weights, variance, variances, barycentre, barycentres):
@@ -33,9 +34,15 @@ def Gaussian_PDF (X, Mean, Sigma):
 
     Z = Normalizing_Factor(Sigma)
 
-    return Riemannian_distance(X, Mean)
-    #return (1/Z)*math.exp(-pow(Riemannian_distance(X, Mean),2))
-    #                       return (1/Z)*math.exp(-pow(2,2))
+    print('Normalizing factor of gaussien', Z)
+
+
+    result = (1/Z)*math.exp(-pow(Riemannian_distance(X, Mean),2))
+
+    print('Gaussiaan probability', result)
+    #return Riemannian_distance(X, Mean)
+    return result
+
 
 
 def Gaussian_Mixture (X, Mean, Sigma, weights):

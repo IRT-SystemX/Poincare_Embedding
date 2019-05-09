@@ -1,6 +1,7 @@
 import numpy as np
 from Math_Functions.Riemannian.Gaussian_PDF import *
 from Math_Functions.Riemannian.Barycenter_Riemannian import *
+from Visualization.Gaussian_Visualization import *
 
 
 #Z is a set of N observed samples
@@ -8,11 +9,21 @@ from Math_Functions.Riemannian.Barycenter_Riemannian import *
 
 def EM( iter, Z  ):
 
-    M = 10                                      # Number of Gaussians used in the mix
+    M = 4                                   # Number of Gaussians used in the mix
     N = len(Z)                                  # Number of nodes in data
-    weights = np.random.uniform(low = 0.1, high = 1, size = M)      #Called varomega_nu, quantifies how much a gaussian participate in the mix
-    barycentres = np.random.uniform(low = 0.1, high = 1, size = M)+1j*np.random.uniform(low = 0.1, high = 1, size = M)   #Average means of each gaussian
-    variances = np.random.uniform(low = 0.1, high = 1, size = M)  #Variances of each gaussian
+
+    weights = np.empty(M)                   #Called varomega_nu, quantifies how much a gaussian participate in the mix
+    for i in range(len(weights)):
+        weights[i] = 1/len(weights)
+
+    barycentres = np.random.uniform(low = 0, high = 0.5, size = M)+1j*np.random.uniform(low = 0, high = 0.5, size = M)   #Average means of each gaussian
+    variances = np.random.uniform(low = 1, high = 4, size = M)  #Variances of each gaussian
+
+    print('Initial values')
+
+    print('\tWeights\n',weights)
+    print('\tBarycentres\n', barycentres)
+    print('\tVariances \n', variances)
 
 
     # weights = np.zeros(M, dtype = 'float')      #Called varomega_nu, quantifies how much a gaussian participate in the mix
@@ -26,20 +37,34 @@ def EM( iter, Z  ):
 
     for i in range(iter):
 
+        print('Iteration ', i)
+
         for j in range(M):   #j is the mu index
+
+            print('\tGaussian number ', j)
 
             weights[j] = N_mu(Z, weights[j], weights, variances[j], variances, barycentres[j], barycentres)/N
 
+            print('\t\t Weights', weights)
+
             barycentres[j] = Riemannian_barycenter_weighted(Z, tau, lmbd, weights[j], weights, barycentres[j], barycentres,variances[j], variances)
+
+            print('\t\t Barycentres', barycentres)
 
             variances[j]= Variance_update()
 
+            print('\t\t Variances', variances)
 
 
 
+size_random = 100
 
-Z = [0+1j, 1+1j]
+Z = np.random.uniform(low = 0, high = 0.5, size = size_random)+1j*np.random.uniform(low = 0.3, high = 0.6, size = size_random)
 
-EM(10, Z)
+
+#Gaussian = Gaussian_PDF(Z,)
+Plot_Gaussian([0.25,0.25])
+
+#EM(10, Z)
 
 
