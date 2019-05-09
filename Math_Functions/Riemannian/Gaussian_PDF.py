@@ -34,12 +34,16 @@ def Gaussian_PDF (X, Mean, Sigma):
 
     Z = Normalizing_Factor(Sigma)
 
-    print('Normalizing factor of gaussien', Z)
+    # print('Computation gaussian')
+    # print('\t\t X', X)
+    # print('\t\t Mean', Mean)
+    # print('\t\t Sigma', Sigma)
+    # print('Normalizing factor of gaussien', Z)
 
 
-    result = (1/Z)*math.exp(-pow(Riemannian_distance(X, Mean),2))
+    result = (1/Z)*math.exp( (-pow(Riemannian_distance(X, Mean),2))/(2*pow(Sigma,2)))
 
-    print('Gaussiaan probability', result)
+    #print('Gaussiaan probability', result)
     #return Riemannian_distance(X, Mean)
     return result
 

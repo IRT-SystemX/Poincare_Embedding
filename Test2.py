@@ -9,31 +9,33 @@ from matplotlib.text import TextPath
 from matplotlib.transforms import Affine2D
 from Math_Functions.Riemannian.Gaussian_PDF import *
 
-def Gaussian_Plot():
+def Gaussian_Plot(Mean, Sigma):
 
-
-    N = 4
-    X = np.linspace(-1.2, 1.2, N)
-    Y = np.linspace(-1.2, 1.2, N)
+    N = 11
+    X = np.linspace(-0.5, 0.5, N)
+    Y = np.linspace(-0.5, 0.5, N)
     X, Y = np.meshgrid(X, Y)
 
+    print('X',X)
+    print('len(X)',len(X))
+    print('Y',Y)
 
-    print(X)
-    print(Y)
+    Z = np.zeros((N,N))
+    print('Len(Z)', len(Z))
+    counter = 0
+    for i in range(N):
+        for q in range(N):
+            #print(Z[i][q])
+            Z[i][q] = Gaussian_PDF(X[i][q]+ 1j*Y[i][q], Mean, Sigma )
+            #print('Counter', counter)
+            counter = counter +1
 
 
-
-    Z = np.array([[0.5,-1.2,-1.2,-1.2],
-        [-0.4,-0.4,-0.4, -0.4],
-        [0.4,0.4,0.4,0.4],
-        [1.2,1.2,1.2,-0.5]])
-
-    print(Z)
-
+    print('Probability table', Z)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-
-    ax.plot_surface(X, Y, Z, rstride=3, cstride=3, linewidth=1, antialiased=True,
+    ax = fig.gca(projection='3d')
+    ax.plot_surface(X, Y, Z, rstride=1, cstride=1, linewidth=1, antialiased=True,
                     cmap=cm.viridis)
 
     #Poincaré circle
@@ -42,15 +44,20 @@ def Gaussian_Plot():
     art3d.pathpatch_2d_to_3d(p, z=0, zdir="z")
 
 
-
     ax.set_xlim(-1.2, 1.2)
     ax.set_ylim(-1.2, 1.2)
     ax.set_zlim(0, 1.1)
 
+    filename = 'Output/'
+
+    plt.savefig(filename + "Gaussian_Curve.pdf", bbox_inches='tight')
+
+    print('Data plot saved to ',filename + "Gaussian_Curve.pdf")
+
     plt.show()
 
 
-Mean = [0,0]
-Sigma = 2
+Mean = complex(0.2,0.2)
+Sigma = 0.7
 
-Gaussian_Plot()
+Gaussian_Plot(Mean, Sigma)
