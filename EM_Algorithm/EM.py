@@ -57,14 +57,6 @@ def EM( iter, Z  ):
 
 
 
-size_random = 100
 
-Z = np.random.uniform(low = 0, high = 0.5, size = size_random)+1j*np.random.uniform(low = 0.3, high = 0.6, size = size_random)
-
-
-#Gaussian = Gaussian_PDF(Z,)
-Plot_Gaussian([0.25,0.25])
-
-#EM(10, Z)
 
 

@@ -55,6 +55,6 @@ def Gaussian_Mixture (X, Mean, Sigma, weights):
     pdf = 0
 
     for i in range(k):
-        pdf = pdf + weights[k]*Gaussian_PDF(X,Mean[i], Sigma[i])
+        pdf = pdf + weights[i]*Gaussian_PDF(X,Mean[i], Sigma[i])
 
     return pdf

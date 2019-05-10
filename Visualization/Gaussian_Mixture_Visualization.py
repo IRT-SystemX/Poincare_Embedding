@@ -1,76 +1,67 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import Circle, PathPatch
 from matplotlib import cm
+# register Axes3D class with matplotlib by importing Axes3D
 from mpl_toolkits.mplot3d import Axes3D
+import mpl_toolkits.mplot3d.art3d as art3d
+from matplotlib.text import TextPath
+from matplotlib.transforms import Affine2D
+from Math_Functions.Riemannian.Gaussian_PDF import *
 
+def Plot_Gaussian_Mixture(Means, Variances, Weights, output_filename):
 
-def multivariate_gaussian(pos, mu, Sigma):
-    """Return the multivariate Gaussian distribution on array pos.
-
-    pos is an array constructed by packing the meshed arrays of variables
-    x_1, x_2, x_3, ..., x_k into its _last_ dimension.
-
-    """
-
-    n = mu.shape[0]
-    Sigma_det = np.linalg.det(Sigma)
-    Sigma_inv = np.linalg.inv(Sigma)
-    N = np.sqrt((2 * np.pi) ** n * Sigma_det)
-    # This einsum call calculates (x-mu)T.Sigma-1.(x-mu) in a vectorized
-    # way across all the input variables.
-    fac = np.einsum('...k,kl,...l->...', pos - mu, Sigma_inv, pos - mu)
-
-    return np.exp(-fac / 2) / N
-
-def Plot_Gaussian_Mixture ():
-
-    weights = [0.2, 0.3, 0.5]
-
-    # Our 2-dimensional distribution will be over variables X and Y
-
-    number_gaussian = len(weights)
     N = 60
-    X = np.linspace(-3, 3, N)
-    Y = np.linspace(-3, 4, N)
+    X = np.linspace(-0.5, 0.5, N)
+    Y = np.linspace(-0.5, 0.5, N)
     X, Y = np.meshgrid(X, Y)
 
-    mu = np.zeros((number_gaussian,2))
+    #print('X',X)
+    #print('len(X)',len(X))
+    #print('Y',Y)
 
-    Sigma = np.zeros((number_gaussian,2,2))
+    Z = np.zeros((N,N))
+    #print('Len(Z)', len(Z))
+    counter = 0
 
-    for i in range(number_gaussian):
-        mu[i] = np.array([0., float(i)])
-        Sigma[i] = np.array([[ 1. , -0.5], [-0.5,  1.5]])
+    f = open("Output\Computed_Points.txt", "w+")
+    for i in range(N):
+        for q in range(N):
+            #print(Z[i][q])
+            Z[i][q] = Gaussian_Mixture(X[i][q]+ 1j*Y[i][q], Means, Variances, Weights )
+            f.write(str(Z[i][q])+' ')
+            if (q == N-1):
+                f.write('\n')
+            #print('Counter', counter)
+            counter = counter +1
+
+    f.close()
 
 
-    # Mean vector and covariance matrix
-    #mu = np.array([0., 1.])
-    #Sigma = np.array([[ 1. , -0.5], [-0.5,  1.5]])
 
-    # Pack X and Y into a single 3-dimensional array
-    pos = np.empty(X.shape + (2,))
-    pos[:, :, 0] = X
-    pos[:, :, 1] = Y
-
-    # The distribution on the variables X, Y packed into pos.
-    Z = 0
-    for i in range(number_gaussian):
-        Z = Z +  weights[i]*multivariate_gaussian(pos, mu[i], Sigma[i])
-
-    # Create a surface plot and projected filled contour plot under it.
+    print('Probability table', Z)
     fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
     ax = fig.gca(projection='3d')
-    ax.plot_surface(X, Y, Z, rstride=3, cstride=3, linewidth=1, antialiased=True,
+    ax.plot_surface(X, Y, Z, rstride=1, cstride=1, linewidth=1, antialiased=True,
                     cmap=cm.viridis)
 
-    cset = ax.contourf(X, Y, Z, zdir='z', offset=-0.15, cmap=cm.viridis)
+    #Poincaré circle
+    p = Circle((0, 0), 1, edgecolor='b', lw=1, facecolor='none')
+    ax.add_patch(p)
+    art3d.pathpatch_2d_to_3d(p, z=0, zdir="z")
 
-    # Adjust the limits, ticks and view angle
-    ax.set_zlim(-0.15,0.2)
-    ax.set_zticks(np.linspace(0,0.2,5))
-    ax.view_init(27, -21)
+
+    ax.set_xlim(-1.2, 1.2)
+    ax.set_ylim(-1.2, 1.2)
+    ax.set_zlim(0, 1.1)
+
+    filename = 'Output/'+output_filename
+
+    plt.savefig(filename, bbox_inches='tight')
+
+    print('Data plot saved to ',filename)
 
     plt.show()
 
 
-Plot_Gaussian_Mixture()
