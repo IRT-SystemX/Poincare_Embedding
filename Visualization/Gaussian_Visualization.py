@@ -12,9 +12,16 @@ from Math_Functions.Riemannian.Gaussian_PDF import *
 def Plot_Gaussian(Mean, Sigma, output_filename):
 
     N = 60
-    X = np.linspace(-0.5, 0.5, N)
-    Y = np.linspace(-0.5, 0.5, N)
+    X = np.linspace(-1, 1, N)
+    Y = np.linspace(-1, 1, N)
     X, Y = np.meshgrid(X, Y)
+
+
+    X0, Y0, radius = 0.0, 0.0, 1
+
+    r = np.sqrt( (X-X0)**2+(Y-Y0)**2)
+
+    inside_disk = r <radius
 
     #print('X',X)
     #print('len(X)',len(X))
@@ -23,17 +30,23 @@ def Plot_Gaussian(Mean, Sigma, output_filename):
     Z = np.zeros((N,N))
     #print('Len(Z)', len(Z))
     counter = 0
+    f = open("Output\Computed_Points_Gaussian.txt", "w+")
     for i in range(N):
         for q in range(N):
-            #print(Z[i][q])
-            Z[i][q] = Gaussian_PDF(X[i][q]+ 1j*Y[i][q], Mean, Sigma )
+            if(inside_disk[i][q]== True):
+                Z[i][q] = Gaussian_PDF(X[i][q]+ 1j*Y[i][q], Mean, Sigma )
+
+            else:
+                Z[i][q] = 0
+            f.write(str(Z[i][q]) + ' ')
+            if (q == N-1):
+                f.write('\n')
             #print('Counter', counter)
             counter = counter +1
 
 
     #print('Probability table', Z)
     fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
     ax = fig.gca(projection='3d')
     ax.plot_surface(X, Y, Z, rstride=1, cstride=1, linewidth=1, antialiased=True,
                     cmap=cm.viridis)

@@ -12,9 +12,15 @@ from Math_Functions.Riemannian.Gaussian_PDF import *
 def Plot_Gaussian_Mixture(Means, Variances, Weights, output_filename):
 
     N = 60
-    X = np.linspace(-0.5, 0.5, N)
-    Y = np.linspace(-0.5, 0.5, N)
+    X = np.linspace(-1, 1, N)
+    Y = np.linspace(-1, 1, N)
     X, Y = np.meshgrid(X, Y)
+
+    X0, Y0, radius = 0.0, 0.0, 1
+
+    r = np.sqrt((X - X0) ** 2 + (Y - Y0) ** 2)
+
+    inside_disk = r < radius
 
     #print('X',X)
     #print('len(X)',len(X))
@@ -23,12 +29,18 @@ def Plot_Gaussian_Mixture(Means, Variances, Weights, output_filename):
     Z = np.zeros((N,N))
     #print('Len(Z)', len(Z))
     counter = 0
+    probability_error = False
+    f = open("Output\Computed_Points_Gaussian_Mixture.txt", "w+")
 
-    f = open("Output\Computed_Points.txt", "w+")
     for i in range(N):
         for q in range(N):
-            #print(Z[i][q])
-            Z[i][q] = Gaussian_Mixture(X[i][q]+ 1j*Y[i][q], Means, Variances, Weights )
+            if(inside_disk[i][q]== True):
+                Z[i][q] = Gaussian_Mixture(X[i][q]+ 1j*Y[i][q], Means, Variances, Weights )
+            else:
+                Z[i][q] = 0
+
+            if(Z[i][q]>1):
+                probability_error = True
             f.write(str(Z[i][q])+' ')
             if (q == N-1):
                 f.write('\n')
@@ -37,7 +49,10 @@ def Plot_Gaussian_Mixture(Means, Variances, Weights, output_filename):
 
     f.close()
 
-
+    if(probability_error==True):
+        print('Probability greater than 1 error')
+    else:
+        print('All computed probabilities are less than 1')
 
     print('Probability table', Z)
     fig = plt.figure()

@@ -14,6 +14,7 @@ def Riemannian_distance(z1,z0):
 
     return d
 
+
 def Riemannian_distance_perturbation(z1,z0):
 
     perturbation = 1e-5

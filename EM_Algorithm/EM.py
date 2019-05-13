@@ -7,9 +7,8 @@ from Visualization.Gaussian_Visualization import *
 #Z is a set of N observed samples
 #iter number of iterations
 
-def EM( iter, Z  ):
+def EM( iter, Z , M ):
 
-    M = 4                                   # Number of Gaussians used in the mix
     N = len(Z)                                  # Number of nodes in data
 
     weights = np.empty(M)                   #Called varomega_nu, quantifies how much a gaussian participate in the mix
