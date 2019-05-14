@@ -9,7 +9,7 @@ from matplotlib.text import TextPath
 from matplotlib.transforms import Affine2D
 from Math_Functions.Riemannian.Gaussian_PDF import *
 
-def Plot_Gaussian_Mixture(Z, Means, Variances, Weights, output_filename):
+def Plot_Gaussian_Mixture(Data, Means, Variances, Weights, output_filename):
 
     N = 60
     X = np.linspace(-1, 1, N)
@@ -58,21 +58,26 @@ def Plot_Gaussian_Mixture(Z, Means, Variances, Weights, output_filename):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax = fig.gca(projection='3d')
-    #ax.plot_surface(X, Y, Z, rstride=1, cstride=1, linewidth=1, antialiased=True, cmap=cm.viridis)
+    ax.plot_surface(X, Y, Z, rstride=1, cstride=1, linewidth=1, antialiased=True, cmap=cm.viridis)
 
     #Poincaré circle
     p = Circle((0, 0), 1, edgecolor='b', lw=1, facecolor='none')
     ax.add_patch(p)
-    art3d.pathpatch_2d_to_3d(p, z=0, zdir="z")
+    art3d.pathpatch_2d_to_3d(p, z=-0.2, zdir="z")
 
-    for i in range(len(Z)):
-        ax.plot(Z[i].real, Z[i].imag, marker='.')
 
-    ax.plot(-1.0,1.0, marker='.')
+
+    for i in range(len(Data)):
+        ax.scatter(Data[i].real, Data[i].imag,-0.2, c = 'g', marker='.')
+        #print(Z[i].real, Z[i].imag)
 
     ax.set_xlim(-1.2, 1.2)
     ax.set_ylim(-1.2, 1.2)
-    ax.set_zlim(0, 1.1)
+    ax.set_zlim(-0.5, 1.1)
+
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('P')
 
     filename = 'Output/'+output_filename
 
@@ -81,5 +86,3 @@ def Plot_Gaussian_Mixture(Z, Means, Variances, Weights, output_filename):
     print('Data plot saved to ',filename)
 
     plt.show()
-
-
