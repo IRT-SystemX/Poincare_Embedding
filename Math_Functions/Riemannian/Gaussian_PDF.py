@@ -1,11 +1,63 @@
 import cmath
 import math
+import matplotlib.pyplot as plt
 from Math_Functions.Riemannian.Distance_Riemannian import *
 
 
-def Variance_update():
 
-    return 1
+def inverse_phi( Sigma):
+
+    return math.pow(Sigma,2)+math.pow(Sigma,4)+ ( ( ((math.pow(Sigma,3))*math.sqrt(2)*math.exp(-(math.pow(Sigma,2))/2)))/(math.sqrt(math.pi)*math.erf(Sigma/(math.sqrt(2)))) )
+
+def phi (Z, Mean):
+
+    argument_phi = 0
+
+    for i in range(len(Z)):
+
+        argument_phi = argument_phi + Riemannian_distance(Z[i], Mean)
+
+    argument_phi = argument_phi/len(Z)
+
+    result = 0
+
+    Number_Steps = 200
+
+    Sigma = np.linspace(0.01, 1, Number_Steps)
+
+    inverse_phi_table = np.zeros(Number_Steps)
+
+    for i in range(len(inverse_phi_table)):
+        inverse_phi_table[i] = inverse_phi(Sigma[i])
+
+
+    look_up_point = -1
+
+    for i in range(len(inverse_phi_table)):
+
+        if(inverse_phi_table[i]>argument_phi):
+            look_up_point = i
+            break
+
+
+    if(look_up_point == -1):
+        print('Error: Could not estimate Sigma, Please increase Phi inverse function range')
+
+
+    result = Sigma[look_up_point]
+
+
+    # plt.plot(Sigma, inverse_phi_table)
+    #
+    #
+    # plt.plot(argument_phi, Sigma[look_up_point],'ro')
+    # plt.show()
+
+    return result
+
+def Variance_update(Z, Mean):
+
+    return phi(Z,Mean)
 
 def omega_mu(z, weight, weights, variance, variances, barycentre, barycentres):
 
@@ -34,17 +86,8 @@ def Gaussian_PDF (X, Mean, Sigma):
 
     Z = Normalizing_Factor(Sigma)
 
-    # print('Computation gaussian')
-    # print('\t\t X', X)
-    # print('\t\t Mean', Mean)
-    # print('\t\t Sigma', Sigma)
-    # print('Normalizing factor of gaussien', Z)
-
-
     result = (1/Z)*math.exp( (-pow(Riemannian_distance(X, Mean),2))/(2*pow(Sigma,2)))
 
-    #print('Gaussiaan probability', result)
-    #return Riemannian_distance(X, Mean)
     return result
 
 

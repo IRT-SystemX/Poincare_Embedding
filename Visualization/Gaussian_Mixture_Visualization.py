@@ -22,15 +22,11 @@ def Plot_Gaussian_Mixture(Data, Means, Variances, Weights, output_filename):
 
     inside_disk = r < radius
 
-    #print('X',X)
-    #print('len(X)',len(X))
-    #print('Y',Y)
-
     Z = np.zeros((N,N))
     #print('Len(Z)', len(Z))
     counter = 0
     probability_error = False
-    f = open("Output\Computed_Points_Gaussian_Mixture.txt", "w+")
+    f = open(output_filename+"/Computed_Points_Gaussian_Mixture.txt", "w+")
 
     for i in range(N):
         for q in range(N):
@@ -69,7 +65,7 @@ def Plot_Gaussian_Mixture(Data, Means, Variances, Weights, output_filename):
 
     for i in range(len(Data)):
         ax.scatter(Data[i].real, Data[i].imag,-0.2, c = 'g', marker='.')
-        #print(Z[i].real, Z[i].imag)
+
 
     ax.set_xlim(-1.2, 1.2)
     ax.set_ylim(-1.2, 1.2)
@@ -79,7 +75,7 @@ def Plot_Gaussian_Mixture(Data, Means, Variances, Weights, output_filename):
     ax.set_ylabel('Y')
     ax.set_zlabel('P')
 
-    filename = 'Output/'+output_filename
+    filename = output_filename+'/Gaussian_mixture_plot.pdf'
 
     plt.savefig(filename, bbox_inches='tight')
 
