@@ -16,9 +16,12 @@ def Riemannian_barycenter_weighted(Z, tau, lmbd, weight, weights, barycentre, ba
     #Compute an initial guess of the barycenter as the euclidean mean weighted average
 
     for i in range(len(Z)):
-        z_chapeau = z_chapeau + Z[i]*omega_mu(Z, weights[i], weights, variances[i], variances, barycentres[i], barycentres)
 
-    #z_chapeau = z_chapeau/n             #Also called \hat{z}_new
+
+        z_chapeau = z_chapeau + Z[i]
+
+
+    z_chapeau = z_chapeau/n             #Also called \hat{z}_new
 
     #print('Moyenne du cluster',z_chapeau)
 
@@ -28,7 +31,7 @@ def Riemannian_barycenter_weighted(Z, tau, lmbd, weight, weights, barycentre, ba
 
         for j in range(0,n):
 
-            Z_moyenne = Z_moyenne + (Log_Riemannian(z_chapeau, Z[j]))*omega_mu(Z, weight, weights, variance, variances, barycentre, barycentres)
+            Z_moyenne = Z_moyenne + (Log_Riemannian(z_chapeau, Z[j]))*omega_mu(Z[j], weight, weights, variance, variances, barycentre, barycentres)
 
         #Z_moyenne = Z_moyenne/n
 

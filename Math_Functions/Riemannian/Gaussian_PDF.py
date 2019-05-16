@@ -15,15 +15,17 @@ def phi (Z, Mean):
 
     for i in range(len(Z)):
 
-        argument_phi = argument_phi + Riemannian_distance(Z[i], Mean)
+        argument_phi = argument_phi + pow(Riemannian_distance(Z[i], Mean),2)
 
     argument_phi = argument_phi/len(Z)
+
+    print('Argument of Phi', argument_phi)
 
     result = 0
 
     Number_Steps = 200
 
-    Sigma = np.linspace(0.01, 1, Number_Steps)
+    Sigma = np.linspace(0.01, 2, Number_Steps)
 
     inverse_phi_table = np.zeros(Number_Steps)
 
@@ -64,10 +66,11 @@ def omega_mu(z, weight, weights, variance, variances, barycentre, barycentres):
     nominator = weight * Gaussian_PDF(z, barycentre, variance)
 
     denominator = 0
+
     for i in range(len(weights)):
         denominator = denominator + weights[i]*Gaussian_PDF(z, barycentres[i], variances[i])
 
-    print('\t\tOmega_mu', nominator/denominator)
+    #print('\t\tOmega_mu', nominator/denominator)
     return nominator/denominator
 
 def N_mu (Z, weight, weights, variance, variances, barycentre, barycentres):

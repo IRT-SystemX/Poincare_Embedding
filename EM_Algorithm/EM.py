@@ -11,18 +11,16 @@ from EM_Algorithm.Read_From_File import *
 
 def EM( iter,  M, filename):
 
-
-    #Read the input graph matrix from the file placed in the INput folder
+    #Read the input graph matrix from the file placed in the Input folder
 
     B = Get_matrix(filename)
 
     Z = 1j * B[:, 1]
     Z += B[:, 0]
 
-    print('Data matrix is', B)
-
     N = len(Z)                                  # Number of nodes in data
 
+    print('Data matrix contains ', N,' nodes')
 
     #Generation of all the random initial values
 
@@ -30,7 +28,10 @@ def EM( iter,  M, filename):
     for i in range(len(weights)):
         weights[i] = 1/len(weights)
 
-    barycentres = np.random.uniform(low = -0.5, high = 0.5, size = M)+1j*np.random.uniform(low = -0.5, high = 0.5, size = M)   #Average means of each gaussian
+    # Average means of each gaussian
+    barycentres = np.random.uniform(low = -0.5, high = 0.5, size = M)+1j*np.random.uniform(low = -0.5, high = 0.5, size = M)
+
+
     variances = np.random.uniform(low = 0.6, high = 1.2, size = M)  #Variances of each gaussian
 
     print('Initial values')
@@ -43,7 +44,6 @@ def EM( iter,  M, filename):
 
     tau = 0.005
     lmbd = 0.005
-
 
     #Iteration until an Iter number of times while applying the update functionso f the EM algorithm
 
