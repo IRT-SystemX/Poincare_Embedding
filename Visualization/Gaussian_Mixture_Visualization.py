@@ -11,7 +11,7 @@ from Math_Functions.Riemannian.Gaussian_PDF import *
 
 def Plot_Gaussian_Mixture(Data, Means, Variances, Weights, output_filename):
 
-    N = 60
+    N = 80
     X = np.linspace(-1, 1, N)
     Y = np.linspace(-1, 1, N)
     X, Y = np.meshgrid(X, Y)
@@ -59,13 +59,15 @@ def Plot_Gaussian_Mixture(Data, Means, Variances, Weights, output_filename):
     #Poincaré circle
     p = Circle((0, 0), 1, edgecolor='b', lw=1, facecolor='none')
     ax.add_patch(p)
-    art3d.pathpatch_2d_to_3d(p, z=-0.2, zdir="z")
+    art3d.pathpatch_2d_to_3d(p, z=-0.5, zdir="z")
 
 
 
     for i in range(len(Data)):
-        ax.scatter(Data[i].real, Data[i].imag,-0.2, c = 'g', marker='.')
+        ax.scatter(Data[i].real, Data[i].imag,-0.5, c = 'g', marker='.')
 
+    for j in range(len(Means)):
+        ax.scatter(Means[j].real, Means[j].imag, -0.5, c = 'r', marker = 'o')
 
     ax.set_xlim(-1.2, 1.2)
     ax.set_ylim(-1.2, 1.2)
