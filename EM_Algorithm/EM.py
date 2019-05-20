@@ -5,15 +5,16 @@ from Math_Functions.Riemannian.Gaussian_PDF import *
 from Math_Functions.Riemannian.Barycenter_Riemannian import *
 from Visualization.Gaussian_Mixture_Visualization import *
 from EM_Algorithm.Read_From_File import *
+from Performance_Measures.Ground_Truth.GT_Performance_Check import *
 
 #Z is a set of N observed samples
 #iter number of iterations
 
-def EM( iter,  M, filename):
+def EM( iter,  M, example_name, filename, truth_check = False):
 
     #Read the input graph matrix from the file placed in the Input folder
 
-    B = Get_matrix(filename)
+    B = Get_matrix(example_name+'/'+filename)
 
     Z = 1j * B[:, 1]
     Z += B[:, 0]
@@ -69,9 +70,39 @@ def EM( iter,  M, filename):
 
 
 
+    #Find the class for each data node by applying the criterion
+
+    labels = np.empty(N)
+
+
+
+    for i in range(N):
+
+        probabilities = np.zeros(M)
+
+        for j in range(M):
+
+
+
+            probabilities[j] = weights[j] * Gaussian_PDF(Z[i], barycentres[j], variances[j])
+
+
+        labels[i] = np.argmax(probabilities)
+
+    print('labels',labels)
+
+    #if(truth_check == True):
+
+
+
+
+
+
+    #Save what is computed
+
     #Creation of the output directory if it does not yet exists
 
-    output_directory = 'Output/'+filename
+    output_directory = 'Output/'+example_name+'/'+filename
     try:
         os.makedirs(output_directory)
         print("Directory ", output_directory, " Created")

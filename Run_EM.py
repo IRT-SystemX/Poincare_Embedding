@@ -9,9 +9,10 @@ iter_max = 30   # Maximum number of EM iterations
 #size_random = 100
 #Z = np.random.uniform(low = 0, high = 0.5, size = size_random)+1j*np.random.uniform(low = 0.3, high = 0.6, size = size_random)
 
-filename = 'Karate/Karate_0.pkl'
+example_name = 'Karate'
+filename = 'Karate_0.pkl'
 
-EM( iter_max, M, filename)
+EM( iter_max, M, example_name, filename)
 
 
 
