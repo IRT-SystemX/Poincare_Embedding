@@ -4,9 +4,9 @@ import math
 import numpy as np
 
 
-def Truth_Check_Small_K(filename,label, sources_number = 2):
+def Truth_Check_Small_K(example_name,label, sources_number = 2):
 
-    file = open('Input/R_'+filename)
+    file = open('Input/'+example_name+'/R_'+example_name)
 
     #print('Labels\n',label)
     label_source = []

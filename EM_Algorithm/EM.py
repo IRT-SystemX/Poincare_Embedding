@@ -32,8 +32,7 @@ def EM( iter,  M, example_name, filename, truth_check = False):
     # Average means of each gaussian
     barycentres = np.random.uniform(low = -0.5, high = 0.5, size = M)+1j*np.random.uniform(low = -0.5, high = 0.5, size = M)
 
-
-    variances = np.random.uniform(low = 0.6, high = 1.2, size = M)  #Variances of each gaussian
+    variances = np.random.uniform(low = 0.8, high = 0.9, size = M)  #Variances of each gaussian
 
     print('Initial values')
 
@@ -64,7 +63,9 @@ def EM( iter,  M, example_name, filename, truth_check = False):
 
             print('\t\t Barycentres', barycentres)
 
-            variances[j]= Variance_update(Z,barycentres[j])
+            variances[j] = Variance_update2(Z, weights[j], weights, variances[j], variances, barycentres[j], barycentres)
+
+            #variances[j]= Variance_update(Z,barycentres[j])
 
             print('\t\t Variances', variances)
 
@@ -74,26 +75,26 @@ def EM( iter,  M, example_name, filename, truth_check = False):
 
     labels = np.empty(N)
 
-
-
     for i in range(N):
 
         probabilities = np.zeros(M)
 
         for j in range(M):
 
-
-
             probabilities[j] = weights[j] * Gaussian_PDF(Z[i], barycentres[j], variances[j])
-
 
         labels[i] = np.argmax(probabilities)
 
     print('labels',labels)
 
-    #if(truth_check == True):
+
+    #Ground Truth Check
+    if(truth_check == True):
 
 
+        performance = Truth_Check_Small_K(example_name,labels, M)
+
+        print('Performance', performance)
 
 
 
@@ -102,7 +103,7 @@ def EM( iter,  M, example_name, filename, truth_check = False):
 
     #Creation of the output directory if it does not yet exists
 
-    output_directory = 'Output/'+example_name+'/'+filename
+    output_directory = 'Output/'+example_name+'/'+filename+'_'+str(iter)+'_iter_'+str(M)+'_M'
     try:
         os.makedirs(output_directory)
         print("Directory ", output_directory, " Created")
