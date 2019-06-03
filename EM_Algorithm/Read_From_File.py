@@ -5,7 +5,7 @@ def Get_matrix(filename):
 
 
     with open('Input/'+filename, 'rb') as f:
-        A, B, centroids, data_label, Variances, truth, oiu = pickle.load(f)
+        A, B, centroids, data_label, Variances, truth, oiu  = pickle.load(f)
     f.close()
 
 

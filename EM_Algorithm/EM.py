@@ -59,9 +59,13 @@ def EM( iter,  M, example_name, filename, truth_check = False):
 
             print('\t\t Weights', weights)
 
+        #for j in range(M):  # j is the mu index
+
             barycentres[j] = Riemannian_barycenter_weighted(Z, tau, lmbd, weights[j], weights, barycentres[j], barycentres,variances[j], variances)
 
             print('\t\t Barycentres', barycentres)
+
+        #for j in range(M):  # j is the mu index
 
             variances[j] = Variance_update2(Z, weights[j], weights, variances[j], variances, barycentres[j], barycentres)
 
@@ -91,15 +95,19 @@ def EM( iter,  M, example_name, filename, truth_check = False):
     #Ground Truth Check
     if(truth_check == True):
 
+        if(M>6):
+            performance = Truth_Check_Large_K(example_name,labels,M)
+        else:
 
-        performance = Truth_Check_Small_K(example_name,labels, M)
+            performance = Truth_Check_Small_K(example_name,labels, M)
+
 
         print('Performance', performance)
 
 
 
 
-    #Save what is computed
+    #Save everything and plot
 
     #Creation of the output directory if it does not yet exists
 
@@ -110,6 +118,29 @@ def EM( iter,  M, example_name, filename, truth_check = False):
 
     except FileExistsError:
         print("Directory ", output_directory, " already exists")
+
+
+    #Save to Python Pickle
+    print('Saving data...')
+    with open(output_directory + '/Output_Data_' + example_name + '.pkl', 'wb') as f:  # Python 3: open(..., 'wb')
+        pickle.dump([B, weights, barycentres, variances, performance], f)
+
+    print('Data Saved to ', output_directory + '/Output_Data_' +example_name+ '.pkl')
+
+    #Save to text file
+
+    print('Saving Variances and Truth percentage to text file...')
+    file = open(output_directory + '/Performances_'+example_name +'.txt', 'w')
+
+
+    # file.write('Variances:\n')
+    # for i in Variances:
+    #     file.write(str(i) + '\n')
+    file.write('Truth percentage:\n')
+    file.write(str(performance))
+
+    file.close()
+
 
 
     #Plotting the results

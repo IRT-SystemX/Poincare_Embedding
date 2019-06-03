@@ -11,7 +11,7 @@ def inverse_phi( Sigma):
 
 def phi (argument_phi):
 
-    print('Argument of Phi', argument_phi)
+    #print('Argument of Phi', argument_phi)
 
     result = 0
 
