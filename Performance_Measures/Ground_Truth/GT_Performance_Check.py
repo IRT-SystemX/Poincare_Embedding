@@ -88,8 +88,6 @@ def Truth_Check_Small_K(example_name,label, sources_number = 2):
 
     max_result = max(result_percentage)
 
-    print('Max result',max_result)
-
     return max_result
 
 

@@ -67,6 +67,6 @@ def Plot_Gaussian(Mean, Sigma, output_filename):
 
     print('Data plot saved to ',filename)
 
-    plt.show()
+    #plt.show()
 
 

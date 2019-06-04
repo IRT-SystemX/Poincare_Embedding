@@ -83,4 +83,4 @@ def Plot_Gaussian_Mixture(Data, Means, Variances, Weights, output_filename):
 
     print('Data plot saved to ',filename)
 
-    plt.show()
+    #plt.show()
