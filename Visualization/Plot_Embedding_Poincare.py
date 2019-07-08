@@ -4,7 +4,6 @@ from matplotlib.patches import Circle
 
 def Plot_Embedding_Poincare_Multidim(data,filename,dimension, show = True):
 
-    print('Plotting projection...')
 
     # Put true if you have latex
     plt.rc('text', usetex=False)
@@ -36,7 +35,7 @@ def Plot_Embedding_Poincare_Multidim(data,filename,dimension, show = True):
 
     plt.savefig(filename + "Poincare_Embedding_Dim_"+str(dimension)+".pdf", bbox_inches='tight')
 
-    print('Data plot saved to ',filename + "Poincare_Embedding_Dim_"+str(dimension)+".pdf")
+    print('\t Data plot for Dimension '+str(dimension)+' saved to ',filename + "Poincare_Embedding_Dim_"+str(dimension)+".pdf")
 
     #Open  the interactive console for visualization
     if(show):
