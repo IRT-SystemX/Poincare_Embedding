@@ -10,7 +10,7 @@ from Performance_Measures.Ground_Truth.GT_Performance_Check import *
 #Z is a set of N observed samples
 #iter number of iterations
 
-def EM( iter,  M, Z, truth_check = False):
+def EM( iter,  M, Z):
 
     N = len(Z[0])                                  # Number of nodes in data
 

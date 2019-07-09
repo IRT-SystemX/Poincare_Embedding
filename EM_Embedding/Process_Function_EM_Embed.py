@@ -40,8 +40,7 @@ def EM_Embedding_Process (file_name,
 
     weights_table, variances_table, barycentres_table = EM( EM_Parameters['iter_max'],
         EM_Parameters['M'],
-        Embedding_table,
-        Performance_Computation_Parameters['truth_check']
+        Embedding_table
         )
 
     #Find the class for each data node by applying the criterion
@@ -120,15 +119,11 @@ def EM_Embedding_Process (file_name,
 
 
 
-
-
-
-
-
-    output_directory = 'Output/' +file_name+ '/' + file_name + 'Hyperbolic_multidim_process_number_'+str(process_number) + '/Test_nstep_' + str(Embedding_Parameters['nstep']) + '_nepoch_' + str(
+    output_directory = 'Output/' +file_name+ '/' + file_name + 'Hyperbolic_EM_Embed_process_number_'+str(process_number) + '/Test_nstep_' + str(Embedding_Parameters['nstep']) + '_nepoch_' + str(
         Embedding_Parameters['nepoch']) \
                        + '_context_' + str(Embedding_Parameters['context']) + '_negsample_' \
-                       + str(Embedding_Parameters['negsample']) + '_p_' + str(Embedding_Parameters['p_gradient']) +'Disk_Number_'  + str(Embedding_Parameters['number_poincare_disks']) + '/'
+                       + str(Embedding_Parameters['negsample']) + '_p_' + str(Embedding_Parameters['p_gradient']) +'_Disk_Number_'  + str(Embedding_Parameters['number_poincare_disks']) + '_Class_Numb_'
+    + str(EM_Parameters['M']) + '_EM_Iter_'  + str(EM_Parameters['M']) + '/'
 
     try:
         os.makedirs(output_directory)

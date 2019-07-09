@@ -35,7 +35,6 @@ if __name__ == '__main__':
 
     )
 
-
     Performance_Computation_Parameters = dict(
 
         truth_check = True      #Put True if a ground truth file is put in the directory and
