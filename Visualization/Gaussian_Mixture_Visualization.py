@@ -9,9 +9,9 @@ from matplotlib.text import TextPath
 from matplotlib.transforms import Affine2D
 from Math_Functions.Riemannian.Gaussian_PDF import *
 
-def Plot_Gaussian_Mixture(Data, Means, Variances, Weights, output_filename):
+def Plot_Gaussian_Mixture(Data, Means, Variances, Weights, output_filename, dimension_index):
 
-    N = 80
+    N = 100
     X = np.linspace(-1, 1, N)
     Y = np.linspace(-1, 1, N)
     X, Y = np.meshgrid(X, Y)
@@ -56,31 +56,33 @@ def Plot_Gaussian_Mixture(Data, Means, Variances, Weights, output_filename):
     ax = fig.gca(projection='3d')
     ax.plot_surface(X, Y, Z, rstride=1, cstride=1, linewidth=1, antialiased=True, cmap=cm.viridis)
 
+    z_height_circle = -0.8
+
     #Poincaré circle
     p = Circle((0, 0), 1, edgecolor='b', lw=1, facecolor='none')
     ax.add_patch(p)
-    art3d.pathpatch_2d_to_3d(p, z=-0.5, zdir="z")
+    art3d.pathpatch_2d_to_3d(p, z=z_height_circle, zdir="z")
 
 
 
     for i in range(len(Data)):
-        ax.scatter(Data[i].real, Data[i].imag,-0.5, c = 'g', marker='.')
+        ax.scatter(Data[i].real, Data[i].imag,z_height_circle, c = 'g', marker='.')
 
     for j in range(len(Means)):
-        ax.scatter(Means[j].real, Means[j].imag, -0.5, c = 'r', marker = 'o')
+        ax.scatter(Means[j].real, Means[j].imag, z_height_circle, c = 'r', marker = 'o')
 
     ax.set_xlim(-1.2, 1.2)
     ax.set_ylim(-1.2, 1.2)
-    ax.set_zlim(-0.5, 1.1)
+    ax.set_zlim(-0.8, 0.6)
 
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('P')
 
-    filename = output_filename+'/Gaussian_mixture_plot.pdf'
+    filename = output_filename+'Gaussian_mixture_plot_dimension_'+dimension_index+'.pdf'
 
     plt.savefig(filename, bbox_inches='tight')
 
-    print('Data plot saved to ',filename)
+    print('Gaussian saved to',filename)
 
     #plt.show()

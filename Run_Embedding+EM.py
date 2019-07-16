@@ -6,7 +6,7 @@ if __name__ == '__main__':
 
     file_name = 'Books.txt'      #Specify the example name
 
-    number_processes = 2        #Number of processes in parallel
+    number_processes = 1        #Number of processes in parallel
 
     Embedding_Parameters = dict(
 

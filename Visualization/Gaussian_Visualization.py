@@ -11,7 +11,7 @@ from Math_Functions.Riemannian.Gaussian_PDF import *
 
 def Plot_Gaussian(Mean, Sigma, output_filename):
 
-    N = 60
+    N = 260
     X = np.linspace(-1, 1, N)
     Y = np.linspace(-1, 1, N)
     X, Y = np.meshgrid(X, Y)

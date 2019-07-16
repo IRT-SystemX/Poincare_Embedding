@@ -13,6 +13,8 @@ def EM_Embedding_Process (file_name,
                             Plot_Parameters,
                             process_number):
 
+    #Read Data from file
+
     f = open('Input/' + file_name)
     A = []
     for line in f.readlines():
@@ -25,12 +27,16 @@ def EM_Embedding_Process (file_name,
     n = len(A)
     print('Data matrix A contains: ', n, ' nodes.')
 
+    #Embedding
+
     print('Embedding A in ', Embedding_Parameters['number_poincare_disks'], ' Poincaré disks...')
 
     Embedding_table, R = Embedding_Multidim_function(A, Embedding_Parameters['nstep'], Embedding_Parameters['nepoch'],
                                                      Embedding_Parameters['context'], Embedding_Parameters['p_gradient'],
                                                      Embedding_Parameters['negsample'], Embedding_Parameters['number_poincare_disks'])
 
+
+    #Embedded nodes reprsented as complex numbers
     Z = []
 
     for g in range(len(Embedding_table)):
@@ -38,9 +44,11 @@ def EM_Embedding_Process (file_name,
             Z[g] += Embedding_table[g][:, 0]
 
 
+    #Community Detection (EM Algorithm)
+
     weights_table, variances_table, barycentres_table = EM( EM_Parameters['iter_max'],
         EM_Parameters['M'],
-        Embedding_table
+        Z
         )
 
     #Find the class for each data node by applying the criterion
@@ -55,7 +63,7 @@ def EM_Embedding_Process (file_name,
 
             for dimension_index in range(len(Z)):
 
-                probabilities[j] = probabilities[j] +  weights_table[dimension_index][j] * Gaussian_PDF(Z[i], barycentres_table[dimension_index][j], variances_table[dimension_index][j])
+                probabilities[j] = probabilities[j] + weights_table[dimension_index][j] * Gaussian_PDF(Z[dimension_index][i], barycentres_table[dimension_index][j], variances_table[dimension_index][j])
 
         labels[i] = np.argmax(probabilities)
 
@@ -74,50 +82,9 @@ def EM_Embedding_Process (file_name,
         print('Performance', performance)
 
 
-
-
     #Save everything and plot
 
-    #Creation of the output directory if it does not yet exists
-
-    output_directory = 'Output/'+example_name+'/'+filename+'_'+str(iter)+'_iter_'+str(M)+'_M'
-    try:
-        os.makedirs(output_directory)
-        print("Directory ", output_directory, " Created")
-
-    except FileExistsError:
-        print("Directory ", output_directory, " already exists")
-
-
-    #Save to Python Pickle
-    print('Saving data...')
-    with open(output_directory + '/Output_Data_' + example_name + '.pkl', 'wb') as f:  # Python 3: open(..., 'wb')
-        pickle.dump([B, weights, barycentres, variances, performance], f)
-
-    print('Data Saved to ', output_directory + '/Output_Data_' +example_name+ '.pkl')
-
-    #Save to text file
-
-    print('Saving Variances and Truth percentage to text file...')
-    file = open(output_directory + '/Performances_'+example_name +'.txt', 'w')
-
-
-    # file.write('Variances:\n')
-    # for i in Variances:
-    #     file.write(str(i) + '\n')
-    file.write('Truth percentage:\n')
-    file.write(str(performance))
-
-    file.close()
-
-
-
-    #Plotting the results
-
-    Plot_Gaussian_Mixture(Z, barycentres, variances, weights, output_directory)
-
-
-
+        #Creation of the output directory if it does not yet exists
 
     output_directory = 'Output/' +file_name+ '/' + file_name + 'Hyperbolic_EM_Embed_process_number_'+str(process_number) + '/Test_nstep_' + str(Embedding_Parameters['nstep']) + '_nepoch_' + str(
         Embedding_Parameters['nepoch']) \
@@ -134,19 +101,34 @@ def EM_Embedding_Process (file_name,
 
     print('Saving data...')
     with open(output_directory + 'Output_Data' + file_name + '.pkl', 'wb') as f:  # Python 3: open(..., 'wb')
-        pickle.dump([A, Embedding_table, R], f)
+        pickle.dump([A, Embedding_table, R, weights_table,barycentres_table, variances_table, performance], f)
+
+        #Save to text file
+
+    print('Saving Truth percentage to text file...')
+
+
+    file = open(output_directory + '/Performances_'+file_name +'.txt', 'w')
+
+    file.write('Truth percentage:\n')
+    file.write(str(performance))
+    file.close()
 
 
     if(Plot_Parameters['plot_or_no']):
         print('Plotting...')
         for y in range(len(Embedding_table)):
 
+            print('\t Dimension', y)
             # Plot of the embedding
 
             Plot_Embedding_Poincare_Multidim(Embedding_table[y], output_directory, y, False)
 
-        print('Done Plotting!')
+            # Plotting the results
 
+            Plot_Gaussian_Mixture(Z, barycentres_table[y], variances_table[y], weights_table[y], output_directory, y)
+
+        print('Done Plotting!')
 
 
     return True

@@ -44,8 +44,6 @@ def EM( iter,  M, Z):
         print('\tBarycentres\n', barycentres)
         print('\tVariances \n', variances)
 
-
-
         #Iteration until an Iter number of times while applying the update functionso f the EM algorithm
 
         for i in range(iter):
