@@ -77,5 +77,5 @@ def EM( iter,  M, Z):
         barycentres_table.append(barycentres)
 
 
-        return weights_table, variances_table, barycentres_table
+    return weights_table, variances_table, barycentres_table
 

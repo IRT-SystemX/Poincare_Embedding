@@ -79,7 +79,7 @@ def Plot_Gaussian_Mixture(Data, Means, Variances, Weights, output_filename, dime
     ax.set_ylabel('Y')
     ax.set_zlabel('P')
 
-    filename = output_filename+'Gaussian_mixture_plot_dimension_'+dimension_index+'.pdf'
+    filename = output_filename+'Gaussian_mixture_plot_dimension_'+str(dimension_index)+'.pdf'
 
     plt.savefig(filename, bbox_inches='tight')
 

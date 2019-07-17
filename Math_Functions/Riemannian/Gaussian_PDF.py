@@ -155,6 +155,8 @@ def Normalizing_Factor (Sigma):
 
 def Gaussian_PDF (X, Mean, Sigma):
 
+    #One data node as input and probability from the gaussian distribtuion as output
+
     Z = Normalizing_Factor(Sigma)
 
     result = (1/Z)*math.exp( (-pow(Riemannian_distance(X, Mean),2))/(2*pow(Sigma,2)))

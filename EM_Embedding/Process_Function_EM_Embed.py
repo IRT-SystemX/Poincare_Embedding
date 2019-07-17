@@ -27,7 +27,10 @@ def EM_Embedding_Process (file_name,
     n = len(A)
     print('Data matrix A contains: ', n, ' nodes.')
 
-    #Embedding
+    # Community Detection (EM Algorithm)
+
+
+        #Initial Embedding with social network loss function
 
     print('Embedding A in ', Embedding_Parameters['number_poincare_disks'], ' Poincaré disks...')
 
@@ -36,7 +39,7 @@ def EM_Embedding_Process (file_name,
                                                      Embedding_Parameters['negsample'], Embedding_Parameters['number_poincare_disks'])
 
 
-    #Embedded nodes reprsented as complex numbers
+        #Embedded nodes reprsented as complex numbers
     Z = []
 
     for g in range(len(Embedding_table)):
@@ -44,8 +47,7 @@ def EM_Embedding_Process (file_name,
             Z[g] += Embedding_table[g][:, 0]
 
 
-    #Community Detection (EM Algorithm)
-
+        #Fix Node embedding location and optimize the variances and the barycentres
     weights_table, variances_table, barycentres_table = EM( EM_Parameters['iter_max'],
         EM_Parameters['M'],
         Z
@@ -54,6 +56,7 @@ def EM_Embedding_Process (file_name,
     #Find the class for each data node by applying the criterion
 
     labels = np.empty(n)
+
 
     for i in range(n):
 
@@ -89,8 +92,7 @@ def EM_Embedding_Process (file_name,
     output_directory = 'Output/' +file_name+ '/' + file_name + 'Hyperbolic_EM_Embed_process_number_'+str(process_number) + '/Test_nstep_' + str(Embedding_Parameters['nstep']) + '_nepoch_' + str(
         Embedding_Parameters['nepoch']) \
                        + '_context_' + str(Embedding_Parameters['context']) + '_negsample_' \
-                       + str(Embedding_Parameters['negsample']) + '_p_' + str(Embedding_Parameters['p_gradient']) +'_Disk_Number_'  + str(Embedding_Parameters['number_poincare_disks']) + '_Class_Numb_'
-    + str(EM_Parameters['M']) + '_EM_Iter_'  + str(EM_Parameters['M']) + '/'
+                       + str(Embedding_Parameters['negsample']) + '_p_' + str(Embedding_Parameters['p_gradient']) +'_Disk_Number_'  + str(Embedding_Parameters['number_poincare_disks']) + '_Class_Numb_' + str(EM_Parameters['M']) + '_EM_Iter_' + str(EM_Parameters['iter_max']) +'/'
 
     try:
         os.makedirs(output_directory)
