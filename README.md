@@ -3,4 +3,4 @@
 
 
 
-![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 1")
+![alt text](https://github.com/hz789/EM_Hyperbolic/blob/master/Readme_Figure.png?raw=true "Gaussien mixture model")
