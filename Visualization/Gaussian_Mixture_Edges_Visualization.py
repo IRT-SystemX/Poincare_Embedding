@@ -9,7 +9,7 @@ from matplotlib.text import TextPath
 from matplotlib.transforms import Affine2D
 from Math_Functions.Riemannian.Gaussian_PDF import *
 
-def Plot_Gaussian_Mixture(Data, Means, Variances, Weights, labels, color_array, output_filename, dimension_index):
+def Plot_Gaussian_Mixture_Edges(Data, Means, Variances, Weights, labels, color_array, edges, output_filename, dimension_index):
 
     N = 100
     X = np.linspace(-1, 1, N)
@@ -63,6 +63,12 @@ def Plot_Gaussian_Mixture(Data, Means, Variances, Weights, labels, color_array, 
     ax.add_patch(p)
     art3d.pathpatch_2d_to_3d(p, z=z_height_circle, zdir="z")
 
+    for i in range(0, len(edges[:, 0])):
+        for j in range(i, len(edges[0, :])):
+            if i != j:
+                if edges[i, j] == 1:
+                    ax.plot([Data[i].real, Data[j].real], [Data[i].imag, Data[j].imag], color='k', alpha=0.4)
+
 
     for i in range(len(Data)):
         ax.scatter(Data[i].real, Data[i].imag,z_height_circle, c = color_array[labels[i]], marker='.')
@@ -78,10 +84,10 @@ def Plot_Gaussian_Mixture(Data, Means, Variances, Weights, labels, color_array, 
     ax.set_ylabel('Y')
     ax.set_zlabel('P')
 
-    filename = output_filename+'Gaussian_mixture_plot_dimension_'+str(dimension_index)+'.pdf'
+    filename = output_filename+'Gaussian_mixture_edges_plot_dimension_'+str(dimension_index)+'.pdf'
 
     plt.savefig(filename, bbox_inches='tight')
 
-    print('Gaussian saved to',filename)
+    print('Gaussian with edges saved to',filename)
 
     #plt.show()

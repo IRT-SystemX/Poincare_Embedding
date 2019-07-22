@@ -4,6 +4,7 @@ from EM_Algorithm.Read_From_File import *
 from Visualization.Gaussian_Mixture_Visualization import *
 from Visualization.Gaussian_Visualization import *
 from Visualization.Plot_Embedding_Poincare import *
+from Visualization.Gaussian_Mixture_Edges_Visualization import *
 
 
 def EM_Embedding_Process (file_name,
@@ -127,8 +128,17 @@ def EM_Embedding_Process (file_name,
             Plot_Embedding_Poincare_Multidim(Embedding_table[y], output_directory, y, False)
 
             # Plotting the results
+                # Randomly producing a single color table
+            color_array = []
 
-            Plot_Gaussian_Mixture(Z, barycentres_table[y], variances_table[y], weights_table[y], output_directory, y)
+            for i in range(0, EM_Parameters['M']):
+                color_array.append(np.random.rand(3, ))
+
+            color_array = np.array(color_array)
+
+            Plot_Gaussian_Mixture(Z, barycentres_table[y], variances_table[y], weights_table[y], labels, color_array, output_directory, y)
+
+            Plot_Gaussian_Mixture_Edges(Z, barycentres_table[y], variances_table[y], weights_table[y], labels, color_array, A, output_directory, y)
 
         print('Done Plotting!')
 

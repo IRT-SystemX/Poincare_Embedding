@@ -18,10 +18,9 @@ def Plot_Embedding_Poincare_Multidim(data,filename,dimension, show = True):
 
     #Title and labels of axis
 
-    plt.ylabel(r'Second dimension $x_1$', fontsize=16)
-    plt.xlabel(r'First dimension $x_0$', fontsize=16)
-    plt.title(r"Hyperbolic Poincaré Embedding",
-              fontsize=20, color='black')
+    #plt.ylabel(r'Second dimension $x_1$', fontsize=16)
+    #plt.xlabel(r'First dimension $x_0$', fontsize=16)
+    #plt.title(r"Hyperbolic Poincaré Embedding", fontsize=20, color='black')
 
 
     #Plotting Poincaré disk border
