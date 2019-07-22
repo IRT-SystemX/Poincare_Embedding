@@ -17,7 +17,7 @@ if __name__ == '__main__':
         negsample=3,            # Quoted "Our experiments indicate that values of negsample in the range 5–20 are useful for small training datasets
                                 # while for large datasets the k can be as small as 2–5"
 
-        number_poincare_disks = 2,
+        number_poincare_disks = 1,
                                 # For multi-dimensional settings, we work in the product of many Poincaré disks
         type=0                  # type = 0 for Social networks and type = 1 for word embedding  (the cost function is different for each case)
 
@@ -31,7 +31,7 @@ if __name__ == '__main__':
     )
 
     Plot_Parameters = dict(      #Requires matplotlib
-        plot_or_no = True       #Set to False if you do not wish to plot
+        plot_or_no = True       #Set to False if you do not wish to plot (Not recommanded for number of disks > 5 or data size > 1000)
 
     )
 

@@ -56,7 +56,7 @@ def EM_Embedding_Process (file_name,
 
     #Find the class for each data node by applying the criterion
 
-    labels = np.empty(n)
+    labels = np.ones(n, dtype = int)
 
 
     for i in range(n):
@@ -119,26 +119,30 @@ def EM_Embedding_Process (file_name,
 
 
     if(Plot_Parameters['plot_or_no']):
+
         print('Plotting...')
+
+        # Randomly producing a unified color table
+        color_array = []
+
+        for i in range(0, EM_Parameters['M']):
+            color_array.append(np.random.rand(3, ))
+
+        print('Color array', color_array)
+
         for y in range(len(Embedding_table)):
 
             print('\t Dimension', y)
+
             # Plot of the embedding
 
             Plot_Embedding_Poincare_Multidim(Embedding_table[y], output_directory, y, False)
 
             # Plotting the results
-                # Randomly producing a single color table
-            color_array = []
 
-            for i in range(0, EM_Parameters['M']):
-                color_array.append(np.random.rand(3, ))
+            Plot_Gaussian_Mixture(Z[y], barycentres_table[y], variances_table[y], weights_table[y], labels, color_array, output_directory, y)
 
-            color_array = np.array(color_array)
-
-            Plot_Gaussian_Mixture(Z, barycentres_table[y], variances_table[y], weights_table[y], labels, color_array, output_directory, y)
-
-            Plot_Gaussian_Mixture_Edges(Z, barycentres_table[y], variances_table[y], weights_table[y], labels, color_array, A, output_directory, y)
+            Plot_Gaussian_Mixture_Edges(Z[y], barycentres_table[y], variances_table[y], weights_table[y], labels, color_array, A, output_directory, y)
 
         print('Done Plotting!')
 

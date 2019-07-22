@@ -67,14 +67,13 @@ def Plot_Gaussian_Mixture_Edges(Data, Means, Variances, Weights, labels, color_a
         for j in range(i, len(edges[0, :])):
             if i != j:
                 if edges[i, j] == 1:
-                    ax.plot([Data[i].real, Data[j].real], [Data[i].imag, Data[j].imag], color='k', alpha=0.4)
-
+                    ax.plot([Data[i].real, Data[j].real], [Data[i].imag, Data[j].imag], z_height_circle, color='k', alpha=0.4)
 
     for i in range(len(Data)):
-        ax.scatter(Data[i].real, Data[i].imag,z_height_circle, c = color_array[labels[i]], marker='.')
+         ax.scatter(Data[i].real, Data[i].imag,z_height_circle, c = color_array[labels[i]], marker='.')
 
     for j in range(len(Means)):
-        ax.scatter(Means[j].real, Means[j].imag, z_height_circle, c = 'r', marker = 'o')
+        ax.scatter(Means[j].real, Means[j].imag, z_height_circle, c = color_array[j], marker = 'o')
 
     ax.set_xlim(-1.2, 1.2)
     ax.set_ylim(-1.2, 1.2)

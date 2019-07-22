@@ -61,14 +61,17 @@ def Plot_Gaussian_Mixture(Data, Means, Variances, Weights, labels, color_array, 
     #Poincaré circle
     p = Circle((0, 0), 1, edgecolor='b', lw=1, facecolor='none')
     ax.add_patch(p)
-    art3d.pathpatch_2d_to_3d(p, z=z_height_circle, zdir="z")
+    art3d.pathpatch_2d_to_3d(p, z = z_height_circle, zdir="z")
 
+    print('Length data', len(Data))
 
-    for i in range(len(Data)):
-        ax.scatter(Data[i].real, Data[i].imag,z_height_circle, c = color_array[labels[i]], marker='.')
+    for q in range(0, len(Data)):
+
+        ax.scatter(Data[q].real, Data[q].imag, z_height_circle, c = color_array[labels[q]], marker='.')
+        #print('Print labels', labels[q])
 
     for j in range(len(Means)):
-        ax.scatter(Means[j].real, Means[j].imag, z_height_circle, c = 'r', marker = 'o')
+        ax.scatter(Means[j].real, Means[j].imag, z_height_circle, c = color_array[j], marker = 's')
 
     ax.set_xlim(-1.2, 1.2)
     ax.set_ylim(-1.2, 1.2)
