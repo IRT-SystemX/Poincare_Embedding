@@ -8,9 +8,13 @@ import mpl_toolkits.mplot3d.art3d as art3d
 from matplotlib.text import TextPath
 from matplotlib.transforms import Affine2D
 from Math_Functions.Riemannian.Gaussian_PDF import *
+from matplotlib.axes._axes import _log as matplotlib_axes_logger
 
 def Plot_Gaussian_Mixture(Data, Means, Variances, Weights, labels, color_array, output_filename, dimension_index):
 
+    matplotlib_axes_logger.setLevel('ERROR')
+
+    #Number of sample points to plot the Gaussian mixture model
     N = 100
     X = np.linspace(-1, 1, N)
     Y = np.linspace(-1, 1, N)
@@ -71,7 +75,7 @@ def Plot_Gaussian_Mixture(Data, Means, Variances, Weights, labels, color_array, 
         #print('Print labels', labels[q])
 
     for j in range(len(Means)):
-        ax.scatter(Means[j].real, Means[j].imag, z_height_circle, c = color_array[j], marker = 's')
+        ax.scatter(Means[j].real, Means[j].imag, z_height_circle, c = color_array[j], marker = 'D')
 
     ax.set_xlim(-1.2, 1.2)
     ax.set_ylim(-1.2, 1.2)

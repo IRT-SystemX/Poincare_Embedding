@@ -44,7 +44,11 @@ def EM( iter,  M, Z):
         print('\tBarycentres\n', barycentres)
         print('\tVariances \n', variances)
 
-        #Iteration until an Iter number of times while applying the update functionso f the EM algorithm
+        #Iteration until an Iter number of times while applying the update functions of the EM algorithm
+
+        weights_old = weights.copy()
+        barycentres_old = barycentres.copy()
+        variances_old = variances.copy()
 
         for i in range(iter):
 
@@ -52,17 +56,17 @@ def EM( iter,  M, Z):
 
             for j in range(M):   #j is the mu index
 
-                print('\tGaussian number ', j)
+                #print('\tGaussian number ', j)
 
                 weights[j] = N_mu(Z[dimension_index], weights[j], weights, variances[j], variances, barycentres[j], barycentres)/N
 
-                print('\t\t Weights', weights)
+                #print('\t\t Weights', weights)
 
             #for j in range(M):  # j is the mu index
 
                 barycentres[j] = Riemannian_barycenter_weighted(Z[dimension_index], tau, lmbd, weights[j], weights, barycentres[j], barycentres,variances[j], variances)
 
-                print('\t\t Barycentres', barycentres)
+                #print('\t\t Barycentres', barycentres)
 
         #for j in range(M):  # j is the mu index
 
@@ -70,12 +74,24 @@ def EM( iter,  M, Z):
 
                 #variances[j]= Variance_update(Z,barycentres[j])
 
-                print('\t\t Variances', variances)
+                #print('\t\t Variances', variances)
+
+            # print('Old weights', weights_old)
+            # print('Old variances', variances_old)
+            # print('Old barycentres', barycentres_old)
+
+            if( np.array_equal(weights_old, weights) and np.array_equal(barycentres_old, barycentres) and np.array_equal(variances_old,variances)):
+                print('!!!!!!!!!!!!!!!!EM Convergence achieved!!!!!!!!!!!!!!!!')
+                break
+
 
         weights_table.append(weights)
         variances_table.append(variances)
         barycentres_table.append(barycentres)
 
+    print('Weights', weights_table)
+    print('Barycentres', barycentres_table)
+    print('Variances', variances_table)
 
     return weights_table, variances_table, barycentres_table
 

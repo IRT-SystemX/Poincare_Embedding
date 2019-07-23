@@ -31,7 +31,8 @@ def EM_Embedding_Process (file_name,
     # Community Detection (EM Algorithm)
 
 
-        #Initial Embedding with social network loss function
+        #Initial Embedding with social network loss function and deep walk (based on random walks algorithm)
+
 
     print('Embedding A in ', Embedding_Parameters['number_poincare_disks'], ' Poincaré disks...')
 
@@ -40,7 +41,8 @@ def EM_Embedding_Process (file_name,
                                                      Embedding_Parameters['negsample'], Embedding_Parameters['number_poincare_disks'])
 
 
-        #Embedded nodes reprsented as complex numbers
+
+        #Representation of the embedding as complex numbers
     Z = []
 
     for g in range(len(Embedding_table)):
@@ -48,16 +50,39 @@ def EM_Embedding_Process (file_name,
             Z[g] += Embedding_table[g][:, 0]
 
 
-        #Fix Node embedding location and optimize the variances and the barycentres
-    weights_table, variances_table, barycentres_table = EM( EM_Parameters['iter_max'],
+    #Repeat for some number of iterations
+
+
+    for iter in range(EM_Parameters['iter']):
+
+
+        #Fix Node embedding location and optimize the variances and the barycentres via EM algorithm
+            #Until convergence or until the maximum number of iterations is reached
+        weights_table, variances_table, barycentres_table = EM( EM_Parameters['iter_max'],
         EM_Parameters['M'],
         Z
         )
+
+        #Fix the variances and barycentres of the gaussian mix and optimize the node embedding
+
+        # Embedding_table, R = Embedding_Multidim_function(A, Embedding_Parameters['nstep'],
+        #                                                  Embedding_Parameters['nepoch'],
+        #                                                  Embedding_Parameters['context'],
+        #                                                  Embedding_Parameters['p_gradient'],
+        #                                                  Embedding_Parameters['negsample'],
+        #                                                  Embedding_Parameters['number_poincare_disks'])
+
+
+
 
     #Find the class for each data node by applying the criterion
 
     labels = np.ones(n, dtype = int)
 
+
+    #Choosing of classes criterion
+    #Each node wil be labeled with the class of the gaussian for which it has the highest probability multiplied by the computed weight
+    #Other selection criterions can be applied as well (e.g BIC)
 
     for i in range(n):
 
