@@ -8,7 +8,7 @@ A multi-dimensional setting is also implemented using the products of many Poinc
 Poincaré disk with two Gaussians computed via graph embedding followed by exptectation maximisation algorithm for the Karate example dataset.
 
 
-###The package contains the following modules:
+### The package contains the following modules:
 
 * EM_Algorithm: implements the expectation maximisation algorithm
 * EM_Embedding: implements the embedding of a graph structured data given an adjacency matrix then applies the EM algorithm 
