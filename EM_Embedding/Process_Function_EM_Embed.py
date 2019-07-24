@@ -62,21 +62,23 @@ def EM_Embedding_Process (file_name,
     for iter in range(EM_Parameters['iter']):
 
 
-        #Fix the variances and barycentres of the gaussian mix and optimize the node embedding
+        #Fix the variances and barycentres of the gaussian mix and optimize the objective function of node embedding
 
-        Embedding_table, R = Embedding_Multidim_function(A, Embedding_Parameters['nstep'],
+        Embedding_table, R = Embedding_Multidim_no_init_function(A, Embedding_Parameters['nstep'],
                                                          Embedding_Parameters['nepoch'],
                                                          Embedding_Parameters['context'],
                                                          Embedding_Parameters['p_gradient'],
                                                          Embedding_Parameters['negsample'],
-                                                         Embedding_Parameters['number_poincare_disks'])
+                                                         Embedding_Parameters['number_poincare_disks'], Embedding_table)
 
 
         #Fix Node embedding location and optimize the variances and the barycentres via EM algorithm
             #Until convergence or until the maximum number of iterations is reached
 
 
-
+        weights_table, variances_table, barycentres_table = EM_no_init(EM_Parameters['iter_max'],
+                                                           EM_Parameters['M'],
+                                                           Z, weights_table, variances_table, barycentres_table)
 
 
 
