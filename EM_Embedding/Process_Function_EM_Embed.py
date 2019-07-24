@@ -49,6 +49,12 @@ def EM_Embedding_Process (file_name,
             Z.append(1j * Embedding_table[g][:, 1])
             Z[g] += Embedding_table[g][:, 0]
 
+    #Initial community embedding via EM
+
+    weights_table, variances_table, barycentres_table = EM(EM_Parameters['iter_max'],
+                                                           EM_Parameters['M'],
+                                                           Z
+                                                           )
 
     #Repeat for some number of iterations
 
@@ -56,21 +62,21 @@ def EM_Embedding_Process (file_name,
     for iter in range(EM_Parameters['iter']):
 
 
-        #Fix Node embedding location and optimize the variances and the barycentres via EM algorithm
-            #Until convergence or until the maximum number of iterations is reached
-        weights_table, variances_table, barycentres_table = EM( EM_Parameters['iter_max'],
-        EM_Parameters['M'],
-        Z
-        )
-
         #Fix the variances and barycentres of the gaussian mix and optimize the node embedding
 
-        # Embedding_table, R = Embedding_Multidim_function(A, Embedding_Parameters['nstep'],
-        #                                                  Embedding_Parameters['nepoch'],
-        #                                                  Embedding_Parameters['context'],
-        #                                                  Embedding_Parameters['p_gradient'],
-        #                                                  Embedding_Parameters['negsample'],
-        #                                                  Embedding_Parameters['number_poincare_disks'])
+        Embedding_table, R = Embedding_Multidim_function(A, Embedding_Parameters['nstep'],
+                                                         Embedding_Parameters['nepoch'],
+                                                         Embedding_Parameters['context'],
+                                                         Embedding_Parameters['p_gradient'],
+                                                         Embedding_Parameters['negsample'],
+                                                         Embedding_Parameters['number_poincare_disks'])
+
+
+        #Fix Node embedding location and optimize the variances and the barycentres via EM algorithm
+            #Until convergence or until the maximum number of iterations is reached
+
+
+
 
 
 
