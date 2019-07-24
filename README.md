@@ -3,6 +3,11 @@
 This package implements the expectation maximisation algorithm for the Poincaré manifold. 
 A multi-dimensional setting is also implemented using the products of many Poincaré disks. 
 
+
+![alt text](https://github.com/hz789/EM_Hyperbolic/blob/master/Readme_Figure.png?raw=true "Gaussien mixture model")
+Poincaré disk with two Gaussians computed via graph embedding followed by exptectation maximisation algorithm for the Karate example dataset.
+
+
 ###The package contains the following modules:
 
 * EM_Algorithm: implements the expectation maximisation algorithm
@@ -18,4 +23,3 @@ Launch the script.
 Check results in the Output folder. 
 
 
-![alt text](https://github.com/hz789/EM_Hyperbolic/blob/master/Readme_Figure.png?raw=true "Gaussien mixture model")
