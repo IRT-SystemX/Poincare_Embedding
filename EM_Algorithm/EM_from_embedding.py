@@ -102,7 +102,7 @@ def EM_no_init( iter,  M, Z, weights_table, variances_table, barycentres_table):
 
     N = len(Z[0])                                  # Number of nodes in data
 
-    print('Data matrix contains ', N,' nodes')
+    #print('Data matrix contains ', N,' nodes')
 
     # Barycenter approximation parameters
 

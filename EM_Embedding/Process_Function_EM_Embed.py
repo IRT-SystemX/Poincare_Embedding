@@ -34,9 +34,9 @@ def EM_Embedding_Process (file_name,
         #Initial Embedding with social network loss function and deep walk (based on random walks algorithm)
 
 
-    print('Embedding A in ', Embedding_Parameters['number_poincare_disks'], ' Poincaré disks...')
+    print('Initial Embedding of A in ', Embedding_Parameters['number_poincare_disks'], ' Poincaré disks...')
 
-    Embedding_table, R = Embedding_Multidim_function(A, Embedding_Parameters['nstep'], Embedding_Parameters['nepoch'],
+    Embedding_table, R, nodepairs,Pneg, npair = Embedding_Multidim_function(A, Embedding_Parameters['nstep'], Embedding_Parameters['nepoch'],
                                                      Embedding_Parameters['context'], Embedding_Parameters['p_gradient'],
                                                      Embedding_Parameters['negsample'], Embedding_Parameters['number_poincare_disks'])
 
@@ -49,32 +49,33 @@ def EM_Embedding_Process (file_name,
             Z.append(1j * Embedding_table[g][:, 1])
             Z[g] += Embedding_table[g][:, 0]
 
-    #Initial community embedding via EM
+
+        #Initial community embedding via EM
 
     weights_table, variances_table, barycentres_table = EM(EM_Parameters['iter_max'],
                                                            EM_Parameters['M'],
                                                            Z
                                                            )
 
-    #Repeat for some number of iterations
+    #Repeat the switching between the node embedding and community embedding algorithms for some number of iterations
 
+    print('Community Embedding Loop')
 
     for iter in range(EM_Parameters['iter']):
 
 
-        #Fix the variances and barycentres of the gaussian mix and optimize the objective function of node embedding
+        #Fix the variances and barycentres of the gaussian mixture model and optimize the objective function of node embedding
 
-        Embedding_table, R = Embedding_Multidim_no_init_function(A, Embedding_Parameters['nstep'],
+        Embedding_table, nodepairs, Pneg  = Embedding_Multidim_no_init_function(A, Embedding_Parameters['nstep'],
                                                          Embedding_Parameters['nepoch'],
                                                          Embedding_Parameters['context'],
                                                          Embedding_Parameters['p_gradient'],
                                                          Embedding_Parameters['negsample'],
-                                                         Embedding_Parameters['number_poincare_disks'], Embedding_table)
+                                                         Embedding_Parameters['number_poincare_disks'], Embedding_table, nodepairs, Pneg,npair)
 
 
         #Fix Node embedding location and optimize the variances and the barycentres via EM algorithm
             #Until convergence or until the maximum number of iterations is reached
-
 
         weights_table, variances_table, barycentres_table = EM_no_init(EM_Parameters['iter_max'],
                                                            EM_Parameters['M'],
@@ -82,6 +83,7 @@ def EM_Embedding_Process (file_name,
 
 
 
+    #A further check should be implemented to avoid getting unfaithful local maxima...
 
     #Find the class for each data node by applying the criterion
 

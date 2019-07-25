@@ -4,7 +4,7 @@ from EM_Embedding.Launch_Multi_Process_EM_Embed import *
 
 if __name__ == '__main__':
 
-    file_name = 'Karate.txt'      #Specify the example name
+    file_name = 'Karate.txt'    #Specify the example name
 
     number_processes = 1        #Number of processes in parallel
 
@@ -27,11 +27,11 @@ if __name__ == '__main__':
 
         M = 2,                  # Number of Gaussians used in the mix (also the number of classes)
         iter_max = 20,          # Maximum number of EM iterations
-        iter = 1               #Community detection loop number of iterations
+        iter = 2                #Community detection loop number of iterations
 
     )
 
-    Plot_Parameters = dict(      #Requires matplotlib
+    Plot_Parameters = dict(     #Requires matplotlib
         plot_or_no = True       #Set to False if you do not wish to plot (Not recommanded for number of disks > 5 or data size > 1000)
 
     )
@@ -40,7 +40,10 @@ if __name__ == '__main__':
 
         truth_check = True      #Put True if a ground truth file is put in the directory and
                                 #you would like to compute performances using it
-                                #Assumption: The name of the ground truth is R_'file_name' and labels are written per line starting from 1
+                                #Assumption: The name of the ground truth is R_'file_name' and one label is written per line starting from 1,
+                                #With the same order as the nodes of the input adjacency matrix
+                                #For the moment the class of each node is attributed to the gaussian that gives the highest probability for the node
+                                #BIC criterion can be implemented as a perspective
     )
 
     Launch_multiprocess_EM_Embed(number_processes, file_name, Embedding_Parameters, EM_Parameters, Performance_Computation_Parameters, Plot_Parameters)

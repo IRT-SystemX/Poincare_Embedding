@@ -185,11 +185,13 @@ def Embedding_Multidim_function(A,nstep, nepoch,context, p_gradient,negsample, n
         counter = counter+1
         #print('La matrice B est\n',B)
 
-    return Embedding_table,R
+    #We need nodepairs, and Pneg for the no_init_function
+
+    return Embedding_table,R, nodepairs, Pneg, npair
 
 
 
-def Embedding_Multidim_no_init_function(A,nstep, nepoch,context, p_gradient,negsample, number_disks, Embedding_table, Random_Walks = None):
+def Embedding_Multidim_no_init_function(A,nstep, nepoch,context, p_gradient,negsample, number_disks, Embedding_table, nodepairs, Pneg, npair, Random_Walks = None):
 
     n = len(A[0])
     eta = 0.05
@@ -204,43 +206,43 @@ def Embedding_Multidim_no_init_function(A,nstep, nepoch,context, p_gradient,negs
     #negsample = 10
     #nepoch = 10
 
-    assert(nstep >= context*2)
+    #assert(nstep >= context*2)
 
-    R = randomwalks(A, nstep)
+    #R = randomwalks(A, nstep)
 
-    if Random_Walks is not None:
-        Random_Walks = R
+    #if Random_Walks is not None:
+        #Random_Walks = R
 
-    npair = len(R[:,0]) * ((nstep + 1) * 2 * context - context * (context + 1))
+    #npair = len(R[:,0]) * ((nstep + 1) * 2 * context - context * (context + 1))
 
     #print('npair:\n',npair)
 
-    nodepairs = np.zeros((npair,2),dtype = int)
+    #nodepairs = np.zeros((npair,2),dtype = int)
 
     #print('nodepairs',nodepairs)
 
     #Try with ind = 0
     #ind = 1
-    ind = 0
-    for i in range(0,len(R[:,0])):
-        for j in range (0, len(R[0])):
+    #ind = 0
+    #for i in range(0,len(R[:,0])):
+        #for j in range (0, len(R[0])):
 
             #Try instead of max(1,j-context) to be max(0,j-context)
-            for k in range(max(0, j - context), min(len(R[0]), j + context)):
+            #for k in range(max(0, j - context), min(len(R[0]), j + context)):
             #for k in range( max(1,j-context), min( len(R[0]),j+context )):
-                if k != j:
-                    nodepairs[ind,:] = [R[i,j], R[i,k]]
-                    ind = ind+1
+                #if k != j:
+                    #nodepairs[ind,:] = [R[i,j], R[i,k]]
+                    #ind = ind+1
 
 
     #nodepairs is a large set of pairs between a node and it's context-close neighbor
     #==> we can't find in nodepairs a node with a neighboor that is at a distance exceeding the context
 
-    assert(len(nodepairs[:,0]) == npair)
+    #assert(len(nodepairs[:,0]) == npair)
 
     #print('Node pairs for training\n', nodepairs)
 
-    np.random.shuffle(nodepairs)
+    #np.random.shuffle(nodepairs)
 
 
     #print('Node pairs after shuffling\n',nodepairs)
@@ -248,54 +250,56 @@ def Embedding_Multidim_no_init_function(A,nstep, nepoch,context, p_gradient,negs
 
     #print('Matrice R\n',R)
 
-    R_vector_column = []
+    #R_vector_column = []
 
     #print('taille colonne',len(R[:,0]) )
     #print('taille ligne',len(R[0,:]))
 
-    for i in range(0, len(R[0, :])):
-        for j in range(0, len(R[:, 0])):
-            R_vector_column.append(R[j,i])
+    #for i in range(0, len(R[0, :])):
+        #for j in range(0, len(R[:, 0])):
+            #R_vector_column.append(R[j,i])
 
     #print('R_vector_column\n',R_vector_column)
 
-    T = collections.Counter(R_vector_column)
+    #T = collections.Counter(R_vector_column)
 
     #print('Compteur de fréquence\n', T)
 
-    Frequency_table = []
-    for k,v in T.items():
-        Frequency_table.append([k,v/len(R_vector_column)])
+    #Frequency_table = []
+    #for k,v in T.items():
+        #Frequency_table.append([k,v/len(R_vector_column)])
 
-    Frequency_table = np.array(Frequency_table)
+    #Frequency_table = np.array(Frequency_table)
 
     #print('Elements de T et leur fréquence\n',Frequency_table)
 
-    unigram = Frequency_table[:,1]
+    #unigram = Frequency_table[:,1]
 
     #print('Colonne des frequences',unigram)
 
-    Pneg = np.power(unigram,3/4)
+    #Pneg = np.power(unigram,3/4)
 
-    Pneg = Pneg /np.sum(Pneg)
+    #Pneg = Pneg /np.sum(Pneg)
 
     #print('Vecteur Pneg\n',Pneg)
 
     #Verifier que random est entre 0 et 1
 
-    Embedding_table = []
+    #Embedding_table = []
 
-    for i in range(number_disks):
+    #for i in range(number_disks):
 
-        Embedding_table.append(initialisation*(2*np.random.random((n, 2))-1))
+        #Embedding_table.append(initialisation*(2*np.random.random((n, 2))-1))
 
     #B = initialisation*(2*np.random.random((n, 2))-1)
 
     #print('Matrice B\n',B)
 
     counter = 0
+
+
     for epoch in range (0,nepoch):
-        print('Iteration:\t',counter)
+        print('\t\tIteration:\t',counter)
         obj = 0
         for p in range (0,npair):
             i = nodepairs[p,0]
@@ -365,7 +369,7 @@ def Embedding_Multidim_no_init_function(A,nstep, nepoch,context, p_gradient,negs
         counter = counter+1
         #print('La matrice B est\n',B)
 
-    return Embedding_table,R
+    return Embedding_table, nodepairs, Pneg
 
 
 def logsigmoid_derivate(x):
