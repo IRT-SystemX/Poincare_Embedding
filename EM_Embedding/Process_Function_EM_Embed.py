@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from EM_Algorithm.EM_from_embedding import *
 from EM_Embedding.Embedding_Multidim import *
 from EM_Algorithm.Read_From_File import *
@@ -32,8 +33,6 @@ def EM_Embedding_Process (file_name,
 
 
         #Initial Embedding with social network loss function and deep walk (based on random walks algorithm)
-
-
     print('Initial Embedding of A in ', Embedding_Parameters['number_poincare_disks'], ' Poincaré disks...')
 
     Embedding_table, R, nodepairs,Pneg, npair = Embedding_Multidim_function(A, Embedding_Parameters['nstep'], Embedding_Parameters['nepoch'],

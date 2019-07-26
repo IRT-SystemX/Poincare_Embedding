@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #The following functions launches multiple processes to perform different embedding seperately
 
 from multiprocessing import Process, Manager
