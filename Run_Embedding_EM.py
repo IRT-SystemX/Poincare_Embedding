@@ -14,9 +14,8 @@ if __name__ == '__main__':
         context=5,              # Large data set: take context between 15 and 20
         nepoch= 5,              # Number of iterations of gradient descent
         p_gradient=2,           # Only Hyperbolic
-        negsample=3,            # Quoted "Our experiments indicate that values of negsample in the range 5–20 are useful for small training datasets
-                                # while for large datasets the k can be as small as 2–5"
-
+        negsample=3,            # Quoted Our experiments indicate that values of negsample in the range 5–20 are useful for small training datasets
+                                # while for large datasets the k can be as small as 2–5
         number_poincare_disks = 1,
                                 # For multi-dimensional settings, we work in the product of many Poincaré disks
         type=0                  # type = 0 for Social networks and type = 1 for word embedding  (the cost function is different for each case)
