@@ -17,7 +17,7 @@ def EM_Embedding_Process (file_name,
 
     #Read Data from file
 
-    f = open('Input/' + file_name)
+    f = open("Input/" + file_name)
     A = []
     for line in f.readlines():
         line2 = line.split()

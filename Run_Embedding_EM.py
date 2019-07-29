@@ -5,7 +5,7 @@ from EM_Embedding.Launch_Multi_Process_EM_Embed import *
 
 if __name__ == '__main__':
 
-    file_name = 'Karate.txt'    #Specify the example name
+    file_name = "Karate.txt"    #Specify the example name
 
     number_processes = 1        #Number of processes in parallel
 
