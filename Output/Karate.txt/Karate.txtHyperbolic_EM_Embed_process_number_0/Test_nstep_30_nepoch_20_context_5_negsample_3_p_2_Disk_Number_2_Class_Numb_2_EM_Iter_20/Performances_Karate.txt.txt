@@ -1,2 +1,0 @@
-Truth percentage:
-50.0
