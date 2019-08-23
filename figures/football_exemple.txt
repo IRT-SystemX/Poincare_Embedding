@@ -1,0 +1,16 @@
+parametre de l'experience :
+init embedding 
+	max_iter 150 
+	alpha = 0.1
+	beta = 10
+init em 
+	max_iter 5
+
+embedding:
+	max_iter 50
+	alpha = 0.01
+	beta = .1
+	gamma = 0
+
+em 
+	max_iter = 5
