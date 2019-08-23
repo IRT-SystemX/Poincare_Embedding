@@ -23,3 +23,12 @@ Launch the script.
 Check results in the Output folder. 
 
 
+## Dependencies
+
+> pytorch sklearn tqdm 
+
+## Exemple
+run disc_exemple.py
+
+## Other dataset
+Currently it does not work on large scale dataset, you can download it in just calling the dataset function in /data_tools/corpora.py (end of the file). Or you can directly launch the main script with "parameters.dataset_loading_func = corpora.load_flickr" (for flickr dataset)
