@@ -1,73 +1,73 @@
 import torch
 import math
 from torch.optim.optimizer import Optimizer, required
-from function_tools import lorentz_function
-class LorentzModelSGD(Optimizer):
-    def __init__(self, params, lr=required, momentum=0, dampening=0,
-                    weight_decay=0, nesterov=False):
-        if lr is not required and lr < 0.0:
-            raise ValueError("Invalid learning rate: {}".format(lr))
-        if momentum < 0.0:
-            raise ValueError("Invalid momentum value: {}".format(momentum))
-        if weight_decay < 0.0:
-            raise ValueError("Invalid weight_decay value: {}".format(weight_decay))
+# from function_tools import lorentz_function
+# class LorentzModelSGD(Optimizer):
+#     def __init__(self, params, lr=required, momentum=0, dampening=0,
+#                     weight_decay=0, nesterov=False):
+#         if lr is not required and lr < 0.0:
+#             raise ValueError("Invalid learning rate: {}".format(lr))
+#         if momentum < 0.0:
+#             raise ValueError("Invalid momentum value: {}".format(momentum))
+#         if weight_decay < 0.0:
+#             raise ValueError("Invalid weight_decay value: {}".format(weight_decay))
 
-        defaults = dict(lr=lr, momentum=momentum, dampening=dampening,
-                        weight_decay=weight_decay, nesterov=nesterov)
-        if nesterov and (momentum <= 0 or dampening != 0):
-            raise ValueError("Nesterov momentum requires a momentum and zero dampening")
-        super(LorentzModelSGD, self).__init__(params, defaults)
+#         defaults = dict(lr=lr, momentum=momentum, dampening=dampening,
+#                         weight_decay=weight_decay, nesterov=nesterov)
+#         if nesterov and (momentum <= 0 or dampening != 0):
+#             raise ValueError("Nesterov momentum requires a momentum and zero dampening")
+#         super(LorentzModelSGD, self).__init__(params, defaults)
 
-    def __setstate__(self, state):
-        super(LorentzModelSGD, self).__setstate__(state)
-        for group in self.param_groups:
-            group.setdefault('nesterov', False)
+#     def __setstate__(self, state):
+#         super(LorentzModelSGD, self).__setstate__(state)
+#         for group in self.param_groups:
+#             group.setdefault('nesterov', False)
 
-    def step(self, closure=None):
-        """Performs a single optimization step.
-        Arguments:
-            closure (callable, optional): A closure that reevaluates the model
-                and returns the loss.
-        """
-        loss = None
-        if closure is not None:
-            loss = closure()
+#     def step(self, closure=None):
+#         """Performs a single optimization step.
+#         Arguments:
+#             closure (callable, optional): A closure that reevaluates the model
+#                 and returns the loss.
+#         """
+#         loss = None
+#         if closure is not None:
+#             loss = closure()
 
-        for group in self.param_groups:
-            weight_decay = group['weight_decay']
-            momentum = group['momentum']
-            dampening = group['dampening']
-            nesterov = group['nesterov']
+#         for group in self.param_groups:
+#             weight_decay = group['weight_decay']
+#             momentum = group['momentum']
+#             dampening = group['dampening']
+#             nesterov = group['nesterov']
 
-            for p in group['params']:
-                if p.grad is None:
-                    continue
-                d_p = p.grad.data
-                if weight_decay != 0:
-                    d_p.add_(weight_decay, p.data)
-                if momentum != 0:
-                    param_state = self.state[p]
-                    if 'momentum_buffer' not in param_state:
-                        buf = param_state['momentum_buffer'] = torch.zeros_like(p.data)
-                        buf.mul_(momentum).add_(d_p)
-                    else:
-                        buf = param_state['momentum_buffer']
-                        buf.mul_(momentum).add_(1 - dampening, d_p)
-                    if nesterov:
-                        d_p = d_p.add(momentum, buf)
-                    else:
-                        d_p = buf
-                # For hyperbolic we use the retractation 
-                N, M = tuple(p.data.size())
-                g_inv = torch.eye(M)
-                g_inv[0,0] = -1
-                h = d_p.data.mm(g_inv)
-                u = lorentz_function.proj(p.data, h.data)
-                # print(lorentz_function.lorentzian_scalar_prod(p.data,u))
-                # print("icic")
-                # print(lorentz_function.exp(p, -group['lr'] * u))
-                p.data[:,:] = lorentz_function.exp(p.data, -group['lr'] * u.data)
-        return loss
+#             for p in group['params']:
+#                 if p.grad is None:
+#                     continue
+#                 d_p = p.grad.data
+#                 if weight_decay != 0:
+#                     d_p.add_(weight_decay, p.data)
+#                 if momentum != 0:
+#                     param_state = self.state[p]
+#                     if 'momentum_buffer' not in param_state:
+#                         buf = param_state['momentum_buffer'] = torch.zeros_like(p.data)
+#                         buf.mul_(momentum).add_(d_p)
+#                     else:
+#                         buf = param_state['momentum_buffer']
+#                         buf.mul_(momentum).add_(1 - dampening, d_p)
+#                     if nesterov:
+#                         d_p = d_p.add(momentum, buf)
+#                     else:
+#                         d_p = buf
+#                 # For hyperbolic we use the retractation 
+#                 N, M = tuple(p.data.size())
+#                 g_inv = torch.eye(M)
+#                 g_inv[0,0] = -1
+#                 h = d_p.data.mm(g_inv)
+#                 u = lorentz_function.proj(p.data, h.data)
+#                 # print(lorentz_function.lorentzian_scalar_prod(p.data,u))
+#                 # print("icic")
+#                 # print(lorentz_function.exp(p, -group['lr'] * u))
+#                 p.data[:,:] = lorentz_function.exp(p.data, -group['lr'] * u.data)
+#         return loss
 
 class PoincareBallSGD(Optimizer):
 
