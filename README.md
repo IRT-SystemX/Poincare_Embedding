@@ -28,7 +28,7 @@ Check results in the Output folder.
 > pytorch sklearn tqdm 
 
 ## Exemple
-run disc_exemple.py
-
+launching an experiment with severall disc
+> python launcher_tools/experiment.py --n-disc 5 --epoch-embedding 200 --epoch 1 --dataset football --n-gaussian 12 --beta 1.0 --lr 10
 ## Other dataset
 Currently it does not work on large scale dataset, you can download it in just calling the dataset function in /data_tools/corpora.py (end of the file). Or you can directly launch the main script with "parameters.dataset_loading_func = corpora.load_flickr" (for flickr dataset)
