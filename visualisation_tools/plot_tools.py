@@ -75,7 +75,7 @@ def subplot_embedding_distribution(ax, W, pi, mu, sigma,  labels=None, N=100, co
     ax.set_ylabel('Y')
     ax.set_zlabel('P')
 
-def plot_embedding_distribution_multi(W, pi, mu, sigma, labels=None, N=100, colors=None):
+def plot_embedding_distribution_multi(W, pi, mu, sigma, labels=None, N=100, colors=None, save_path="figures/default.pdf"):
     fig = plt.figure("Embedding-Distribution")
     border_size = (math.sqrt(len(W)+0.0))
     if(border_size != round(border_size)):
@@ -83,7 +83,7 @@ def plot_embedding_distribution_multi(W, pi, mu, sigma, labels=None, N=100, colo
     for i in range(len(W)):
         ax = fig.add_subplot(border_size, border_size, i+1, projection='3d')
         subplot_embedding_distribution(ax, W[i], pi[i], mu[i], sigma[i], labels=labels, N=N, colors=colors)
-    plt.savefig("figures/embeddings_distrib_all_disc.pdf", format="pdf")
+    plt.savefig(save_path, format="pdf")
 
     return fig
 

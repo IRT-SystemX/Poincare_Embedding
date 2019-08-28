@@ -1,7 +1,6 @@
 import torch
 from torch import nn
 from torch.autograd import Function
-from function_tools import lorentz_function
 
 class PoincareEmbedding(nn.Module):
     def __init__(self, N, M=3):

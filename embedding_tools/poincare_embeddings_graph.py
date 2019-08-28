@@ -66,8 +66,6 @@ class RiemannianEmbedding(nn.Module):
                     p_example = pi.unsqueeze(0).expand(len(example), len(mu))
                     loss_o3 = (-torch.log(gmm_tools.weighted_gmm_pdf(p_example, r_example, mu, sigma, self.d))).mean()
                     loss += gamma * loss_o3
-                    pass
-
 
                 loss_value1 = loss_o1.item()
                 loss_value2 = loss_o2.item()

@@ -3,8 +3,7 @@ import tqdm
 
 import torch
 from torch.utils.data import DataLoader
-
-from data_tools import corpora
+import os
 from multiprocessing import Process, Manager
 from embedding_tools.poincare_embeddings_graph import RiemannianEmbedding as PEmbed
 from em_tools.em_original import RiemannianEM as PEM
@@ -43,6 +42,8 @@ parser.add_argument('--epoch', dest="epoch", type=int, default=2,
                     help="number of loops alternating embedding/EM")
 parser.add_argument('--epoch-embedding', dest="epoch_embedding", type=int, default=500,
                     help="maximum number of epoch for embedding gradient descent")
+parser.add_argument('--id', dest="id", type=str, default="0",
+                    help="identifier of the experiment")
 args = parser.parse_args()
 
 
@@ -136,4 +137,12 @@ unique_label = np.unique(sum([ y for k, y in D.Y.items()],[]))
 colors = []
 for i in range(len(representation_d[0])):
     colors.append(plt_colors.hsv_to_rgb([D.Y[i][0]/(len(unique_label)),0.5,0.8]))
-plot_tools.plot_embedding_distribution_multi(representation_d, pi_d, mu_d,  sigma_d, labels=None, N=100, colors=colors)
+
+os.makedirs("Results/"+args.id+"/", exist_ok=True)
+
+plot_tools.plot_embedding_distribution_multi(representation_d, pi_d, mu_d,  sigma_d, 
+                                             labels=None, N=100, colors=colors, 
+                                             save_path="Results/"+args.id+"/fig.pdf")
+
+torch.save(representation_d, "Results/"+args.id+"/embeddings.t7")
+torch.save( {"pi": pi_d, "mu":mu_d, "sigma":sigma_d}, "Results/"+args.id+"/pi_mu_sigma.t7")
