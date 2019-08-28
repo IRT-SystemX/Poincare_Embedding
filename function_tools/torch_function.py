@@ -39,6 +39,8 @@ class HyperbolicProjectionModule(nn.Module):
     def forward(self, x):
         return HyperbolicProjection.apply(x)    
 
+def arc_cosh(x):
+    return torch.log(x + torch.sqrt(x**2-1))
 
 def hyperProj(x):
     return HyperbolicProjection.apply(x)
