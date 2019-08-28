@@ -8,7 +8,7 @@ A multi-dimensional setting is also implemented using the products of many Poinc
 Poincaré disk with two Gaussians computed via graph embedding followed by exptectation maximisation algorithm for the Karate example dataset.
 
 
-![alt text](https://github.com/tgeral68/EM_Hyperbolic/tree/master/figures/football_example_m.png?raw=true "Gaussien mixture model on Football")
+![alt text](https://github.com/tgeral68/EM_Hyperbolic/blob/master/figures/football_example_m.png?raw=true "Gaussien mixture model on Football")
 Poincaré disks with 12 Gaussians computed via graph embedding followed by exptectation maximisation algorithm for the Football example dataset.
 
 ### The package contains the following modules:
