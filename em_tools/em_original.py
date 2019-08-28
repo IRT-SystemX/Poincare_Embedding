@@ -65,14 +65,21 @@ class RiemannianEM(object):
         N, M = omega_mu.shape
         cvg = math.inf
         barycenter = z.mean()
+
         # SGD 
         iteration = 0
         while(cvg>tau and max_iter>iteration):
             iteration+=1
-
-            mean_nw = RiemannianTools.log(np.expand_dims(barycenter, 0).repeat(N,0), z)
-            mean_w = (mean_nw * omega_mu[:, g_index]).sum()
-            # print(omega_mu)
+            
+            mean_nw = RiemannianTools.log(barycenter.repeat(N), z)
+            mean_w = (mean_nw * omega_mu[:, g_index]).mean()
+            if(mean_w.sum() != mean_w.sum()):
+                print("mean->",mean_nw)
+                print(z.shape, barycenter.repeat(N).shape)
+                print("barycenter->",barycenter)
+                print("ERROR NAN Value")
+                print("iteration nb ->",iteration)
+                raise NameError('Not A Number Exception')
             # update weight step
             barycenter = RiemannianTools.exp(barycenter, lr * mean_w)
             cvg = np.sqrt((np.abs(mean_w)**2)/((1 - np.abs(barycenter)**2)**2))
@@ -141,7 +148,7 @@ class RiemannianEM(object):
                                                         ),
                                                        self._distance, g_index=g_index)
 
-    def fit(self, z, max_iter=5, lr_mu=5e-3, tau_mu=5e-3):
+    def fit(self, z, max_iter=5, lr_mu=1e-1, tau_mu=5e-3):
         progress_bar = tqdm.trange(max_iter) if(self._verbose) else range(max_iter)
         # if it is the first time function fit is called
         if(not self._started):
@@ -165,7 +172,7 @@ class RiemannianEM(object):
                 self.update_w(z, g_index=g)
                 self.update_mu(z, lr_mu, tau_mu, g_index=g)
                 self.update_sigma(z, g_index=g)
-            
+
     def getParameters(self):
         mu_torch = torch.cat((torch.Tensor(self._mu.real).unsqueeze(-1),torch.Tensor(self._mu.imag).unsqueeze(-1)),-1)
         return  torch.Tensor(self._w), mu_torch, torch.Tensor(self._sigma)
