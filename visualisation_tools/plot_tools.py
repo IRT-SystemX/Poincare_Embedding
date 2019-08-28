@@ -91,3 +91,5 @@ def plot_embedding_distribution(W, pi, mu, sigma,  labels=None, N=100, colors=No
     ax.set_zlabel('P')
 
     plt.savefig("figures/embeddings_karate_node_distrib.pdf", format="pdf")
+
+    return fig
