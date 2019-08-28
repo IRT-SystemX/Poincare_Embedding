@@ -75,7 +75,7 @@ if __name__ == "__main__":
     hyperbolic_embeddings_graph.learn_init(embeddings, training_dataloader,
                                     embedding_dataset,  optimizer_method,
                                     modules.hyperbolicDistance,
-                                    max_iter=5, alpha=.1, beta=10., cuda=parameters.cuda
+                                    max_iter=150, alpha=.1, beta=10., cuda=parameters.cuda
                                 )
     print("First EM Pass")
     em_object = em_original.RiemannianEM(parameters.n_gaussian, RiemannianFunction.riemannian_distance, init_mod="kmeans")
