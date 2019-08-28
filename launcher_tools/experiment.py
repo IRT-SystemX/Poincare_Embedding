@@ -12,6 +12,7 @@ from data_tools import corpora_tools
 from data_tools import corpora
 from data_tools import data_tools
 from evaluation_tools import evaluation
+from visualisation_tools import plot_tools
 
 parser = argparse.ArgumentParser(description='Start an experiment')
 parser.add_argument('--n-disc', metavar='d', dest="n_disc", type=int, default=1,
@@ -64,6 +65,12 @@ if(args.dataset not in dataset_dict):
     quit()
 if(args.init_lr <= 0):
     args.init_lr = args.lr
+if(args.init_alpha < 0):
+    args.init_alpha = args.alpha
+if(args.init_beta < 0):
+    args.init_beta = args.beta
+
+alpha, beta = args.init_alpha, args.init_beta
 
 print("Loading Corpus ")
 D, X, Y = dataset_dict[args.dataset]()
@@ -104,6 +111,7 @@ for disc in range(args.n_disc):
     for i in tqdm.trange(args.epoch):
         if(i>0):
             embedding_alg.set_lr(args.lr)
+            alpha, beta = args.alpha, args.beta
         embedding_alg.fit(training_dataloader, alpha=args.alpha, beta=args.beta, gamma=args.gamma, max_iter=args.epoch_embedding,
                          pi=pi, mu=mu, sigma=sigma)
         em_alg.fit(embedding_alg.get_PoincareEmbeddings().cpu(), max_iter=5)
@@ -119,3 +127,13 @@ for disc in range(args.n_disc):
 print("\nPerformances joined -> " ,
     evaluation.accuracy_cross_validation_multi_disc(representation_d, D.Y, pi_d, mu_d, sigma_d, 5, verbose=False)
 )
+
+# TODO: Clean the code below
+import matplotlib.pyplot as plt
+import matplotlib.colors as plt_colors
+import numpy as np
+unique_label = np.unique(sum([ y for k, y in D.Y.items()],[]))
+colors = []
+for i in range(len(representation_d[0])):
+    colors.append(plt_colors.hsv_to_rgb([D.Y[i][0]/(len(unique_label)),0.5,0.8]))
+plot_tools.plot_embedding_distribution_multi(representation_d, pi_d, mu_d,  sigma_d, labels=None, N=100, colors=colors)
