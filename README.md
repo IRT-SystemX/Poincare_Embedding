@@ -34,12 +34,12 @@ launching an experiment with several discs
 <details><summary>Click here for the rest of available datasets</summary>
 <p>
 
-> python launcher_tools/experiment.py --n-disc 5 --epoch-embedding 200 --epoch 1 --dataset football --n-gaussian 12 --beta 1.0 --lr 10
-> python launcher_tools/experiment.py --n-disc 5 --epoch-embedding 200 --epoch 1 --dataset karate --n-gaussian 2 --beta 1.0 --lr 10
-> python launcher_tools/experiment.py --n-disc 5 --epoch-embedding 200 --epoch 1 --dataset flickr --n-gaussian 12 --beta 1.0 --lr 10
-> python launcher_tools/experiment.py --n-disc 5 --epoch-embedding 200 --epoch 1 --dataset dblp --n-gaussian 4 --beta 1.0 --lr 10
-> python launcher_tools/experiment.py --n-disc 5 --epoch-embedding 200 --epoch 1 --dataset books --n-gaussian 3 --beta 1.0 --lr 10
-> python launcher_tools/experiment.py --n-disc 5 --epoch-embedding 200 --epoch 1 --dataset blogCatalog --n-gaussian 2 --beta 1.0 --lr 10
+> python launcher_tools/experiment.py --n-disc 5 --epoch-embedding 200 --epoch 1 --dataset football --n-gaussian 12 --beta 1.0 --lr 10 <br/>
+> python launcher_tools/experiment.py --n-disc 5 --epoch-embedding 200 --epoch 1 --dataset karate --n-gaussian 2 --beta 1.0 --lr 10 <br/>
+> python launcher_tools/experiment.py --n-disc 5 --epoch-embedding 200 --epoch 1 --dataset flickr --n-gaussian 12 --beta 1.0 --lr 10 <br/>
+> python launcher_tools/experiment.py --n-disc 5 --epoch-embedding 200 --epoch 1 --dataset dblp --n-gaussian 4 --beta 1.0 --lr 10 <br/>
+> python launcher_tools/experiment.py --n-disc 5 --epoch-embedding 200 --epoch 1 --dataset books --n-gaussian 3 --beta 1.0 --lr 10 <br/>
+> python launcher_tools/experiment.py --n-disc 5 --epoch-embedding 200 --epoch 1 --dataset blogCatalog --n-gaussian 2 --beta 1.0 --lr 10 <br/>
 
 </p>
 </details>
