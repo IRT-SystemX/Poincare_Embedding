@@ -101,9 +101,9 @@ class RiemannianEM(object):
         n = (omega_mu[:,g_index] * (distance(z, mu)**2 )).sum(0)
         return RiemannianFunction.phi(n/omega_mu[:,g_index].sum(0))
 
-    def __init__(self, n_gaussian, distance,  init_mod="rand", verbose=True):
+    def __init__(self, n_gaussian, init_mod="rand", verbose=True):
         self._n_g = n_gaussian
-        self._distance = distance
+        self._distance = RiemannianFunction.riemannian_distance
         self._mu = np.random.uniform(low = -0.5, high = 0.5, size = self._n_g)+1j*np.random.uniform(low = -0.5, high = 0.5, size = self._n_g)
         self._sigma = np.random.uniform(low = 0.8, high = 0.9, size = self._n_g) 
         self._w = np.ones(n_gaussian)/n_gaussian
