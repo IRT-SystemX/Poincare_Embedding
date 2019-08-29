@@ -21,4 +21,4 @@ def weighted_gmm_pdf(w, z, mu, sigma, distance):
     distribution_normal = torch.exp(-((distance_to_mean)**2)/(2 * sigma_u**2))
     zeta_sigma = pi_2_3 * sigma *  torch.exp((sigma**2/2) * erf_approx(sigma/math.sqrt(2)))
 
-    return w*(distribution_normal/zeta_sigma.unsqueeze(0).expand_as(distribution_normal))
+    return w*(distribution_normal/zeta_sigma.unsqueeze(0).expand_as(distribution_normal).detach())
