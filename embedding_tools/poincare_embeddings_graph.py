@@ -34,7 +34,7 @@ class RiemannianEmbedding(nn.Module):
             gamma = 0.0
         progress_bar = tqdm.trange(max_iter) if(self.verbose) else range(max_iter)
         for i in progress_bar:
-            loss_value1, loss_value2 = 0,0
+            loss_value1, loss_value2, loss_value3 = 0,0,0
             for example, neigbhors, walks in dataloader:
                 self.optimizer.zero_grad()
                 if(self.cuda):
@@ -63,13 +63,14 @@ class RiemannianEmbedding(nn.Module):
                 loss = alpha * loss_o1 + beta * loss_o2 
                 if(gamma > 0):
                     r_example = self.W(example).squeeze()
-                    p_example = pi.unsqueeze(0).expand(len(example), len(mu))
-                    loss_o3 = (-torch.log(gmm_tools.weighted_gmm_pdf(p_example, r_example, mu, sigma, self.d))).mean()
+                    loss_o3 = (-torch.log(1e-4 + gmm_tools.weighted_gmm_pdf(pi.detach(), r_example, mu.detach(), sigma.detach(), self.d))).mean()
+                    loss_value3 = loss_o3.item()
                     loss += gamma * loss_o3
+
 
                 loss_value1 = loss_o1.item()
                 loss_value2 = loss_o2.item()
                 loss.backward()
                 self.optimizer.step()
             if(self.verbose):
-                progress_bar.set_postfix({"loss":beta *loss_value2})
+                progress_bar.set_postfix({"O1":alpha*loss_value1, "O2":beta *loss_value2, "O3":gamma *loss_value3})
