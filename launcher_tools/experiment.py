@@ -113,12 +113,13 @@ mu_d = []
 sigma_d = []
 
 for disc in range(args.n_disc):
+    alpha, beta = args.init_alpha, args.init_beta
     embedding_alg = PEmbed(len(embedding_dataset), lr=args.init_lr, cuda=args.cuda)
     em_alg = PEM(args.n_gaussian, init_mod="kmeans", verbose=False)
     pi, mu, sigma = None, None, None
     pik = None
     for i in tqdm.trange(args.epoch):
-        if(i>=1):
+        if(i==1):
             embedding_alg.set_lr(args.lr)
             alpha, beta = args.alpha, args.beta
         embedding_alg.fit(training_dataloader, alpha=alpha, beta=beta, gamma=args.gamma, max_iter=args.epoch_embedding,
@@ -126,7 +127,6 @@ for disc in range(args.n_disc):
         em_alg.fit(embedding_alg.get_PoincareEmbeddings().cpu(), max_iter=5)
         pi, mu, sigma = em_alg.getParameters()
         pik = em_alg.getPik(embedding_alg.get_PoincareEmbeddings().cpu())
-        print("qsdqsd",pik.size())
     representation_d.append(embedding_alg.get_PoincareEmbeddings().cpu())
     pi_d.append(pi)
     mu_d.append(mu)
