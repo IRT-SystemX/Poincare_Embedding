@@ -45,6 +45,8 @@ parser.add_argument('--epoch-embedding', dest="epoch_embedding", type=int, defau
                     help="maximum number of epoch for embedding gradient descent")
 parser.add_argument('--id', dest="id", type=str, default="0",
                     help="identifier of the experiment")
+parser.add_argument('--save', dest="save", action="store_true", default=True,
+                    help="saving results and parameters")
 args = parser.parse_args()
 
 
@@ -57,10 +59,11 @@ dataset_dict = { "karate": corpora.load_karate,
           }
 
 
-print("The following options are use for the current experiment ", args)
-os.makedirs("RESULTS/"+args.id+"/", exist_ok=True)
-logger_object = logger.JSONLogger("RESULTS/"+args.id+"/log.json")
-logger_object.append(vars(args))
+if(args.save):
+    print("The following options are use for the current experiment ", args)
+    os.makedirs("RESULTS/"+args.id+"/", exist_ok=True)
+    logger_object = logger.JSONLogger("RESULTS/"+args.id+"/log.json")
+    logger_object.append(vars(args))
 
 # check if dataset exists
 
@@ -127,27 +130,32 @@ for disc in range(args.n_disc):
     sigma_d.append(sigma)
     current_accuracy = evaluation.accuracy_cross_validation(representation_d[-1], D.Y, pi, mu, sigma, 5, verbose=False)
     print("\nPerformances disc "+str(disc+1)+"-> " ,current_accuracy,"\n")
-    logger_object.append({"disc-"+str(disc):{"accuracy": current_accuracy}})
+    if(args.save):
+        logger_object.append({"disc-"+str(disc):{"accuracy": current_accuracy}})
 
 # evaluate performances on all disc
+total_accuracy = evaluation.accuracy_cross_validation_multi_disc(representation_d, D.Y, pi_d, mu_d, sigma_d, 5, verbose=False)
 print("\nPerformances joined -> " ,
-    evaluation.accuracy_cross_validation_multi_disc(representation_d, D.Y, pi_d, mu_d, sigma_d, 5, verbose=False)
+    total_accuracy
 )
-logger_object.append({"accuracy": current_accuracy})
+logger_object.append({"accuracy": total_accuracy})
 # TODO: Clean the code below
-import matplotlib.pyplot as plt
-import matplotlib.colors as plt_colors
-import numpy as np
-unique_label = np.unique(sum([ y for k, y in D.Y.items()],[]))
-colors = []
-for i in range(len(representation_d[0])):
-    colors.append(plt_colors.hsv_to_rgb([D.Y[i][0]/(len(unique_label)),0.5,0.8]))
+
+if(args.save):
+    import matplotlib.pyplot as plt
+    import matplotlib.colors as plt_colors
+    import numpy as np
+    unique_label = np.unique(sum([ y for k, y in D.Y.items()],[]))
+    colors = []
+
+    for i in range(len(representation_d[0])):
+        colors.append(plt_colors.hsv_to_rgb([D.Y[i][0]/(len(unique_label)),0.5,0.8]))
 
 
 
-plot_tools.plot_embedding_distribution_multi(representation_d, pi_d, mu_d,  sigma_d, 
-                                             labels=None, N=100, colors=colors, 
-                                             save_path="RESULTS/"+args.id+"/fig.pdf")
+    plot_tools.plot_embedding_distribution_multi(representation_d, pi_d, mu_d,  sigma_d, 
+                                                labels=None, N=100, colors=colors, 
+                                                save_path="RESULTS/"+args.id+"/fig.pdf")
 
-torch.save(representation_d, "RESULTS/"+args.id+"/embeddings.t7")
-torch.save( {"pi": pi_d, "mu":mu_d, "sigma":sigma_d}, "RESULTS/"+args.id+"/pi_mu_sigma.t7")
+    torch.save(representation_d, "RESULTS/"+args.id+"/embeddings.t7")
+    torch.save( {"pi": pi_d, "mu":mu_d, "sigma":sigma_d}, "RESULTS/"+args.id+"/pi_mu_sigma.t7")
