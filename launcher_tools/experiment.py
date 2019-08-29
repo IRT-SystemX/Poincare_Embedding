@@ -12,6 +12,7 @@ from data_tools import corpora
 from data_tools import data_tools
 from evaluation_tools import evaluation
 from visualisation_tools import plot_tools
+from launcher_tools import logger
 
 parser = argparse.ArgumentParser(description='Start an experiment')
 parser.add_argument('--n-disc', metavar='d', dest="n_disc", type=int, default=1,
@@ -57,6 +58,9 @@ dataset_dict = { "karate": corpora.load_karate,
 
 
 print("The following options are use for the current experiment ", args)
+os.makedirs("RESULTS/"+args.id+"/", exist_ok=True)
+logger_object = logger.JSONLogger("RESULTS/"+args.id+"/log.json")
+logger_object.append(vars(args))
 
 # check if dataset exists
 
@@ -121,14 +125,15 @@ for disc in range(args.n_disc):
     pi_d.append(pi)
     mu_d.append(mu)
     sigma_d.append(sigma)
-    print("\nPerformances disc "+str(disc+1)+"-> " ,
-           evaluation.accuracy_cross_validation(representation_d[-1], D.Y, pi, mu, sigma, 5, verbose=False),"\n")
+    current_accuracy = evaluation.accuracy_cross_validation(representation_d[-1], D.Y, pi, mu, sigma, 5, verbose=False)
+    print("\nPerformances disc "+str(disc+1)+"-> " ,current_accuracy,"\n")
+    logger_object.append({"disc-"+str(disc):{"accuracy": current_accuracy}})
 
 # evaluate performances on all disc
 print("\nPerformances joined -> " ,
     evaluation.accuracy_cross_validation_multi_disc(representation_d, D.Y, pi_d, mu_d, sigma_d, 5, verbose=False)
 )
-
+logger_object.append({"accuracy": current_accuracy})
 # TODO: Clean the code below
 import matplotlib.pyplot as plt
 import matplotlib.colors as plt_colors
@@ -138,11 +143,11 @@ colors = []
 for i in range(len(representation_d[0])):
     colors.append(plt_colors.hsv_to_rgb([D.Y[i][0]/(len(unique_label)),0.5,0.8]))
 
-os.makedirs("Results/"+args.id+"/", exist_ok=True)
+
 
 plot_tools.plot_embedding_distribution_multi(representation_d, pi_d, mu_d,  sigma_d, 
                                              labels=None, N=100, colors=colors, 
-                                             save_path="Results/"+args.id+"/fig.pdf")
+                                             save_path="RESULTS/"+args.id+"/fig.pdf")
 
-torch.save(representation_d, "Results/"+args.id+"/embeddings.t7")
-torch.save( {"pi": pi_d, "mu":mu_d, "sigma":sigma_d}, "Results/"+args.id+"/pi_mu_sigma.t7")
+torch.save(representation_d, "RESULTS/"+args.id+"/embeddings.t7")
+torch.save( {"pi": pi_d, "mu":mu_d, "sigma":sigma_d}, "RESULTS/"+args.id+"/pi_mu_sigma.t7")
