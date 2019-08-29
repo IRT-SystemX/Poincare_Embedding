@@ -176,3 +176,9 @@ class RiemannianEM(object):
     def getParameters(self):
         mu_torch = torch.cat((torch.Tensor(self._mu.real).unsqueeze(-1),torch.Tensor(self._mu.imag).unsqueeze(-1)),-1)
         return  torch.Tensor(self._w), mu_torch, torch.Tensor(self._sigma)
+
+    def getPik(self, z):
+        z = z[:,0].numpy()+z[:,1].numpy() *1j
+        return torch.Tensor(RiemannianEM.static_omega_mu(self._w,RiemannianTools.pdf(
+                                                    z, self._mu, 
+                                                    self._sigma, self._distance)))
