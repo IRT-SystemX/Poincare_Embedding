@@ -1,3 +1,13 @@
 2019-08-28:
 - New script "disc_exemple_Test.py" works for Windows
 - Output directory per experiment is created
+
+2019-08-28:
+- figure with the different disc added in visualisation_tools/plot_tools
+- fixing SGD for barycenter search, using the mean in the tangent space instead of the sum, it caused divergence of the algorithm
+in large dataset (depending of learning rate)
+
+2019-08-29:
+- Experiment script now can save parameters/results/embeddings/EM parameters in a folder given by the option --id (In Output folder?)
+- Started experiments on DBLP, performances are currently low (~38%) waiting for end of the grid search
+
