@@ -11,3 +11,5 @@ in large dataset (depending of learning rate)
 - Experiment script now can save parameters/results/embeddings/EM parameters in a folder given by the option --id (In Output folder?)
 - Started experiments on DBLP, performances are currently low (~38%) waiting for end of the grid search
 
+2019-08-30:
+- solve some issues, new dependency pytorch-categorical for fast categorical negative sampling
