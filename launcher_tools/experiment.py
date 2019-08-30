@@ -2,6 +2,7 @@ import argparse
 import tqdm
 
 import torch
+import pytorch_categorical
 from torch.utils.data import DataLoader
 import os
 from multiprocessing import Process, Manager
@@ -35,7 +36,7 @@ parser.add_argument('--n-gaussian', dest="n_gaussian", type=int, default=2,
                     help="number of gaussian for EM algorithm")
 parser.add_argument('--dataset', dest="dataset", type=str, default="karate",
                     help="dataset to use for the experiments")
-parser.add_argument('--walk-lenght', dest="walk_lenght", type=int, default=4,
+parser.add_argument('--walk-lenght', dest="walk_lenght", type=int, default=20,
                     help="size of random walk")
 parser.add_argument('--cuda', dest="cuda", action="store_true", default=False,
                     help="using GPU for operation")
@@ -68,7 +69,7 @@ if(args.save):
 # check if dataset exists
 
 if(args.dataset not in dataset_dict):
-    print("Dataset " + args.dataset + " does not exist, please select on of te following : ")
+    print("Dataset " + args.dataset + " does not exist, please select one of the following : ")
     print(list(dataset_dict.keys()))
     quit()
 if(args.init_lr <= 0):
@@ -86,6 +87,11 @@ print("Creating dataset")
 # index of examples dataset
 dataset_index = corpora_tools.from_indexable(torch.arange(0,len(D),1).unsqueeze(-1))
 D.set_path(False)
+
+# negative sampling distribution
+frequency = D.getFrequency()**(3/4)
+frequency[:,1] /= frequency[:,1].sum()
+frequency = pytorch_categorical.Categorical(frequency[:,1])
 # random walk dataset
 d_rw = D.light_copy()
 d_rw.set_walk(args.walk_lenght, 1.0)
@@ -114,7 +120,7 @@ sigma_d = []
 
 for disc in range(args.n_disc):
     alpha, beta = args.init_alpha, args.init_beta
-    embedding_alg = PEmbed(len(embedding_dataset), lr=args.init_lr, cuda=args.cuda)
+    embedding_alg = PEmbed(len(embedding_dataset), lr=args.init_lr, cuda=args.cuda, negative_distribution=frequency)
     em_alg = PEM(args.n_gaussian, init_mod="kmeans", verbose=False)
     pi, mu, sigma = None, None, None
     pik = None
@@ -136,13 +142,13 @@ for disc in range(args.n_disc):
     if(args.save):
         logger_object.append({"disc-"+str(disc):{"accuracy": current_accuracy}})
 
-# evaluate performances on all disc
-total_accuracy = evaluation.accuracy_cross_validation_multi_disc(representation_d, D.Y, pi_d, mu_d, sigma_d, 5, verbose=False)
+#evaluate performances on all disc
+total_accuracy = evaluation.accuracy_disc_product(representation_d, D.Y, pi_d, mu_d, sigma_d, verbose=False)
 print("\nPerformances joined -> " ,
     total_accuracy
 )
 logger_object.append({"accuracy": total_accuracy})
-# TODO: Clean the code below
+#TODO: Clean the code below
 
 if(args.save):
     import matplotlib.pyplot as plt
