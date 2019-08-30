@@ -8,7 +8,7 @@ from optim_tools import optimizer
 
 
 class RiemannianEmbedding(nn.Module):
-    def __init__(self, n_exemple, cuda=False, lr=1e-2, verbose=True):
+    def __init__(self, n_exemple, cuda=False, lr=1e-2, verbose=True, negative_distribution=None):
         super(RiemannianEmbedding, self).__init__()
         self.cuda = cuda
         self.N = n_exemple
@@ -18,6 +18,10 @@ class RiemannianEmbedding(nn.Module):
         self.optimizer = optimizer.PoincareBallSGD(self.W.parameters(), lr=lr)
         self.verbose = verbose
         self.d = poincare_function.poincare_distance
+        if(negative_distribution is None):
+            self.n_dist = torch.distributions.Categorical(torch.ones(self.N)/self.N)
+        else:
+            self.n_dist = negative_distribution
 
     def forward(self, x):
         return self.W(x)
@@ -30,8 +34,10 @@ class RiemannianEmbedding(nn.Module):
             g['lr'] = lr
     
     def fit(self, dataloader, alpha=1.0, beta=1.0, gamma=0.0, pi=None, mu=None, sigma=None, max_iter=100):
+        
         if(pi is None):
             gamma = 0.0
+
         progress_bar = tqdm.trange(max_iter) if(self.verbose) else range(max_iter)
         for i in progress_bar:
             loss_value1, loss_value2, loss_value3, loss_pdf3 = 0,0,0,0
@@ -52,7 +58,12 @@ class RiemannianEmbedding(nn.Module):
                 positive_d = (self.d(me, mw))
 
                 me = me.expand(walks.size(0), walks.size(1),  10, mw.size(-1)).contiguous()
-                negative = (torch.rand(walks.size(0), walks.size(1), 10) * self.N)
+
+                # TODO : sample from degree of node
+                with torch.no_grad():
+                    # print((walks.size(0), walks.size(1), 10))
+                    negative = self.n_dist.sample(sample_shape=(walks.size(0), walks.size(1), 10))
+                    # print("sampled")
                 if(self.cuda):
                     negative = negative.cuda()
                 negative = self.W(negative.long())
