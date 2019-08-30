@@ -29,7 +29,8 @@ class RandomWalkCorpus(Dataset):
         rwc_copy.p_c = self.p_c
 
         return rwc_copy
-
+    def getFrequency(self):
+        return torch.Tensor([[k, len(v)] for k, v in self.X.items()])
     def _walk(self, index):
         path = []
         c_index = index 
