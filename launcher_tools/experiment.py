@@ -132,7 +132,7 @@ sigma_d = []
 for disc in range(args.n_disc):
     alpha, beta = args.init_alpha, args.init_beta
     embedding_alg = PEmbed(len(embedding_dataset), lr=args.init_lr, cuda=args.cuda, negative_distribution=frequency)
-    em_alg = PEM(args.n_gaussian, init_mod="kmeans", verbose=False)
+    em_alg = PEM(args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=False)
     pi, mu, sigma = None, None, None
     pik = None
     for i in tqdm.trange(args.epoch):

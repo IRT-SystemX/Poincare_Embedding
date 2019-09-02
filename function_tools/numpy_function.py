@@ -1,6 +1,6 @@
 import numpy as np
 import math
-
+import cmath
 def aphi(sigma):
     return math.pow(sigma,2)+math.pow(sigma,4) + \
         ( ( ((math.pow(sigma,3))*math.sqrt(2)*math.exp(-(math.pow(sigma,2))/2)))/(math.sqrt(math.pi)*math.erf(sigma/(math.sqrt(2)))) )
@@ -31,3 +31,24 @@ class RiemannianFunction(object):
     @staticmethod
     def phi(value):
         return sigma_pos[(sigma_inverse>value).nonzero()[0][0]]
+
+    # log map similar to the one use in the previous code 
+    @staticmethod
+    def log(z, y):
+        q = ((y-z)/(1-z.conjugate()*y))
+        return (1 - np.abs(z) **2) * np.arctanh(np.abs(q)) * (q/np.abs(q))
+
+    # no change only need on one component
+    @staticmethod
+    def exp(z, v):
+        v_square = abs(v)/(1-abs(z)*abs(z))
+
+        theta = np.angle(v)
+
+        numerator = (z + cmath.exp(1j * theta)) * cmath.exp(2 * v_square) + (z - cmath.exp(1j * theta))
+        denominator = (1 + z.conjugate() * cmath.exp(1j * theta)) * cmath.exp(2 * v_square) + (1 - z.conjugate() * cmath.exp(1j * theta))
+        result1 = numerator / denominator
+
+        result = result1.real + result1.imag * 1j
+
+        return result

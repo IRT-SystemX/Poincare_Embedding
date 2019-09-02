@@ -6,6 +6,7 @@ import tqdm
 from function_tools import numpy_function as function
 from sklearn.mixture import GaussianMixture
 from sklearn.cluster import KMeans
+from em_tools import kmeans_hyperbolic as kmh
 from function_tools.numpy_function import RiemannianFunction
 
 
@@ -157,6 +158,12 @@ class RiemannianEM(object):
                 if(self._verbose):
                     print("Initialize means using kmeans algorithm")
                 km = KMeans(self._n_g)
+                km.fit(z.numpy())
+                self._mu = km.cluster_centers_[:,0] +km.cluster_centers_[:,1] *1j
+            if(self._init_mod == "kmeans-hyperbolic"):
+                if(self._verbose):
+                    print("Initialize means using kmeans hyperbolic algorithm")
+                km = kmh.RiemannianKMeans(self._n_g)
                 km.fit(z.numpy())
                 self._mu = km.cluster_centers_[:,0] +km.cluster_centers_[:,1] *1j
             for g in range(self._n_g): 

@@ -67,7 +67,7 @@ class RiemannianEmbedding(nn.Module):
                     negative = negative.cuda()
                 negative = self.W(negative.long())
                 negative_d = self.d(mw[:,:,0].unsqueeze(2).expand_as(negative), negative)
-                loss_o2 = torch.log( 1 + (torch.exp(-(negative_d - positive_d.unsqueeze(-1).expand_as(negative_d)))).sum(-1)).mean()
+                loss_o2 = torch.log( 1 + (torch.exp(-(negative_d - positive_d.unsqueeze(-1).expand_as(negative_d)))).sum(-1)).sum(-1).mean()
                 loss = alpha * loss_o1 + beta * loss_o2 
                 if(gamma > 0):
                     r_example = self.W(example).squeeze()
