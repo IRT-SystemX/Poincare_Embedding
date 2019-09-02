@@ -33,7 +33,8 @@ class RiemannianEmbedding(nn.Module):
         for g in self.optimizer.param_groups:
             g['lr'] = lr
     
-    def fit(self, dataloader, alpha=1.0, beta=1.0, gamma=0.0, pi=None, mu=None, sigma=None, max_iter=100):
+    def fit(self, dataloader, alpha=1.0, beta=1.0, gamma=0.0, pi=None, mu=None, sigma=None, max_iter=100,
+            negative_sampling=5):
         
         if(pi is None):
             gamma = 0.0
@@ -42,35 +43,31 @@ class RiemannianEmbedding(nn.Module):
         for i in progress_bar:
             loss_value1, loss_value2, loss_value3, loss_pdf3 = 0,0,0,0
             for example, neigbhors, walks in dataloader:
+                # print(example.size(), neigbhors.size(), walks.size())
                 self.optimizer.zero_grad()
                 if(self.cuda):
                     example = example.cuda()
                     neigbhors = neigbhors.cuda()
                     walks = walks.cuda()
+                    if(pi is not None):
+                        pi = pi.cuda()
+                        sigma = sigma.cuda()
+                        mu = mu.cuda()
                 r_example = example.unsqueeze(1).expand_as(neigbhors)
                 me, mw = self.W(r_example), self.W(neigbhors)
 
                 loss_o1 = -(torch.log(torch.exp(-self.d(me, mw)))).sum(-1).sum(-1).mean()
 
+                mw = self.W(walks)
+                positive_d = (self.d(mw[:,:,0], mw[:,:,1]))
 
-                r_example = example.unsqueeze(1).expand_as(walks)
-                me, mw = self.W(r_example), self.W(walks)
-                positive_d = (self.d(me, mw))
-
-                me = me.expand(walks.size(0), walks.size(1),  10, mw.size(-1)).contiguous()
-
-                # TODO : sample from degree of node
                 with torch.no_grad():
-                    # print((walks.size(0), walks.size(1), 10))
-                    negative = self.n_dist.sample(sample_shape=(walks.size(0), walks.size(1), 10))
-                    # print("sampled")
+                    negative = self.n_dist.sample(sample_shape=(walks.size(0), walks.size(1), negative_sampling))
                 if(self.cuda):
                     negative = negative.cuda()
                 negative = self.W(negative.long())
-
-                negative_d = self.d(me, negative)
-
-                loss_o2 = torch.log( 1 + (torch.exp(-(negative_d - positive_d.expand_as(negative_d)))).sum(-1)).mean()
+                negative_d = self.d(mw[:,:,0].unsqueeze(2).expand_as(negative), negative)
+                loss_o2 = torch.log( 1 + (torch.exp(-(negative_d - positive_d.unsqueeze(-1).expand_as(negative_d)))).sum(-1)).mean()
                 loss = alpha * loss_o1 + beta * loss_o2 
                 if(gamma > 0):
                     r_example = self.W(example).squeeze()

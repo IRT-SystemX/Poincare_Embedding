@@ -48,6 +48,13 @@ parser.add_argument('--id', dest="id", type=str, default="0",
                     help="identifier of the experiment")
 parser.add_argument('--save', dest="save", action="store_true", default=True,
                     help="saving results and parameters")
+parser.add_argument('--precompute-rw', dest='precompute_rw', type=int, default=-1,
+                    help="number of random path to precompute (for faster embedding learning) if negative \
+                        the random walks is computed on flight")
+parser.add_argument('--context-size', dest="context_size", type=int, default=5,
+                    help="size of the context used on the random walk")
+parser.add_argument("--negative-sampling", dest="negative_sampling", type=int, default=5,
+                    help="number of negative samples for loss O2")
 args = parser.parse_args()
 
 
@@ -86,6 +93,7 @@ D, X, Y = dataset_dict[args.dataset]()
 print("Creating dataset")
 # index of examples dataset
 dataset_index = corpora_tools.from_indexable(torch.arange(0,len(D),1).unsqueeze(-1))
+print("Dataset Size -> ", len(D))
 D.set_path(False)
 
 # negative sampling distribution
@@ -95,20 +103,23 @@ frequency = pytorch_categorical.Categorical(frequency[:,1])
 # random walk dataset
 d_rw = D.light_copy()
 d_rw.set_walk(args.walk_lenght, 1.0)
-d_rw.set_path(False)
+d_rw.set_path(True)
+d_rw = corpora.ContextCorpus(d_rw, context_size=args.context_size, precompute=args.precompute_rw)
 # neigbhor dataset
 d_v = D.light_copy()
 d_v.set_walk(1, 1.0)
 
+print(d_rw[1][0].size())
+
 print("Merging dataset")
 embedding_dataset = corpora_tools.zip_datasets(dataset_index,
-                                                corpora_tools.select_from_index(d_rw, element_index=0),
-                                                corpora_tools.select_from_index(d_v, element_index=0)
+                                                corpora_tools.select_from_index(d_v, element_index=0),
+                                                d_rw
                                                 )
 training_dataloader = DataLoader(embedding_dataset, 
                             batch_size=512, 
                             shuffle=True,
-                            num_workers=4,
+                            num_workers=8,
                             collate_fn=data_tools.PadCollate(dim=0),
                             drop_last=False
                     )
@@ -129,7 +140,7 @@ for disc in range(args.n_disc):
             embedding_alg.set_lr(args.lr)
             alpha, beta = args.alpha, args.beta
         embedding_alg.fit(training_dataloader, alpha=alpha, beta=beta, gamma=args.gamma, max_iter=args.epoch_embedding,
-                         pi=pik, mu=mu, sigma=sigma)
+                         pi=pik, mu=mu, sigma=sigma, negative_sampling=args.negative_sampling)
         em_alg.fit(embedding_alg.get_PoincareEmbeddings().cpu(), max_iter=5)
         pi, mu, sigma = em_alg.getParameters()
         pik = em_alg.getPik(embedding_alg.get_PoincareEmbeddings().cpu())

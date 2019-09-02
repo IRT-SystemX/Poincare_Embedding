@@ -2,6 +2,7 @@ import io
 import os
 import torch 
 import random
+import tqdm
 
 from torch.utils.data import Dataset
 from scipy import io as sio
@@ -48,6 +49,41 @@ class RandomWalkCorpus(Dataset):
 
     def __len__(self):
         return len(self.X)
+
+class ContextCorpus(Dataset):
+    def __init__(self, dataset, context_size=5, precompute=-1):
+        self._dataset = dataset
+        self.c_s = context_size
+        self.precompute = precompute
+        if precompute > 0 :
+            self.paths = self._precompute()
+
+    def _precompute(self):
+        precompute = self.precompute
+        self.precompute = -1
+        paths = []
+        for i in tqdm.trange(len(self)):
+            paths.append([self.__getitem__(i) for j in  range(precompute)])
+        self.precompute = precompute
+        print("sizes -> ", len(paths), len(paths[0]), len(paths[0][0][0]))
+        print("npairs -> ", len(paths) * len(paths[0]) * len(paths[0][0][0]))
+        return paths
+
+    def __getitem__(self, index):
+        if(self.precompute <= 0):
+            path = self._dataset[index][0].squeeze()
+            # print(path)
+            x = [[path[i].item(), path[j].item()]  for i in range(len(path))
+                    for j in range(max(0, i - self.c_s),min(len(path), i + self.c_s)) 
+                    if(i!=j)]
+            return (torch.LongTensor(x),)
+        else:
+            index_path = random.randint(0, self.precompute-1)
+            return self.paths[index][index_path]
+
+    def __len__(self):
+        return len(self._dataset)
+
 def loading_matlab_corpus(mat_path, label_path):
 
     # Graph

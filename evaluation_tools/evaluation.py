@@ -144,7 +144,7 @@ def accuracy_small_disc_product(label, label_source, sources_number):
     Numbers =  np.arange(0, sources_number)
     numerotations = list(itertools.permutations(Numbers))
 
-    print("zeroçfcom", len(label))
+    # print("zeroçfcom", len(label))
 
     for i in range(0,math.factorial(sources_number)):
         combinations.append(zero_fill_comb)
@@ -162,8 +162,8 @@ def accuracy_small_disc_product(label, label_source, sources_number):
     # Calcul des tableaux permutés
     for i in range (0,len(numerotations)):
 
-        print('i',i)
-        print('numerotation\n', numerotations[i])
+        # print('i',i)
+        # print('numerotation\n', numerotations[i])
         for j in range(0,len(combinations[i])):
 
             for q in range(0,len(Numbers)):
@@ -173,11 +173,11 @@ def accuracy_small_disc_product(label, label_source, sources_number):
 
 
 
-    print('Combinations after permutations\n',combinations)
+    # print('Combinations after permutations\n',combinations)
 
     result = np.zeros(len(combinations[0]))
 
-    print('Len result',len(combinations[:,0]))
+    # print('Len result',len(combinations[:,0]))
 
 
     result_percentage = []
@@ -186,7 +186,7 @@ def accuracy_small_disc_product(label, label_source, sources_number):
 
         result_combination = (combinations[u]-label)
 
-        print('result combination', result_combination)
+        # print('result combination', result_combination)
 
         np.append(result, result_combination)
 
@@ -194,7 +194,7 @@ def accuracy_small_disc_product(label, label_source, sources_number):
 
         result_int = (sum(1 for i in result_combination if i == 0) / len(label_source)) * 100
 
-        print('sum(1 for i in result_combination if i == 0)',sum(1 for i in result_combination if i == 0))
+        # print('sum(1 for i in result_combination if i == 0)',sum(1 for i in result_combination if i == 0))
 
         result_percentage.append(result_int)
 

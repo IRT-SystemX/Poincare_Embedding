@@ -13,3 +13,7 @@ in large dataset (depending of learning rate)
 
 2019-08-30:
 - solve some issues, new dependency pytorch-categorical for fast categorical negative sampling
+
+2019-09-02:
+- Walk path options added, precompute pairs etc...
+- ISSUE: embedding DBLP seems work but not the EM
