@@ -1,0 +1,26 @@
+{
+    "accuracy": 72.07220873786407,
+    "alpha": 1.0,
+    "beta": 5.0,
+    "context_size": 15,
+    "cuda": true,
+    "dataset": "dblp",
+    "disc-0": {
+        "accuracy": 0.720637321472168
+    },
+    "epoch": 1,
+    "epoch_embedding": 5,
+    "epoch_embedding_init": 200,
+    "gamma": 5.0,
+    "id": "test-dblp-add-debug",
+    "init_alpha": -1.0,
+    "init_beta": -1.0,
+    "init_lr": -1.0,
+    "lr": 1.0,
+    "n_disc": 1,
+    "n_gaussian": 5,
+    "negative_sampling": 5,
+    "precompute_rw": 5,
+    "save": true,
+    "walk_lenght": 80
+}
