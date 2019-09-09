@@ -14,6 +14,7 @@ from data_tools import data_tools
 from evaluation_tools import evaluation
 from visualisation_tools import plot_tools
 from launcher_tools import logger
+from optim_tools import optimizer
 
 parser = argparse.ArgumentParser(description='Start an experiment')
 parser.add_argument('--n-disc', metavar='d', dest="n_disc", type=int, default=1,
@@ -42,7 +43,9 @@ parser.add_argument('--cuda', dest="cuda", action="store_true", default=False,
                     help="using GPU for operation")
 parser.add_argument('--epoch', dest="epoch", type=int, default=2,
                     help="number of loops alternating embedding/EM")
-parser.add_argument('--epoch-embedding', dest="epoch_embedding", type=int, default=500,
+parser.add_argument('--epoch-embedding-init', dest="epoch_embedding_init", type=int, default=100,
+                    help="maximum number of epoch for first embedding gradient descent")
+parser.add_argument('--epoch-embedding', dest="epoch_embedding", type=int, default=10,
                     help="maximum number of epoch for embedding gradient descent")
 parser.add_argument('--id', dest="id", type=str, default="0",
                     help="identifier of the experiment")
@@ -53,8 +56,10 @@ parser.add_argument('--precompute-rw', dest='precompute_rw', type=int, default=-
                         the random walks is computed on flight")
 parser.add_argument('--context-size', dest="context_size", type=int, default=5,
                     help="size of the context used on the random walk")
-parser.add_argument("--negative-sampling", dest="negative_sampling", type=int, default=5,
+parser.add_argument("--negative-sampling", dest="negative_sampling", type=int, default=10,
                     help="number of negative samples for loss O2")
+parser.add_argument("--embedding-optimizer", dest="embedding_optimizer", type=str, default="addhsgd", 
+                    help="the type of optimizer used for learning poincaré embedding")
 args = parser.parse_args()
 
 
@@ -65,6 +70,9 @@ dataset_dict = { "karate": corpora.load_karate,
             "books": corpora.load_books,
             "blogCatalog": corpora.load_blogCatalog
           }
+
+optimizer_dict = {"addhsgd": optimizer.PoincareBallSGDAdd,
+                  "hsgd": optimizer.PoincareBallSGD}
 
 
 if(args.save):
@@ -79,6 +87,12 @@ if(args.dataset not in dataset_dict):
     print("Dataset " + args.dataset + " does not exist, please select one of the following : ")
     print(list(dataset_dict.keys()))
     quit()
+
+if(args.embedding_optimizer not in optimizer_dict):
+    print("Optimizer " + args.embedding_optimizer + " does not exist, please select one of the following : ")
+    print(list(optimizer_dict.keys()))
+    quit()
+
 if(args.init_lr <= 0):
     args.init_lr = args.lr
 if(args.init_alpha < 0):
@@ -131,17 +145,22 @@ sigma_d = []
 
 for disc in range(args.n_disc):
     alpha, beta = args.init_alpha, args.init_beta
-    embedding_alg = PEmbed(len(embedding_dataset), lr=args.init_lr, cuda=args.cuda, negative_distribution=frequency)
+    embedding_alg = PEmbed(len(embedding_dataset), lr=args.init_lr, cuda=args.cuda, negative_distribution=frequency,
+                            optimizer_method=optimizer_dict[args.embedding_optimizer])
     em_alg = PEM(args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=False)
     pi, mu, sigma = None, None, None
     pik = None
+    mi = 0
+    epoch_embedding = args.epoch_embedding_init
     for i in tqdm.trange(args.epoch):
         if(i==1):
             embedding_alg.set_lr(args.lr)
             alpha, beta = args.alpha, args.beta
-        embedding_alg.fit(training_dataloader, alpha=alpha, beta=beta, gamma=args.gamma, max_iter=args.epoch_embedding,
+            epoch_embedding = args.epoch_embedding
+            mi = 10
+        embedding_alg.fit(training_dataloader, alpha=alpha, beta=beta, gamma=args.gamma, max_iter=epoch_embedding,
                          pi=pik, mu=mu, sigma=sigma, negative_sampling=args.negative_sampling)
-        em_alg.fit(embedding_alg.get_PoincareEmbeddings().cpu(), max_iter=5)
+        em_alg.fit(embedding_alg.get_PoincareEmbeddings().cpu(), max_iter=mi)
         pi, mu, sigma = em_alg.getParameters()
         pik = em_alg.getPik(embedding_alg.get_PoincareEmbeddings().cpu())
     representation_d.append(embedding_alg.get_PoincareEmbeddings().cpu())
