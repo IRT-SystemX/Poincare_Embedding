@@ -8,14 +8,15 @@ from optim_tools import optimizer
 
 
 class RiemannianEmbedding(nn.Module):
-    def __init__(self, n_exemple, cuda=False, lr=1e-2, verbose=True, negative_distribution=None):
+    def __init__(self, n_exemple, cuda=False, lr=1e-2, verbose=True, negative_distribution=None,
+                optimizer_method=optimizer.PoincareBallSGDAdd):
         super(RiemannianEmbedding, self).__init__()
         self.cuda = cuda
         self.N = n_exemple
         self.W = poincare_module.PoincareEmbedding(n_exemple, 2)
         if(self.cuda):
             self.W.cuda()
-        self.optimizer = optimizer.PoincareBallSGD(self.W.parameters(), lr=lr)
+        self.optimizer = optimizer_method(self.W.parameters(), lr=lr)
         self.verbose = verbose
         self.d = poincare_function.poincare_distance
         if(negative_distribution is None):
@@ -27,7 +28,7 @@ class RiemannianEmbedding(nn.Module):
         return self.W(x)
 
     def get_PoincareEmbeddings(self):
-        return self.W.l_embed.weight.data
+        return self.W.l_embed(torch.arange(0, self.N, device=self.W.l_embed.weight.data.device)).detach()
 
     def set_lr(self, lr):
         for g in self.optimizer.param_groups:
@@ -56,7 +57,7 @@ class RiemannianEmbedding(nn.Module):
                 r_example = example.unsqueeze(1).expand_as(neigbhors)
                 me, mw = self.W(r_example), self.W(neigbhors)
 
-                loss_o1 = -(torch.log(torch.exp(-self.d(me, mw)))).sum(-1).sum(-1).mean()
+                loss_o1 = -(torch.log(torch.exp(-self.d(me, mw)))).mean()
 
                 mw = self.W(walks)
                 positive_d = (self.d(mw[:,:,0], mw[:,:,1]))
@@ -67,16 +68,17 @@ class RiemannianEmbedding(nn.Module):
                     negative = negative.cuda()
                 negative = self.W(negative.long())
                 negative_d = self.d(mw[:,:,0].unsqueeze(2).expand_as(negative), negative)
-                loss_o2 = torch.log( 1 + (torch.exp(-(negative_d - positive_d.unsqueeze(-1).expand_as(negative_d)))).sum(-1)).sum(-1).mean()
+                # print(torch.log( 1 + (torch.exp(-(negative_d - positive_d.unsqueeze(-1).expand_as(negative_d)))).sum(-1)).size())
+                loss_o2 = torch.log( 1 + (torch.exp(-(negative_d - positive_d.unsqueeze(-1).expand_as(negative_d)))).sum(-1)).mean()
                 loss = alpha * loss_o1 + beta * loss_o2 
                 if(gamma > 0):
                     r_example = self.W(example).squeeze()
                     pi_z = pi[example].squeeze()
-                    loss_o3 = (-torch.log(1e-4 + gmm_tools.weighted_gmm_pdf(pi_z.detach(), r_example, mu.detach(), sigma.detach(), self.d))).mean()
-                    loss_value3 = loss_o3.item()
-                    loss_pdf3 = torch.exp(-loss_o3).item()
-                    loss += gamma * loss_o3
-
+                    loss_o3 = (-pi_z.detach() * torch.log(1e-4 + gmm_tools.weighted_gmm_pdf(pi_z.detach(), r_example, mu.detach(), sigma.detach(), self.d)))
+                    # print("loss o3 size ->", loss_o3)
+                    loss += gamma * loss_o3.mean()
+                    loss_value3 = loss_o3.sum(-1).mean().item()
+                    loss_pdf3 = torch.exp(-loss_o3.mean()).item()
 
                 loss_value1 = loss_o1.item()
                 loss_value2 = loss_o2.item()
