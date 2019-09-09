@@ -16,7 +16,7 @@ class RiemannianKMeans(object):
         self._distance = RiemannianFunction.riemannian_distance
         self.centroids = None
     
-    def _barycenter(self, x, tau=1e-3, lr=1e-3, max_iter=500):
+    def _barycenter(self, x, tau=5e-3, lr=5e-3, max_iter=math.inf):
         if(len(x) == 1):
             return x[0]
         N = x.shape[0]
@@ -52,9 +52,9 @@ class RiemannianKMeans(object):
         centroids = []
         for i in range(self._n_c):
             lx = x[indexes == i]
-            if(lx.shape[0] == 0):
+            if(lx.shape[0] <= 4):
                 lx = np.array([x[np.random.randint(0,len(x))]])
-            centroids.append(self._barycenter(x[indexes == i]))
+            centroids.append(self._barycenter(lx))
         return np.array(centroids)
 
     def fit(self, X, max_iter=50):
