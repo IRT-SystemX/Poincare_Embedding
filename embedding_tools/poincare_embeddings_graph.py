@@ -70,6 +70,16 @@ class RiemannianEmbedding(nn.Module):
                 negative_d = self.d(mw[:,:,0].unsqueeze(2).expand_as(negative), negative)
                 # print(torch.log( 1 + (torch.exp(-(negative_d - positive_d.unsqueeze(-1).expand_as(negative_d)))).sum(-1)).size())
                 loss_o2 = torch.log( 1 + (torch.exp(-(negative_d - positive_d.unsqueeze(-1).expand_as(negative_d)))).sum(-1)).mean()
+                if(loss_o1.item() != loss_o1.item() or loss_o2.item() != loss_o2.item()):
+                    print("ERROR")
+                    print('Loss O1 -> ', loss_o1.item())
+                    print('Loss O2 -> ', loss_o2.item())
+                    print('Embedding mean -> ', me.mean().item(), mw.mean().item()) 
+                    if(me.mean() != me.mean() or mw.mean() != mw.mean() ):
+                        print("Mean -> ", self.get_PoincareEmbeddings().mean().item())
+                        print("Min -> ", self.get_PoincareEmbeddings().min().item())
+                        print("Max -> ", self.get_PoincareEmbeddings().max().item())                        
+                    quit()
                 loss = alpha * loss_o1 + beta * loss_o2 
                 if(gamma > 0):
                     r_example = self.W(example).squeeze()

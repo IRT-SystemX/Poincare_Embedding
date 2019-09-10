@@ -65,15 +65,17 @@ class RiemannianEM(object):
     def static_barycenter(z, lr, tau, omega_mu, max_iter=math.inf, g_index=0):
         N, M = omega_mu.shape
         cvg = math.inf
-        barycenter = z.mean()
+        barycenter = (omega_mu[:,g_index] * z).sum()/omega_mu[:,g_index].sum()
 
         # SGD 
+        print(omega_mu[:, g_index].sum())
+
         iteration = 0
-        while(cvg>tau and max_iter>iteration):
+        while(tau < cvg and max_iter>iteration):
             iteration+=1
             
             mean_nw = RiemannianTools.log(barycenter.repeat(N), z)
-            mean_w = (mean_nw * omega_mu[:, g_index]).mean()
+            mean_w = (mean_nw *  omega_mu[:, g_index]).mean()
             if(mean_w.sum() != mean_w.sum()):
                 print("mean->",mean_nw)
                 print(z.shape, barycenter.repeat(N).shape)
@@ -84,6 +86,7 @@ class RiemannianEM(object):
             # update weight step
             barycenter = RiemannianTools.exp(barycenter, lr * mean_w)
             cvg = np.sqrt((np.abs(mean_w)**2)/((1 - np.abs(barycenter)**2)**2))
+            # print(cvg)
         return barycenter
 
     # w = M
@@ -91,7 +94,8 @@ class RiemannianEM(object):
     @staticmethod
     def static_omega_mu(w, pdfs):
         N, M = pdfs.shape
-        w = np.expand_dims(w,0).repeat(N,0)
+        if(type(w) == np.ndarray):
+            w = np.expand_dims(w,0).repeat(N,0)
         w_pdf = w * pdfs
         return w_pdf/ np.expand_dims(w_pdf.sum(-1),-1).repeat(M,-1)
 
@@ -149,10 +153,10 @@ class RiemannianEM(object):
                                                         ),
                                                        self._distance, g_index=g_index)
 
-    def fit(self, z, max_iter=5, lr_mu=1e-1, tau_mu=5e-3):
+    def fit(self, z, max_iter=5, lr_mu=1e-2, tau_mu=5e-3):
         progress_bar = tqdm.trange(max_iter) if(self._verbose) else range(max_iter)
         # if it is the first time function fit is called
-        if(not self._started):
+        if(not self._started or self._started):
             # using kmeans for initializing means
             if(self._init_mod == "kmeans"):
                 if(self._verbose):
@@ -167,6 +171,7 @@ class RiemannianEM(object):
                 km.fit(z.numpy())
                 self._mu = km.cluster_centers_[:,0] +km.cluster_centers_[:,1] *1j
             for g in range(self._n_g): 
+                self.update_w(z[:,0].numpy()+z[:,1].numpy() *1j, g_index=g)
                 self.update_sigma(z[:,0].numpy()+z[:,1].numpy() *1j, g_index=g)
             if(self._verbose):
                 print("\t mu -> ", self._mu)

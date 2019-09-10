@@ -117,7 +117,13 @@ class EuclideanEM(object):
 class SklearnEM(object):
     def __init__(self, n_gaussian, space_size, distance, verbose=True):
         self.gm = GaussianMixture(n_components=n_gaussian, covariance_type='spherical')
-    def fit(self, z):
+        self.distance =distance
+    def fit(self, z, max_iter=10):
         self.gm.fit(z.numpy())
     def getParameters(self):
-        return  torch.Tensor(self.gm.weights_), torch.Tensor(self.gm.means_), 0.2*torch.Tensor(self.gm.covariances_)/torch.Tensor(self.gm.covariances_)
+        return  torch.Tensor(self.gm.weights_), torch.Tensor(self.gm.means_), torch.Tensor(self.gm.covariances_)
+    def getPik(self, z):
+        w, mu, sigma = self.getParameters()
+        return torch.Tensor(EuclideanEM.static_omega_mu(w,EuclideanEM.pdf(
+                                                    z,mu, 
+                                                    sigma)))

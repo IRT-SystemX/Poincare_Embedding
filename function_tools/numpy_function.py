@@ -21,6 +21,10 @@ class RiemannianFunction(object):
         return 0.5 * np.log(num/den)
         # error function 
     @staticmethod
+    def riemannian_distance_grad(x, y):
+        return -RiemannianFunction.log(x, y)/RiemannianFunction.riemannian_distance(x, y)
+
+    @staticmethod
     def erf(x):
         return np.sign(x)*np.sqrt(1-np.exp(-x*x*(4/np.pi+RiemannianFunction.ERF_CST*x*x)/(1+RiemannianFunction.ERF_CST*x**2)))
     

@@ -34,6 +34,12 @@ def predict(Z_train, Z_test, Y_train, Y_test, pi, mu, sigma):
     prediction = g[G_test-1].long()
     return prediction
 
+def scoring(Ytr, Yte):
+    scoring = 0.
+    for i in np.unique(Ytr.numpy()):
+        scoring += Counter(Yte[Ytr == i].tolist()).most_common(1)[0][1]
+    return (scoring/len(Ytr)) *100
+
 def accuracy_cross_validation_multi_disc(Z, Y, pi, mu, sigma, nb_set, verbose=True):
     subset_index = torch.randperm(len(Z[0]))
     nb_value = len(Z[0])//nb_set
@@ -137,6 +143,82 @@ def accuracy_disc_product(z, y, pi, mu, sigma, verbose=False):
         return accuracy_small_disc_product(label, label_source, sources_number)
     else:
         return accuracy_huge_disc_product(label, label_source, sources_number)
+
+# def accuracy_disc_product(z, y, pi, mu, sigma, verbose=False):
+#     n_disc = len(z)
+#     n_example = len(z[0])
+#     n_distrib = len(mu[0])
+#     y = torch.LongTensor([y[i][0]-1 for i in range(len(y))])
+
+#     # first getting the pdf for each disc distribution
+#     prob = [gmm_tools.weighted_gmm_pdf(pi[i], z[i], mu[i], sigma[i], modules.hyperbolicDistance).unsqueeze(0) 
+#             for i in range(n_disc)]
+#     print(torch.cat(prob, 0).shape)
+#     summed_prob = torch.cat(prob, 0)
+#     print("summed prob size ->",summed_prob.shape)
+#     _, associated_distrib = summed_prob.max(1)
+#     print("associated distribution size ->",associated_distrib.shape)
+#     print("associated distribution ->",associated_distrib)
+#     print("source labels ->", y)
+#     label = associated_distrib.numpy()
+#     label_source = y.numpy()
+#     sources_number = n_distrib
+#     if(n_distrib <= 6):
+#         return accuracy_small_disc_product(label, label_source, sources_number)
+#     else:
+#         return accuracy_huge_disc_product(label, label_source, sources_number)
+
+def evaluation(z, y, pi, mu, sigma, verbose=False):
+    #number of discs, examples and gaussian
+    nd = len(z)
+    ne = len(z[0])
+    ng = len(mu[0])
+    y = torch.LongTensor([y[i][0]-1 for i in range(len(y))])
+    # for each disc we must retrieve distribution
+    '''
+    In our case we take the maximum 
+    '''
+    prob = [gmm_tools.weighted_gmm_pdf(pi[i], z[i], mu[i], sigma[i],
+                                       modules.hyperbolicDistance).unsqueeze(-1) 
+            for i in range(nd)
+           ]
+    
+    cat_prob = torch.cat(prob, -1)
+    print(cat_prob.size())
+    # we now have a tensor NDxNGxNE
+    source_value, source_index = cat_prob[:, :, 0].max(-1)
+    # print("sc -> ", source_index)
+    permutation = [list(range(ng))]
+    for disc_index in range(1, nd):
+        permutation.append([])
+        indexable = list(range(ng))
+        for gaussian_index in range(ng):
+            # we get for selected example the max
+            # print("si -> ",source_index == gaussian_index)
+            # print("vm -> ",cat_prob[source_index == gaussian_index].size())
+            # print("vm -> ",cat_prob[source_index == gaussian_index][:, :, disc_index].size())
+            valmax, idmax = cat_prob[source_index == gaussian_index][:, indexable, disc_index].mean(0).max(-1)
+            permutation[-1].append(indexable[idmax.item()])
+            indexable.remove(indexable[idmax.item()])
+        # we now have the permutation for the disc disc index
+        print(permutation[-1])
+        print(disc_index)
+        cat_prob[:,:,disc_index] = cat_prob[:,permutation[-1],disc_index]
+    
+    summed_prob = cat_prob.sum(-1)
+    _, y_test = summed_prob.max(-1)
+    # print("associated distribution size ->",associated_distrib.shape)
+    # print("associated distribution ->",associated_distrib)
+    # print("source labels ->", y)
+    # label = associated_distrib.numpy()
+    # label_source = y.numpy()
+    # sources_number = nd
+    return  scoring(y, y_test), permutation
+    # if(nd<= 6):
+    #     return accuracy_small_disc_product(label, label_source, sources_number), permutation
+    # else:
+    #     return accuracy_huge_disc_product(label, label_source, sources_number), permutation
+            
 def accuracy_small_disc_product(label, label_source, sources_number):
     combinations = []
     zero_fill_comb = np.zeros(len(label))

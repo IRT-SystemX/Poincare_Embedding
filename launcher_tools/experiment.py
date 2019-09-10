@@ -142,7 +142,6 @@ representation_d = []
 pi_d = []
 mu_d = []
 sigma_d = []
-
 for disc in range(args.n_disc):
     alpha, beta = args.init_alpha, args.init_beta
     embedding_alg = PEmbed(len(embedding_dataset), lr=args.init_lr, cuda=args.cuda, negative_distribution=frequency,
@@ -173,7 +172,7 @@ for disc in range(args.n_disc):
         logger_object.append({"disc-"+str(disc):{"accuracy": current_accuracy}})
 
 #evaluate performances on all disc
-total_accuracy = evaluation.accuracy_disc_product(representation_d, D.Y, pi_d, mu_d, sigma_d, verbose=False)
+total_accuracy, permutations = evaluation.evaluation(representation_d, D.Y, pi_d, mu_d, sigma_d, verbose=False)
 print("\nPerformances joined -> " ,
     total_accuracy
 )
