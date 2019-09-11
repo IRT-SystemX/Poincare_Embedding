@@ -10,8 +10,19 @@ def aphi(sigma):
     return math.pow(sigma,2)+math.pow(sigma,4) + \
         ( ( ((math.pow(sigma,3))*math.sqrt(2)*math.exp(-(math.pow(sigma,2))/2)))/(math.sqrt(math.pi)*math.erf(sigma/(math.sqrt(2)))) )
 
-sigma_pos = torch.linspace(0.01,6, 400) 
+def zeta(sigma, dimension):
+    x = np.array(dimension)
+    for i in range(dimension-1):
+        constant = ((math.sqrt(math.pi/2)* sigma)/ math.pow(dimension-1, 2) ) * (math.pow(-1,i) * (math.factorial(dimension-1)/ (math.factorial(i)* math.factorial(dimension-1-i))) )
+        x[i] = constant * math.exp(math.pow(dimension-1-2*i,2) * math.pow(sigma,2)/ 2 ) * ((1 + math.erf(dimension-1-2*i) * sigma)/ (math.sqrt(2)) )
+
+    return np.sum(x)
+
+
+
+sigma_pos = torch.linspace(0.01,6, 400)
 sigma_inverse = torch.Tensor([aphi(sigma_pos[i].item()) for i in range(len(sigma_pos))])
+
 class RiemanianTools(object):
     PI_CST = pow((2*math.pi),2/3)
     SQRT_CST = math.sqrt(2)

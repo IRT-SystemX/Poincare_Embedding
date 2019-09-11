@@ -68,12 +68,11 @@ if __name__ == "__main__":
                 "blogCatalog": corpora.load_blogCatalog
               }
 
-    output_directory = "Output/"+args.id+"/"
 
     if(args.save):
         print("The following options are use for the current experiment ", args)
-        os.makedirs(output_directory, exist_ok=True)
-        logger_object = logger.JSONLogger(output_directory + "log.json")
+        os.makedirs("RESULTS/"+args.id+"/", exist_ok=True)
+        logger_object = logger.JSONLogger("RESULTS/"+args.id+"/log.json")
         logger_object.append(vars(args))
 
     # check if dataset exists
@@ -183,7 +182,7 @@ if __name__ == "__main__":
 
         plot_tools.plot_embedding_distribution_multi(representation_d, pi_d, mu_d,  sigma_d,
                                                     labels=None, N=100, colors=colors,
-                                                    save_path= output_directory + "fig.pdf")
+                                                    save_path="RESULTS/"+args.id+"/fig.pdf")
 
-        torch.save(representation_d, output_directory+ "embeddings.t7")
-        torch.save( {"pi": pi_d, "mu":mu_d, "sigma":sigma_d}, output_directory +"pi_mu_sigma.t7")
+        torch.save(representation_d, "RESULTS/"+args.id+"/embeddings.t7")
+        torch.save( {"pi": pi_d, "mu":mu_d, "sigma":sigma_d}, "RESULTS/"+args.id+"/pi_mu_sigma.t7")

@@ -42,11 +42,13 @@ def add(x, y):
     xy = (x * y).sum(-1, keepdim=True).expand_as(x)
     return ((1 + 2*xy+ ny)*x + (1-nx)*y)/(1+2*xy+nx*ny)
 
+
 def log(k, x):
     kpx = add(-k,x)
     norm_kpx = kpx.norm(2,-1, keepdim=True).expand_as(kpx)
     norm_k = k.norm(2,-1, keepdim=True).expand_as(kpx)
     return (1-norm_k)* ((torch_function.arcTanh(norm_kpx))) * (kpx/norm_kpx)
+
 
 def exp(k, x):
     norm_k = k.norm(2,-1, keepdim=True).expand_as(k)
