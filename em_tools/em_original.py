@@ -137,6 +137,8 @@ class RiemannianEM(object):
                 km = kmh.RiemannianKMeans(self._n_g)
                 km.fit(z.numpy())
                 self._mu = km.cluster_centers_[:,0] +km.cluster_centers_[:,1] *1j
+                for g in range(self._n_g):
+                    self.update_sigma(z, wik, g_index=g)
             if(self._verbose):
                 print("Weight")
                 print("\t mu -> ", self._mu)
