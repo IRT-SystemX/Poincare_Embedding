@@ -1,20 +1,20 @@
 import tqdm
 import torch
 from torch import nn
-from embedding_tools import losses
 
 from function_tools import poincare_function, poincare_module, distribution_function
+from embedding_tools import losses
 from optim_tools import optimizer
 
 
 
 class RiemannianEmbedding(nn.Module):
-    def __init__(self, n_exemple, cuda=False, lr=1e-2, verbose=True, negative_distribution=None,
+    def __init__(self, n_exemple, size=10,  cuda=False, lr=1e-2, verbose=True, negative_distribution=None,
                 optimizer_method=optimizer.PoincareBallSGDAdd):
         super(RiemannianEmbedding, self).__init__()
         self.cuda = cuda
         self.N = n_exemple
-        self.W = poincare_module.PoincareEmbedding(n_exemple, 2)
+        self.W = poincare_module.PoincareEmbedding(n_exemple, size)
         if(self.cuda):
             self.W.cuda()
         self.optimizer = optimizer_method(self.W.parameters(), lr=lr)

@@ -5,7 +5,7 @@ def aphi(sigma):
     return math.pow(sigma,2)+math.pow(sigma,4) + \
         ( ( ((math.pow(sigma,3))*math.sqrt(2)*math.exp(-(math.pow(sigma,2))/2)))/(math.sqrt(math.pi)*math.erf(sigma/(math.sqrt(2)))) )
 
-sigma_pos = np.linspace(0.01,10, 400) 
+sigma_pos = np.linspace(0.01,10, 1600) 
 sigma_inverse = np.array([aphi(sigma_pos[i].item()) for i in range(len(sigma_pos))])
 
 class RiemannianFunction(object):
@@ -15,15 +15,11 @@ class RiemannianFunction(object):
  
     @staticmethod
     def riemannian_distance(x, y):
-        a = abs((x-y)/(1-y.conjugate()*x))
+        a = abs((y-x)/(1-x.conjugate()*y))
         num = 1 + a
         den = 1 - a
         return 0.5 * np.log(num/den)
         # error function 
-    @staticmethod
-    def riemannian_distance_grad(x, y):
-        return -RiemannianFunction.log(x, y)/RiemannianFunction.riemannian_distance(x, y)
-
     @staticmethod
     def erf(x):
         return np.sign(x)*np.sqrt(1-np.exp(-x*x*(4/np.pi+RiemannianFunction.ERF_CST*x*x)/(1+RiemannianFunction.ERF_CST*x**2)))
@@ -34,6 +30,9 @@ class RiemannianFunction(object):
 
     @staticmethod
     def phi(value):
+        if((sigma_inverse>value).sum().item() < 1):
+            print("Too low variance....")
+            return sigma_pos[0]
         return sigma_pos[(sigma_inverse>value).nonzero()[0][0]]
 
     # log map similar to the one use in the previous code 

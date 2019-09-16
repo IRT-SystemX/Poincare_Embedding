@@ -3,12 +3,14 @@ import cmath
 import torch
 import numpy as np
 import tqdm
+import random
 from function_tools import numpy_function as function
 from sklearn.mixture import GaussianMixture
 from sklearn.cluster import KMeans
 from function_tools.numpy_function import RiemannianFunction
 
-
+from function_tools import poincare_alg as pa
+from function_tools import poincare_function as pf
 class RiemannianKMeans(object):
 
     def __init__(self, n_clusters, init_mod="rand", verbose=True):
@@ -52,7 +54,7 @@ class RiemannianKMeans(object):
         centroids = []
         for i in range(self._n_c):
             lx = x[indexes == i]
-            if(lx.shape[0] <= 4):
+            if(lx.shape[0] <= len(x)/100):
                 lx = np.array([x[np.random.randint(0,len(x))]])
             centroids.append(self._barycenter(lx))
         return np.array(centroids)
@@ -68,5 +70,43 @@ class RiemannianKMeans(object):
         for iteration in range(max_iter):
             self.indexes = self._expectation(self.centroids, X)
             self.centroids = self._maximisation(X, self.indexes)
-        print(self.indexes)
         self.cluster_centers_ = np.array([self.centroids.real, self.centroids.imag]).transpose()
+
+# the pytorch version
+class PoincareKMeans(object):
+    def __init__(self, n_clusters, min_cluster_size=1, verbose=False):
+        self._n_c = n_clusters
+        self._m_c_s = min_cluster_size
+        self._distance = pf.distance
+        self.centroids = None
+    
+    def _maximisation(self, x, indexes):
+        centroids = x.new(self._n_c, x.size(-1))
+        for i in range(self._n_c):
+            lx = x[indexes == i]
+            if(lx.shape[0] <= self._m_c_s):
+                lx = x[random.randint(0,len(x)-1)].unsqueeze(0)
+            centroids[i] = pa.barycenter(x)
+        return centroids
+    
+    def _expectation(self, centroids, x):
+        N, K, D = x.shape[0], self.centroids.shape[0], x.shape[1]
+        centroids = centroids.unsqueeze(0).expand(N, K, D)
+        x = x.unsqueeze(1).expand(N, K, D)
+        dst = self._distance(centroids, x)
+        value, indexes = dst.min(-1)
+        return indexes
+
+    def fit(self, X, max_iter=50):
+        if(self.centroids == None):
+            self.centroids_index = (torch.rand(self._n_c) * len(X)).long()
+            self.centroids = X[self.centroids_index]
+
+        for iteration in range(max_iter):
+            self.indexes = self._expectation(self.centroids, X)
+            self.centroids = self._maximisation(X, self.indexes)
+
+        self.cluster_centers_  =  self.centroids
+    
+    def predict(self, X):
+        return self._expectation(self.centroids, X)

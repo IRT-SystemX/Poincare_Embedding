@@ -162,16 +162,16 @@ def load_dblp():
 
 def load_flickr():
     os.makedirs("data/FLICKR/", exist_ok=True)
-    dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/Flickr_dataset/edges.csv", "data/FLICKR/edges.csv")
-    dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/Flickr_dataset/group-edges.csv", "data/FLICKR/group-edges.csv")
+    dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/Flickr-dataset/edges.csv", "data/FLICKR/edges.csv")
+    dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/Flickr-dataset/group-edges.csv", "data/FLICKR/group-edges.csv")
     edges_path = "data/FLICKR/edges.csv"
     groups_path = "data/FLICKR/group-edges.csv"
     return loading_social_computing_corpus(edges_path, groups_path, symetric=True)
 
 def load_blogCatalog():
     os.makedirs("data/BlogCatalog-dataset/", exist_ok=True)
-    dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/BlogCat/edges.csv", "data/BlogCatalog-dataset/edges.csv")
-    dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/BlogCat/group-edges.csv", "data/BlogCatalog-dataset/group-edges.csv")
+    dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/BlogCatalog-dataset/edges.csv", "data/BlogCatalog-dataset/edges.csv")
+    dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/BlogCatalog-dataset/group-edges.csv", "data/BlogCatalog-dataset/group-edges.csv")
     edges_path = "data/BlogCatalog-dataset/edges.csv"
     groups_path = "data/BlogCatalog-dataset/group-edges.csv"
     return loading_social_computing_corpus(edges_path, groups_path, symetric=True)

@@ -1,6 +1,6 @@
 import torch
 from torch.autograd import Function
-from function_tools import torch_function
+from function_tools import function
 
 # redefining the hyperbolic distance forward and grad
 class PoincareDistance(torch.autograd.Function):
@@ -20,7 +20,7 @@ class PoincareDistance(torch.autograd.Function):
         with torch.no_grad():
             beta = (1-x_norm)
             alpha = (1-theta_norm)
-            coef_beta = 4/((torch.sqrt((output+1e-4)**2-1)) * beta)
+            coef_beta = 4/((torch.sqrt((output+1e-5)**2-1)) * beta)
             b = (x_norm - 2* (theta*x).sum(-1) + 1 )/(alpha**2)
             c = x/alpha.unsqueeze(-1).expand_as(x)
             b_c = b.unsqueeze(-1).expand_as(x)*theta - c
@@ -32,54 +32,26 @@ class PoincareDistance(torch.autograd.Function):
             return (PoincareDistance.get_grad(output,x, y, x_norm, y_norm)* grad_output.unsqueeze(-1).expand_as(x),
                 PoincareDistance.get_grad(output, y, x, y_norm, x_norm)* grad_output.unsqueeze(-1).expand_as(x))
 
-
 def poincare_distance(x, y):
     return PoincareDistance.apply(x, y)
-
-class PoincareDistanceDG(torch.autograd.Function):
-    @staticmethod
-    def forward(ctx, x, y, j):
-        with torch.no_grad():
-            x_norm = torch.sum(x ** 2, dim=-1)
-            y_norm = torch.sum(y ** 2, dim=-1)
-            d_norm = torch.sum((x-y) ** 2, dim=-1)
-            cc = 1+2*d_norm/((1-x_norm)*(1-y_norm)) 
-
-            d = 0.5*torch.log(cc + torch.sqrt(cc**2-1))
-            ctx.save_for_backward(d, x, y , j)
-            return  0.5*torch.log(cc + torch.sqrt(cc**2-1))
-
-    @staticmethod
-    def backward(ctx, grad_output):
-        with torch.no_grad():
-            d,x, y, j = ctx.saved_tensors
-            # print("2->", grad_output.view(-1))
-            d = d.unsqueeze(-1).expand_as(x)
-            return j*-2*log(x, y)*torch.sigmoid(j*d),-2*j*log(y, x)*torch.sigmoid(j*d), j
-
-def poincare_distance_dg_f(x, y):
-    with torch.no_grad():
-        x_norm = torch.sum(x ** 2, dim=-1)
-        y_norm = torch.sum(y ** 2, dim=-1)
-        d_norm = torch.sum((x-y) ** 2, dim=-1)
-        cc = 1+2*d_norm/((1-x_norm)*(1-y_norm)) 
-        return  0.5*torch.log(cc + torch.sqrt(cc**2-1))
-
-def poincare_distance_dg_b(x, y, p):
-    with torch.no_grad():
-        return -p*log(x, y),-p*log(y, x)
-
-def poincare_distance_dg(x, y, j=-1):
-    return PoincareDistanceDG.apply(x, y, x.new([j]))
+def distance(x, y):
+    return PoincareDistance.apply(x, y)
 
 def poincare_retractation(x, y):
     return ((1 - torch.sum(x ** 2, dim=-1, keepdim=True).expand_as(y))**2) * y
+
 def riemannian_distance(x, y):
         x_norm = torch.sum(x ** 2, dim=-1)
         y_norm = torch.sum(y ** 2, dim=-1)
         d_norm = torch.sum((x-y) ** 2, dim=-1)
         cc = 1+2*d_norm/((1-x_norm)*(1-y_norm)) 
         return  0.5*torch.log(cc + torch.sqrt(cc**2-1))
+
+def renorm_projection(x, eps=1e-4):
+    x_n = x.norm(2, -1)
+    if(len(x[x_n>=1.])>0):
+        x[x_n>=1.] /= (x_n.unsqueeze(-1).expand_as(x[x_n>=1.]) + eps)
+    return x
 
 def add(x, y):
     nx = torch.sum(x ** 2, dim=-1, keepdim=True).expand_as(x)
@@ -91,7 +63,7 @@ def log(k, x):
     kpx = add(-k,x)
     norm_kpx = kpx.norm(2,-1, keepdim=True).expand_as(kpx)
     norm_k = k.norm(2,-1, keepdim=True).expand_as(kpx)
-    return (1-norm_k**2)* ((torch_function.arcTanh(norm_kpx))) * (kpx/norm_kpx)
+    return (1-norm_k**2)* ((torch.arc_tanh(norm_kpx))) * (kpx/norm_kpx)
 
 def exp(k, x):
     norm_k = k.norm(2,-1, keepdim=True).expand_as(k)
