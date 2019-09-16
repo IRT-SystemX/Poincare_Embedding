@@ -57,6 +57,10 @@ if __name__ == "__main__":
                         help="size of the context used on the random walk")
     parser.add_argument("--negative-sampling", dest="negative_sampling", type=int, default=5,
                         help="number of negative samples for loss O2")
+
+    # parser.add_argument("--plot-iterations", dest="negative_sampling", type=bool, default=False,
+    #                     help="Plot the embedding at each iteration")
+
     args = parser.parse_args()
 
 
@@ -180,10 +184,17 @@ if __name__ == "__main__":
             colors.append(plt_colors.hsv_to_rgb([D.Y[i][0]/(len(unique_label)),0.5,0.8]))
 
 
-
+        #Plot Gaussians
         plot_tools.plot_embedding_distribution_multi(representation_d, pi_d, mu_d,  sigma_d,
                                                     labels=None, N=100, colors=colors,
-                                                    save_path= output_directory + "fig.pdf")
+                                                    save_path= output_directory + "Embedding_Gaussian.pdf")
+
+
+        # #Plot Embedding
+        # plot_tools.plot_embedding_distribution_multi(representation_d, pi_d, mu_d,  sigma_d,
+        #                                             labels=None, N=100, colors=colors,
+        #                                             save_path= output_directory + "Embedding_Gaussian.pdf")
+
 
         torch.save(representation_d, output_directory+ "embeddings.t7")
         torch.save( {"pi": pi_d, "mu":mu_d, "sigma":sigma_d}, output_directory +"pi_mu_sigma.t7")

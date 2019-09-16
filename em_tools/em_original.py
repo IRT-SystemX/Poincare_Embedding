@@ -154,7 +154,8 @@ class RiemannianEM(object):
                 
                 self.update_mu(z, wik, lr_mu, tau_mu, g_index=g)
                 self.update_sigma(z, wik, g_index=g)
-                
+
+
     def getParameters(self):
         mu_torch = torch.cat((torch.Tensor(self._mu.real).unsqueeze(-1),torch.Tensor(self._mu.imag).unsqueeze(-1)),-1)
         return  torch.Tensor(self._w), mu_torch, torch.Tensor(self._sigma)
