@@ -19,7 +19,7 @@ def barycenter(z, wik=None, lr=1e-2, tau=1e-4, max_iter=math.inf, distance=pf.di
         iteration+=1
         grad_tangent = pf.log(barycenter.expand_as(z), z) * wik
         if(wik != 1):
-            grad_tangent /= wik.sum(-1, keepdim=True).expand_as(wik)
+            grad_tangent /= wik.sum(0, keepdim=True).expand_as(wik)
         else:
             grad_tangent /= len(z)
         cc_barycenter = pf.exp(barycenter, lr * grad_tangent.sum(0))
