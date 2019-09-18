@@ -59,7 +59,7 @@ class RiemannianKMeans(object):
             centroids.append(self._barycenter(lx))
         return np.array(centroids)
 
-    def fit(self, X, max_iter=50):
+    def fit(self, X, max_iter=100):
 
         X = X[:,0] +X[:,1] *1j
         if(self.centroids == None):
@@ -100,26 +100,23 @@ class PoincareKMeans(object):
         centroids = centroids.unsqueeze(0).expand(N, K, D)
         x = x.unsqueeze(1).expand(N, K, D)
         dst = self._distance(centroids, x)
-        # print("dst size ", dst.size())
         value, indexes = dst.min(-1)
-        # print(indexes)
         return indexes
 
     def fit(self, X, max_iter=50):
-        if(self._mec < 0):
-            self._mec = len(X)/self._n_c
-        if(self.centroids == None):
-            self.centroids_index = (torch.rand(self._n_c) * len(X)).long()
-            self.centroids = X[self.centroids_index]
-        # print("centroids -> ",self.centroids)
-        for iteration in range(max_iter):
-            # if(iteration!=0):
-            #     # print(self.indexes)
-            self.indexes = self._expectation(self.centroids, X)
-            self.centroids = self._maximisation(X, self.indexes)
+        with torch.no_grad():
+            if(self._mec < 0):
+                self._mec = len(X)/self._n_c
+            if(self.centroids == None):
+                self.centroids_index = (torch.rand(self._n_c, device=X.device) * len(X)).long()
+                self.centroids = X[self.centroids_index]
 
-        self.cluster_centers_  =  self.centroids
-        return self.centroids
+            for iteration in range(max_iter):
+                self.indexes = self._expectation(self.centroids, X)
+                self.centroids = self._maximisation(X, self.indexes)
+
+            self.cluster_centers_  =  self.centroids
+            return self.centroids
 
     def predict(self, X):
         return self._expectation(self.centroids, X)
@@ -132,27 +129,36 @@ def test():
     from itertools import product, combinations
     from mpl_toolkits.mplot3d import Axes3D
 
-    x1 = torch.randn(100, 2)*0.2 +(torch.rand(1, 2).expand(100, 2) -0.5) * 3
-    x2 = torch.randn(100, 2)*0.2 +(torch.rand(1, 2).expand(100, 2) -0.5) * 3
-    x3 = torch.randn(100, 2)*0.2 +(torch.rand(1, 2).expand(100, 2) -0.5) * 3
+    x1 = torch.randn(50000, 2)*0.10 +(torch.rand(1, 2).expand(50000, 2) -0.5) * 3
+    x2 = torch.randn(50000, 2)*0.10 +(torch.rand(1, 2).expand(50000, 2) -0.5) * 3
+    x3 = torch.randn(50000, 2)*0.10 +(torch.rand(1, 2).expand(50000, 2) -0.5) * 3
     X = torch.cat((x1,x2,x3), 0)
     X_b = torch.cat((x1.unsqueeze(0),x2.unsqueeze(0),x3.unsqueeze(0)), 0)
     xn  = X.norm(2,-1)
 
     X[xn>1] /= ((xn[xn>1]).unsqueeze(-1).expand((xn[xn>1]).shape[0], 2) +1e-3)
-    X_b = torch.cat((X[0:100].unsqueeze(0),X[100:200].unsqueeze(0),X[200:].unsqueeze(0)), 0)
-    km = PoincareKMeans(3, min_cluster_size=50)
+    X_b = torch.cat((X[0:50000].unsqueeze(0),X[50000:100000].unsqueeze(0),X[100000:].unsqueeze(0)), 0)
+    km = PoincareKMeans(3, min_cluster_size=500)
+    import time
+    start_time = time.time()
+    print("start fitting")
+    # mu = km.fit(X.cuda())
     mu = km.fit(X)
+    end_time = time.time()
+    print("end fitting")
+    # took ~31 seconds for 150000 data on gpu 1070 gtx 50 epochs
+    # took ~125 seconds on CPU
 
+    print("Time to fit -> "+str(end_time-start_time))
     ax = plt.subplot()
     p = Circle((0, 0), 1, edgecolor='b', lw=1, facecolor='none')
     ax.add_patch(p)
     plt.scatter(X[:100,0].numpy(), X[:100,1].numpy())
-    plt.scatter(X[100:200,0].numpy(), X[100:200,1].numpy())
-    plt.scatter(X[200:,0].numpy(), X[200:,1].numpy())
+    plt.scatter(X[50000:50100,0].numpy(), X[50000:50100,1].numpy())
+    plt.scatter(X[100000:100100,0].numpy(), X[100000:100100,1].numpy())
     print(mu)
     print(mu.shape)
-    plt.scatter(mu[:,0].numpy(),mu[:,1].numpy(), label="Poincare barycenter",
+    plt.scatter(mu[:,0].cpu().numpy(),mu[:,1].cpu().numpy(), label="Poincare barycenter",
                 marker="s", c="red", s=100.)
     plt.scatter(X_b.mean(1)[:,0], X_b.mean(1)[:,1], label="Euclidean barycenter by real clusters",
                 marker="s", c="green", s=100.)
@@ -178,7 +184,7 @@ def test():
 
     X[xn>1] /= ((xn[xn>1]).unsqueeze(-1).expand((xn[xn>1]).shape[0], 3) +1e-3)
     X_b = torch.cat((X[0:100].unsqueeze(0),X[100:200].unsqueeze(0),X[200:].unsqueeze(0)), 0)
-    km = PoincareKMeans(3, min_cluster_size=50)
+    km = PoincareKMeans(3, min_cluster_size=20)
     mu = km.fit(X)
 
 
@@ -191,5 +197,7 @@ def test():
                marker="s", c="green", s=100.)
     ax.legend()
     plt.show()
+    print(km.predict(X))
+
 if __name__ == "__main__":
     test()
