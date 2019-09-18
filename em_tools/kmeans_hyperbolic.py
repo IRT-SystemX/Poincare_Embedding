@@ -158,33 +158,38 @@ def test():
                 marker="s", c="green", s=100.)
     plt.legend()
     plt.show()
-    # print("3D")
+    print("3D")
 
-    # fig = plt.figure()
-    # ax = fig.gca(projection='3d')
-    # ax.set_aspect("equal")
-    # # draw sphere
-    # u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
-    # x = np.cos(u)*np.sin(v)
-    # y = np.sin(u)*np.sin(v)
-    # z = np.cos(v)
-    # ax.plot_wireframe(x, y, z, color="r")
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    ax.set_aspect("equal")
+    # draw sphere
+    u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
+    x = np.cos(u)*np.sin(v)
+    y = np.sin(u)*np.sin(v)
+    z = np.cos(v)
+    ax.plot_wireframe(x, y, z, color="r")
+    x1 = torch.randn(100, 3)*0.2 +(torch.rand(1, 3).expand(100, 3) -0.5) * 3
+    x2 = torch.randn(100, 3)*0.2 +(torch.rand(1, 3).expand(100, 3) -0.5) * 3
+    x3 = torch.randn(100, 3)*0.2 +(torch.rand(1, 3).expand(100, 3) -0.5) * 3
+    X = torch.cat((x1,x2,x3), 0)
+    X_b = torch.cat((x1.unsqueeze(0),x2.unsqueeze(0),x3.unsqueeze(0)), 0)
+    xn  = X.norm(2,-1)
 
-    # X = torch.randn(100, 3)*0.3 +(torch.rand(1, 3).expand(100, 3) -0.5) *3
-    # xn  = X.norm(2,-1)
-
-    # X[xn>1] /= ((xn[xn>1]).unsqueeze(-1).expand((xn[xn>1]).shape[0], 3) +1e-3)
-
-    # mu = barycenter(X)
+    X[xn>1] /= ((xn[xn>1]).unsqueeze(-1).expand((xn[xn>1]).shape[0], 3) +1e-3)
+    X_b = torch.cat((X[0:100].unsqueeze(0),X[100:200].unsqueeze(0),X[200:].unsqueeze(0)), 0)
+    km = PoincareKMeans(3, min_cluster_size=50)
+    mu = km.fit(X)
 
 
-
-    # ax.scatter(X[:,0].numpy(), X[:,1].numpy(), X[:,2].numpy())
-    # ax.scatter(mu[0,0].item(),mu[0,1].item(), mu[0,2].item(),label="Poincare barycenter",
-    #            marker="s", c="red", s=100.)
-    # ax.scatter(X.mean(0)[0].item(), X.mean(0)[1].item(), X.mean(0)[2].item(),label="Euclidean barycenter",
-    #            marker="s", c="green", s=100.)
-    # ax.legend()
-    # plt.show()
+    ax.scatter(X[:100,0].numpy(), X[:100,1].numpy(), X[:100,2].numpy())
+    ax.scatter(X[100:200,0].numpy(), X[100:200,1].numpy(), X[100:200,2].numpy())
+    ax.scatter(X[200:,0].numpy(), X[200:,1].numpy(), X[200:,2].numpy())
+    ax.scatter(mu[:,0].numpy(),mu[:,1].numpy(),mu[:,2].numpy(),label="Poincare barycenter",
+               marker="s", c="red", s=100.)
+    ax.scatter(X_b.mean(1)[:,0], X_b.mean(1)[:,1],X_b.mean(1)[:,2],label="Euclidean barycenter",
+               marker="s", c="green", s=100.)
+    ax.legend()
+    plt.show()
 if __name__ == "__main__":
     test()
