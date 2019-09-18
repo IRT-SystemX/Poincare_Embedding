@@ -141,7 +141,7 @@ def test():
 
     X[xn>1] /= ((xn[xn>1]).unsqueeze(-1).expand((xn[xn>1]).shape[0], 2) +1e-3)
     X_b = torch.cat((X[0:100].unsqueeze(0),X[100:200].unsqueeze(0),X[200:].unsqueeze(0)), 0)
-    km = PoincareKMeans(3)
+    km = PoincareKMeans(3, min_cluster_size=50)
     mu = km.fit(X)
 
     ax = plt.subplot()
