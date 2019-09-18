@@ -11,9 +11,11 @@ def barycenter(z, wik=None, lr=1e-2, tau=1e-4, max_iter=math.inf, distance=pf.di
         barycenter = z.mean(0, keepdim=True)
     else:
         barycenter = z.mean(0, keepdim=True)
-
+    if(len(z) == 1):
+        return z
     iteration = 0
     cvg = math.inf
+
     while(cvg>tau and max_iter>iteration):
 
         iteration+=1
