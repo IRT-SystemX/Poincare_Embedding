@@ -64,36 +64,10 @@ def log(k, x):
     kpx = add(-k,x)
     norm_kpx = kpx.norm(2,-1, keepdim=True).expand_as(kpx)
     norm_k = k.norm(2,-1, keepdim=True).expand_as(kpx)
-    return (1-norm_k**2)* ((torch.arc_tanh(norm_kpx))) * (kpx/norm_kpx)
-
-
-def exp(k, x):
-    norm_k = k.norm(2,-1, keepdim=True).expand_as(k)
-    lambda_k = 2/(1-norm_k**2)
-    norm_x = x.norm(2,-1, keepdim=True).expand_as(x)
-    direction = x/norm_x
-    factor = torch.tanh((lambda_k * norm_x)/2)
-<<<<<<< HEAD
-=======
-    return add(k,direction*factor)
-
-def renorm_projection(x, eps=1e-4):
-    x_n = x.norm(2, -1)
-    if(len(x[x_n>=1.])>0):
-        x[x_n>=1.] /= (x_n.unsqueeze(-1).expand_as(x[x_n>=1.]) + eps)
-    return x
-
-def add(x, y):
-    nx = torch.sum(x ** 2, dim=-1, keepdim=True).expand_as(x)
-    ny = torch.sum(y ** 2, dim=-1, keepdim=True).expand_as(x)
-    xy = (x * y).sum(-1, keepdim=True).expand_as(x)
-    return ((1 + 2*xy+ ny)*x + (1-nx)*y)/(1+2*xy+nx*ny)
-
-def log(k, x):
-    kpx = add(-k,x)
-    norm_kpx = kpx.norm(2,-1, keepdim=True).expand_as(kpx)
-    norm_k = k.norm(2,-1, keepdim=True).expand_as(kpx)
-    return (1-norm_k**2)* ((torch_function.arcTanh(norm_kpx))) * (kpx/norm_kpx)
+    res = (1-norm_k**2)* ((torch.arc_tanh(norm_kpx))) * (kpx/norm_kpx)
+    if(0 != len((norm_kpx==0).nonzero())):
+        res[norm_kpx == 0] = 0
+    return res
 
 def exp(k, x):
     norm_k = k.norm(2,-1, keepdim=True).expand_as(k)
@@ -101,9 +75,14 @@ def exp(k, x):
     norm_x = x.norm(2,-1, keepdim=True).expand_as(x)
     direction = x/norm_x
     factor = torch.tanh((lambda_k * norm_x)/2)
->>>>>>> efbcd512c2f4e561aa70a9fc64940113bc4c1f4d
     res = add(k,direction*factor)
     if(0 != len((norm_x==0).nonzero())):
+        print(len((norm_x==0).nonzero()))
+        print(res.shape)
+        print(k.shape)
+        print(x.shape)
+        if(res[norm_x == 0].dim() == 1 and k[norm_x == 0].dim() ==2):
+            res[norm_x == 0] = k[norm_x == 0][0]
         res[norm_x == 0] = k[norm_x == 0]
     return res
 
@@ -175,8 +154,4 @@ def test():
 
 
 if __name__ == "__main__":
-<<<<<<< HEAD
     test()
-=======
-    test()
->>>>>>> efbcd512c2f4e561aa70a9fc64940113bc4c1f4d
