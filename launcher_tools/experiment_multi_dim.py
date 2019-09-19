@@ -62,8 +62,11 @@ parser.add_argument("--embedding-optimizer", dest="embedding_optimizer", type=st
                     help="the type of optimizer used for learning poincaré embedding")
 parser.add_argument("--em-iter", dest="em_iter", type=int, default=10,
                     help="Number of EM iterations")
-parser.add_argument("--size", dest="size", type=int, default=10,
+parser.add_argument("--size", dest="size", type=int, default=3,
                     help="dimenssion of the ball")
+parser.add_argument("--batch-size", dest="batch_size", type=int, default=512,
+                    help="Batch number of elements")
+              
 args = parser.parse_args()
 
 
@@ -76,8 +79,8 @@ dataset_dict = { "karate": corpora.load_karate,
           }
 
 optimizer_dict = {"addhsgd": optimizer.PoincareBallSGDAdd,
-                  "hsgd": optimizer.PoincareBallSGD}
-
+                    "exphsgd": optimizer.PoincareBallSGDExp,
+                    "hsgd": optimizer.PoincareBallSGD}
 
 if(args.save):
     print("The following options are use for the current experiment ", args)
@@ -135,7 +138,7 @@ embedding_dataset = corpora_tools.zip_datasets(dataset_index,
                                                 d_rw
                                                 )
 training_dataloader = DataLoader(embedding_dataset, 
-                            batch_size=512, 
+                            batch_size=args.batch_size, 
                             shuffle=True,
                             num_workers=8,
                             collate_fn=data_tools.PadCollate(dim=0),
@@ -164,8 +167,8 @@ for disc in range(args.n_disc):
         embedding_alg.fit(training_dataloader, alpha=alpha, beta=beta, gamma=args.gamma, max_iter=epoch_embedding,
                          pi=pik, mu=mu, sigma=sigma, negative_sampling=args.negative_sampling)
         em_alg.fit(embedding_alg.get_PoincareEmbeddings().cpu(), max_iter=args.em_iter)
-        pi, mu, sigma = em_alg.getParameters()
-        pik = em_alg.getPik(embedding_alg.get_PoincareEmbeddings().cpu())
+        pi, mu, sigma = em_alg.get_parameters()
+        pik = em_alg.get_pik(embedding_alg.get_PoincareEmbeddings().cpu())
     representation_d.append(embedding_alg.get_PoincareEmbeddings().cpu())
     pi_d.append(pi)
     mu_d.append(mu)
@@ -174,10 +177,16 @@ for disc in range(args.n_disc):
     print("\nPerformances disc "+str(disc+1)+"-> " ,current_accuracy,"\n")
     if(args.save):
         logger_object.append({"disc-"+str(disc):{"accuracy": current_accuracy}})
-
+print("pi-> ", pi)
 #evaluate performances on all disc
 total_accuracy = evaluation.accuracy_disc_product(representation_d, D.Y, pi_d, mu_d, sigma_d, verbose=False)
 print("\nPerformances joined -> " ,
     total_accuracy
 )
 logger_object.append({"accuracy": total_accuracy})
+#evaluate performances on all disc
+total_accuracy = evaluation.accuracy_disc_kmeans(representation_d[0], D.Y, mu_d[0], verbose=False)
+print("\nPerformances  kmeans-> " ,
+    total_accuracy
+)
+logger_object.append({"accuracy_kmeans": total_accuracy})

@@ -45,3 +45,13 @@ class SGDLoss(object):
     @staticmethod
     def O3(x, pi, mu, sigma, zeta_f=df.zeta):
         return -SGALoss.O3(x, pi, mu, sigma, zeta_f=zeta_f)
+
+class SGDSoftmaxLoss(object):
+    @staticmethod
+    def O1(x, y):
+        return pf.distance(x, y)**2
+    
+    @staticmethod
+    def O2(x, y, z):
+        y_reshape = y.unsqueeze(2).expand_as(z)
+        return SGDSoftmaxLoss.O1 + torch.log(((-pf.distance(y_reshape,z)**2).exp())).sum(-1)

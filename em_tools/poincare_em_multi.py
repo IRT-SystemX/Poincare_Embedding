@@ -23,7 +23,7 @@ class RiemannianEM(object):
         self._distance = pf.distance
 
         self._mu = (torch.rand(n_gaussian, dim) -0.5)/dim
-        self._sigma = torch.rand(n_gaussian)/10 +0.8
+        self._sigma = torch.rand(n_gaussian)/10 +0.2
         self._w = torch.ones(n_gaussian)/n_gaussian
 
         self._verbose = verbose
@@ -111,8 +111,7 @@ class RiemannianEM(object):
             self._maximization(z, wik)
 
     def get_parameters(self):
-        mu_torch = torch.cat((torch.Tensor(self._mu.real).unsqueeze(-1),torch.Tensor(self._mu.imag).unsqueeze(-1)),-1)
-        return  torch.Tensor(self._w), mu_torch, torch.Tensor(self._sigma)
+        return  self._w, self._mu, self._sigma
 
     def get_pik(self, z):
         N, D, M = z.shape + (self._mu.shape[0],)

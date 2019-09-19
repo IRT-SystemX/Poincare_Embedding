@@ -85,14 +85,9 @@ class PoincareKMeans(object):
         centroids = x.new(self._n_c, x.size(-1))
         for i in range(self._n_c):
             lx = x[indexes == i]
-
             if(lx.shape[0] <= self._mec):
                 lx = x[random.randint(0,len(x)-1)].unsqueeze(0)
             centroids[i] = pa.barycenter(lx)
-            # if(lx.shape[0] == 1):
-            #     print("one shape")
-            #     print(centroids[i])
-            #     print(lx)
         return centroids
     
     def _expectation(self, centroids, x):
@@ -103,7 +98,7 @@ class PoincareKMeans(object):
         value, indexes = dst.min(-1)
         return indexes
 
-    def fit(self, X, max_iter=50):
+    def fit(self, X, max_iter=500):
         with torch.no_grad():
             if(self._mec < 0):
                 self._mec = len(X)/self._n_c
@@ -112,9 +107,14 @@ class PoincareKMeans(object):
                 self.centroids = X[self.centroids_index]
 
             for iteration in range(max_iter):
+                if(iteration >= 1):
+                    old_indexes = self.indexes
                 self.indexes = self._expectation(self.centroids, X)
                 self.centroids = self._maximisation(X, self.indexes)
-
+                if(iteration >= 1):
+                    if((old_indexes == self.indexes).float().mean() == 1):
+                        self.cluster_centers_  =  self.centroids
+                        return self.centroids
             self.cluster_centers_  =  self.centroids
             return self.centroids
 
@@ -143,7 +143,7 @@ def test():
     start_time = time.time()
     print("start fitting")
     # mu = km.fit(X.cuda())
-    mu = km.fit(X)
+    mu = km.fit(X.cuda())
     end_time = time.time()
     print("end fitting")
     # took ~31 seconds for 150000 data on gpu 1070 gtx 50 epochs

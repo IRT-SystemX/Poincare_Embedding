@@ -4,7 +4,7 @@ from function_tools import poincare_function as pf
 # z and wik must have same dimenssion except if wik is not given
 def barycenter(z, wik=None, lr=1e-2, tau=1e-3, max_iter=math.inf, distance=pf.distance):
     if(wik is None):
-        wik = 1.0
+        wik = 1.
     else:
         wik = wik.unsqueeze(-1).expand_as(z)
     if(z.dim()>1):
@@ -19,7 +19,7 @@ def barycenter(z, wik=None, lr=1e-2, tau=1e-3, max_iter=math.inf, distance=pf.di
     while(cvg>tau and max_iter>iteration):
 
         iteration+=1
-        grad_tangent = pf.log(barycenter.expand_as(z), z) * wik 
+        grad_tangent = pf.log(barycenter.expand_as(z), z) * wik
         if(type(wik) != float):
             grad_tangent /= wik.sum(0, keepdim=True).expand_as(wik)
         else:

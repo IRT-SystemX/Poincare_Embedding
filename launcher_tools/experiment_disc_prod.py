@@ -63,6 +63,8 @@ parser.add_argument("--embedding-optimizer", dest="embedding_optimizer", type=st
                     help="the type of optimizer used for learning poincaré embedding")
 parser.add_argument("--em-iter", dest="em_iter", type=int, default=0,
                     help="Number of EM iterations")
+parser.add_argument("--batch-size", dest="batch_size", type=int, default=512,
+                    help="Batch number of elements")
               
 args = parser.parse_args()
 
@@ -72,14 +74,13 @@ dataset_dict = { "karate": corpora.load_karate,
             "flickr": corpora.load_flickr,
             "dblp": corpora.load_dblp,
             "books": corpora.load_books,
-            "blogCatalog": corpora.load_blogCatalog,
-            "adjnoun": corpora.load_adjnoun,
-            "polblogs": corpora.load_polblogs
+            "blogCatalog": corpora.load_blogCatalog
           }
 
 optimizer_dict = {"addhsgd": optimizer.PoincareBallSGDAdd,
                     "exphsgd": optimizer.PoincareBallSGDExp,
-                    "hsgd": optimizer.PoincareBallSGD}
+                    "hsgd": optimizer.PoincareBallSGD,
+                    "exphsga": optimizer.PoincareBallSGAExp}
 
 
 if(args.save):
@@ -120,7 +121,7 @@ D.set_path(False)
 # negative sampling distribution
 frequency = D.getFrequency()**(3/4)
 frequency[:,1] /= frequency[:,1].sum()
-frequency = pytorch_categorical.Categorical(frequency[:,1])
+frequency = pytorch_categorical.Categorical(torch.ones(len(frequency))/len(frequency))
 # random walk dataset
 d_rw = D.light_copy()
 d_rw.set_walk(args.walk_lenght, 1.0)
@@ -138,7 +139,7 @@ embedding_dataset = corpora_tools.zip_datasets(dataset_index,
                                                 d_rw
                                                 )
 training_dataloader = DataLoader(embedding_dataset, 
-                            batch_size=512, 
+                            batch_size=args.batch_size, 
                             shuffle=True,
                             num_workers=8,
                             collate_fn=data_tools.PadCollate(dim=0),
@@ -186,6 +187,12 @@ print("\nPerformances joined -> " ,
     total_accuracy
 )
 logger_object.append({"accuracy": total_accuracy})
+#evaluate performances on all disc
+total_accuracy = evaluation.accuracy_disc_kmeans(representation_d[0], D.Y, mu_d[0], verbose=False)
+print("\nPerformances  kmeans-> " ,
+    total_accuracy
+)
+logger_object.append({"accuracy_kmeans": total_accuracy})
 #TODO: Clean the code below
 
 if(args.save):
