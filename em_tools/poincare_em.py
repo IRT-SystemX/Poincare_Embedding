@@ -137,11 +137,6 @@ class RiemannianEM(object):
                 km = kmh.RiemannianKMeans(self._n_g)
                 km.fit(z.numpy())
                 self._mu = km.cluster_centers_[:,0] +km.cluster_centers_[:,1] *1j
-<<<<<<< HEAD:em_tools/poincare_em.py
-=======
-                for g in range(self._n_g):
-                    self.update_sigma(z, wik, g_index=g)
->>>>>>> efbcd512c2f4e561aa70a9fc64940113bc4c1f4d:em_tools/em_original.py
             if(self._verbose):
                 print("Weight")
                 print("\t mu -> ", self._mu)
@@ -152,15 +147,6 @@ class RiemannianEM(object):
         for epoch in progress_bar:
             wik = self.get_pik(z)
             self.update_w(wik)
-<<<<<<< HEAD:em_tools/poincare_em.py
-=======
-
-            for g in range(self._n_g):
-                
-                self.update_mu(z, wik, lr_mu, tau_mu, g_index=g)
-                self.update_sigma(z, wik, g_index=g)
-
->>>>>>> efbcd512c2f4e561aa70a9fc64940113bc4c1f4d:em_tools/em_original.py
 
             for g in range(self._n_g):
                 
