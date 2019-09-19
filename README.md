@@ -43,6 +43,8 @@ launching an experiment with several discs
 > python launcher_tools/experiment.py --n-disc 5 --epoch-embedding 200 --epoch 1 --dataset dblp --n-gaussian 5 --beta 1.0 --lr 10 <br/>
 > python launcher_tools/experiment.py --n-disc 5 --epoch-embedding 200 --epoch 1 --dataset books --n-gaussian 3 --beta 1.0 --lr 10 <br/>
 > python launcher_tools/experiment.py --n-disc 5 --epoch-embedding 200 --epoch 1 --dataset blogCatalog --n-gaussian 2 --beta 1.0 --lr 10 <br/>
+> python launcher_tools/experiment.py --n-disc 5 --epoch-embedding 200 --epoch 1 --dataset adjnoun --n-gaussian 2 --beta 1.0 --lr 10 <br/>
+> python launcher_tools/experiment.py --n-disc 5 --epoch-embedding 200 --epoch 1 --dataset polblogs --n-gaussian 2 --beta 1.0 --lr 10 <br/>
 
 </p>
 </details>

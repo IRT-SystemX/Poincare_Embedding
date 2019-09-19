@@ -72,7 +72,9 @@ dataset_dict = { "karate": corpora.load_karate,
             "flickr": corpora.load_flickr,
             "dblp": corpora.load_dblp,
             "books": corpora.load_books,
-            "blogCatalog": corpora.load_blogCatalog
+            "blogCatalog": corpora.load_blogCatalog,
+            "adjnoun": corpora.load_adjnoun,
+            "polblogs": corpora.load_polblogs
           }
 
 optimizer_dict = {"addhsgd": optimizer.PoincareBallSGDAdd,
