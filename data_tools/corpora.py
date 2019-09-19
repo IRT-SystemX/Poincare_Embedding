@@ -190,3 +190,13 @@ def load_football():
     matrix_path = "Input/Football.txt"
     label_path = "Input/R_Football.txt"
     return loading_mat_txt(matrix_path, label_path)
+
+def load_adjnoun():
+    matrix_path = "Input/Adjnoun.txt"
+    label_path = "Input/R_Adjnoun.txt"
+    return loading_mat_txt(matrix_path, label_path)
+
+def load_polblogs():
+    matrix_path = "Input/Polblogs.txt"
+    label_path = "Input/R_Polblogs.txt"
+    return loading_mat_txt(matrix_path, label_path)
