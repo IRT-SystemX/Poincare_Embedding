@@ -137,6 +137,28 @@ def accuracy_disc_product(z, y, pi, mu, sigma, verbose=False):
         return accuracy_small_disc_product(label, label_source, sources_number)
     else:
         return accuracy_huge_disc_product(label, label_source, sources_number)
+
+def accuracy_disc_kmeans(z, y, mu, verbose=False):
+    n_disc = len(z)
+    n_example = len(z)
+    n_distrib = len(mu)
+    y = torch.LongTensor([y[i][0]-1 for i in range(len(y))])
+    from em_tools.kmeans_hyperbolic import PoincareKMeans
+    # first getting the pdf for each disc distribution
+ 
+    kmeans = Poinca'reKMeans(n_distrib)
+    kmeans.fit(z)
+    associated_distrib =  kmeans.predict(z)
+    print("associated distribution size ->",associated_distrib.shape)
+    print("associated distribution ->",associated_distrib)
+    print("source labels ->", y)
+    label = associated_distrib.numpy()
+    label_source = y.numpy()
+    sources_number = n_distrib
+    if(n_distrib <= 6):
+        return accuracy_small_disc_product(label, label_source, sources_number)
+    else:
+        return accuracy_huge_disc_product(label, label_source, sources_number)
 def accuracy_small_disc_product(label, label_source, sources_number):
     combinations = []
     zero_fill_comb = np.zeros(len(label))

@@ -24,30 +24,6 @@ def weighted_gmm_pdf(w, z, mu, sigma, distance):
     # print("dist ", distribution_normal.size())
     return w*(distribution_normal/zeta_sigma.unsqueeze(0).expand_as(distribution_normal).detach())
 
-
-# class zeta_storage(object):
-
-#     def __init__(sigma, N):
-#         # first we compute the binomial coefficient
-#         import scipy.special.binom
-#         import numpy as np
-#         zeta = []
-#         for s in sigma.tolist()
-#             z_s = 0.
-#             po_d = 2**(N-1)
-#             for i in range(N):
-#                 d = (N-1) - 2 *i
-
-#                 a = np.exp((d**2 * s**2)/2) * po_d
-#                 b = 1 + math.erf((d*s)/math.sqrt(2))
-#                 z_s += ((-1)**i)*binom(N-1,i) * b * a
-#             zeta.append(z_s * s * math.srt(math.pi/2))
-#         self.sigma = sigma
-#         self.zeta = torch.Tensor(zeta)
-#     def __call__(self, tensor):
-
-            
-        
 # TODO: validate the function
 def zeta(sigma, N ,binomial_coefficient=None):      
     # we set the binomial_coefficient in parameters to avoid 
@@ -74,7 +50,7 @@ def zeta(sigma, N ,binomial_coefficient=None):
     as_o = (1+erf_approx(ins)) * torch.exp(ins_squared)
     bs_o = binomial_coefficient * as_o
     r = alternate_neg * bs_o
-    nd = 2
+    nd = 0
 
     ins = (((N-1) - 2 * range_)[:,nd]  * sigma_u[:,nd])/math.sqrt(2)
     ins_s = ((((N-1) - 2 * range_)[:,nd]  * sigma_u[:,nd])/math.sqrt(2))**2
@@ -88,25 +64,70 @@ def zeta(sigma, N ,binomial_coefficient=None):
     #* (1/(2**(N-1)))
 
     return ZETA_CST * sigma * r.sum(0) * (1/(2**(N-1)))
-
-
-def zeta_test():
-    sigma = torch.arange(5e-2, 1, 0.05)
-    N = 10
-    print(sigma)
-    res = zeta(sigma, N)
-
-    print(res)
-    r =     log_grad_zeta(sigma, N)
-    print(r)
-    print(r * sigma**3)
-    print(res)
 def log_grad_zeta(x, N):
     sigma = nn.Parameter(x)
     (zeta(sigma, N).log()).sum().backward()
     log_grad = sigma.grad
     return sigma.grad.data
 
+class ZetaPhiStorage(object):
+
+    def __init__(self, sigma, N):
+        self.N = N
+        self.sigma = sigma
+        self.m_zeta_var = (zeta(sigma, N)).detach()
+        self.phi_inv_var = (self.sigma**3 * log_grad_zeta(self.sigma, N)).detach()
+        # print("phi->" , self.phi_inv_var.shape)
+        # print("phi->" , self.m_zeta_var.shape)
+
+    def zeta(self, sigma):
+        N, P = sigma.shape[0], self.sigma.shape[0]
+        ref = self.sigma.unsqueeze(0).expand(N, P)
+        val = sigma.unsqueeze(1).expand(N,P)
+        values, index = torch.abs(ref - val).min(-1)
+        return self.m_zeta_var[index]
+
+    def phi(self, phi_val):
+        N, P = phi_val.shape[0], self.sigma.shape[0]
+        ref = self.phi_inv_var.unsqueeze(0).expand(N, P)
+        val = phi_val.unsqueeze(1).expand(N,P)
+        # print("ref -> ", ref)
+        # print("val -> ", val)
+        values, index = torch.abs(ref - val).min(-1)
+        return self.sigma[index]
+
+def zeta_test():
+    sigma = torch.arange(1e-1, 1.4, 0.02)
+    N = 10
+    # print(sigma)
+    res = zeta(sigma, N)
+
+    # print(res)
+    r =     log_grad_zeta(sigma, N)
+    # print(r)
+    # print(r * sigma**3)
+    # print(res)
+    for i in range(1000):
+        sigma_2 = torch.rand(1)
+        ZPS = ZetaPhiStorage(sigma, N)
+        g = ZPS.zeta(sigma_2)
+        p = ZPS.phi( sigma_2**3 * log_grad_zeta(sigma_2, N))
+
+        if((sigma_2 < 1e-1).float().sum()>1):
+            print("low")
+            print(sigma_2)
+            print(p-sigma_2)
+        else:
+            try:
+                assert((torch.abs(p-sigma_2)<= 0.1).float().mean().item() == 1)
+            except Exception:
+                print("ERROR")
+                print(sigma_2)
+                print(p)
+                print(p-sigma_2)
+                print(sigma)
+                print(ZPS.phi_inv_var)
+                quit()
 
 
 def gaussianPDF(x, mu, sigma, distance=pf.distance, norm_func=zeta):
