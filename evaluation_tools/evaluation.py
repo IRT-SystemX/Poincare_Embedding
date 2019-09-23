@@ -145,7 +145,6 @@ def accuracy_disc_kmeans(z, y, mu, verbose=False):
     y = torch.LongTensor([y[i][0]-1 for i in range(len(y))])
     from em_tools.kmeans_hyperbolic import PoincareKMeans
     # first getting the pdf for each disc distribution
- 
     kmeans = PoincareKMeans(n_distrib)
     kmeans.fit(z)
     associated_distrib =  kmeans.predict(z)

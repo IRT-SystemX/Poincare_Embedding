@@ -58,7 +58,8 @@ class RiemannianTools(object):
 
 class RiemannianEM(object):
     @staticmethod
-    def static_barycenter(mu, wik, z, lr, tau, max_iter=math.inf, g_index=0, distance=RiemannianFunction.riemannian_distance):
+    def static_barycenter(mu, wik, z, lr, tau, max_iter=math.inf, g_index=0, distance=RiemannianFunction.riemannian_distance,
+        normed=False):
         N, M = wik.shape
         cvg = math.inf
         barycenter = mu[g_index]
@@ -67,7 +68,11 @@ class RiemannianEM(object):
         iteration = 0
         while(cvg>tau and max_iter>iteration):
             iteration+=1
-            grad_value = (RiemannianTools.log(barycenter.repeat(N), z) * wik[:, g_index]).sum()/wik[:, g_index].sum()
+            grad_value = (RiemannianTools.log(barycenter.repeat(N), z) * wik[:, g_index]).sum()
+            if(normed):
+                grad_value /= wik[:, g_index].sum()
+            else:
+                grad_value /= N
             barycenter = RiemannianTools.exp(barycenter, lr * grad_value)
             cvg = np.sqrt((np.abs(grad_value)**2)/((1 - np.abs(barycenter)**2)**2))
         return barycenter
@@ -119,7 +124,7 @@ class RiemannianEM(object):
         self._sigma[g_index] = RiemannianEM.static_update_sigma(z,  wik, self._mu,
                                                        self._distance, g_index=g_index)
 
-    def fit(self, z, max_iter=5, lr_mu=5e-3, tau_mu=5e-3):
+    def fit(self, z, max_iter=5, lr_mu=1e-2, tau_mu=1e-3):
         progress_bar = tqdm.trange(max_iter) if(self._verbose) else range(max_iter)
         # if it is the first time function fit is called
         z_in = z

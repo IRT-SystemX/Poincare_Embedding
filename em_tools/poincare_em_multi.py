@@ -47,9 +47,9 @@ class RiemannianEM(object):
     def update_mu(self, z, wik, lr_mu, tau_mu, g_index=-1, max_iter=50):
         N, D, M = z.shape + (wik.shape[-1],)
         if(g_index>0):
-            self._mu[g_index] = pa.barycenter(z, wik[:, g_index], lr_mu, tau_mu, max_iter=max_iter).squeeze()
+            self._mu[g_index] = pa.barycenter(z, wik[:, g_index], lr_mu, tau_mu, max_iter=max_iter, normed=True).squeeze()
         else:
-            self._mu = pa.barycenter(z.unsqueeze(1).expand(N, M, D), wik, lr_mu,  tau_mu, max_iter=max_iter).squeeze()
+            self._mu = pa.barycenter(z.unsqueeze(1).expand(N, M, D), wik, lr_mu,  tau_mu, max_iter=max_iter, normed=True).squeeze()
           
     def phi(self, values):
         if(values.dim() <= 0):  
@@ -78,7 +78,9 @@ class RiemannianEM(object):
     def _expectation(self, z):
         # computing wik 
         pdf = df.gaussianPDF(z, self._mu, self._sigma) 
+        print("pdf", pdf)
         p_pdf = pdf * self._w.unsqueeze(0).expand_as(pdf)
+        print(p_pdf.sum(0, keepdim=True).expand_as(pdf)  )
         wik = p_pdf/p_pdf.sum(1, keepdim=True).expand_as(pdf)
         return wik
 
@@ -111,11 +113,15 @@ class RiemannianEM(object):
             self._maximization(z, wik)
 
     def get_parameters(self):
+
         return  self._w, self._mu, self._sigma
 
     def get_pik(self, z):
         N, D, M = z.shape + (self._mu.shape[0],)
         pdf = df.gaussianPDF(z, self._mu, self._sigma) 
+        print("pdf", pdf)
         p_pdf = pdf * self._w.unsqueeze(0).expand_as(pdf)
+        # print("ppdf", p_pdf)
+        print(p_pdf.sum(0, keepdim=True).expand_as(pdf)  )
         wik = p_pdf/p_pdf.sum(0, keepdim=True).expand_as(pdf)  
         return wik  

@@ -54,4 +54,5 @@ class SGDSoftmaxLoss(object):
     @staticmethod
     def O2(x, y, z):
         y_reshape = y.unsqueeze(2).expand_as(z)
-        return SGDSoftmaxLoss.O1 + torch.log(((-pf.distance(y_reshape,z)**2).exp())).sum(-1)
+        return SGDSoftmaxLoss.O1 + torch.log(((-pf.distance(y_reshape,z)**2).exp()).sum(-1))
+    

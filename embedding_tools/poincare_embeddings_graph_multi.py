@@ -87,4 +87,4 @@ class RiemannianEmbedding(nn.Module):
                 loss.backward()
                 self.optimizer.step()
             if(self.verbose):
-                progress_bar.set_postfix({"O1":alpha*loss_value1, "O2":beta *loss_value2, "O3":gamma *loss_value3, "PDF":loss_pdf3})
+                progress_bar.set_postfix({"O1":loss_value1, "O2":loss_value2, "O3":loss_value3, "PDF":loss_pdf3})

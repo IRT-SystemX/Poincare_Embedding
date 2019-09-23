@@ -145,6 +145,7 @@ def gaussianPDF(x, mu, sigma, distance=pf.distance, norm_func=zeta):
 
     den = norm_func(sigma, mu.shape[-1])
     print("sigma",sigma)
+    print(num)
     print("den ", den)
     return num/den.unsqueeze(0).expand(N, M)
 

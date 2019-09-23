@@ -50,7 +50,7 @@ class PoincareBallSGDExp(PoincareOptimizer):
 
 class PoincareBallSGAExp(PoincareOptimizer):
     def __init__(self, params, lr=required):
-        super(PoincareBallSGDExp, self).__init__(params, lr=lr)
+        super(PoincareBallSGAExp, self).__init__(params, lr=lr)
 
     def _optimization_method(self, p, d_p, lr):
         p.copy_(pf.exp(p, lr*d_p))

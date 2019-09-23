@@ -75,7 +75,7 @@ class RiemannianKMeans(object):
 
 # the pytorch version
 class PoincareKMeans(object):
-    def __init__(self, n_clusters, min_cluster_size=1, verbose=False):
+    def __init__(self, n_clusters, min_cluster_size=5, verbose=False):
         self._n_c = n_clusters
         self._distance = pf.distance
         self.centroids = None
@@ -87,7 +87,7 @@ class PoincareKMeans(object):
             lx = x[indexes == i]
             if(lx.shape[0] <= self._mec):
                 lx = x[random.randint(0,len(x)-1)].unsqueeze(0)
-            centroids[i] = pa.barycenter(lx)
+            centroids[i] = pa.barycenter(lx, normed=True)
         return centroids
     
     def _expectation(self, centroids, x):
@@ -143,7 +143,7 @@ def test():
     start_time = time.time()
     print("start fitting")
     # mu = km.fit(X.cuda())
-    mu = km.fit(X.cuda())
+    mu = km.fit(X)
     end_time = time.time()
     print("end fitting")
     # took ~31 seconds for 150000 data on gpu 1070 gtx 50 epochs

@@ -40,15 +40,21 @@ class PoincareDistance2(torch.autograd.Function):
             y_norm = torch.sum(y ** 2, dim=-1)
             d_norm = torch.sum((x-y) ** 2, dim=-1)
             cc = 1+2*d_norm/((1-x_norm)*(1-y_norm)) 
-            dist = torch.log(cc + torch.sqrt(cc**2-1)+1e-4)
+            dist = torch.log(cc + torch.sqrt(cc**2-1))
             ctx.save_for_backward( x, y, dist)
             return  dist
     @staticmethod
     def backward(ctx, grad_output):
         with torch.no_grad():
             x, y, dist = ctx.saved_tensors
-            return (- (log(x, y)/(dist.unsqueeze(-1).expand_as(x))) * grad_output.unsqueeze(-1).expand_as(x),
+            res_x, res_y =  (- (log(x, y)/(dist.unsqueeze(-1).expand_as(x))) * grad_output.unsqueeze(-1).expand_as(x),
                      - (log(y, x)/(dist.unsqueeze(-1).expand_as(x))) * grad_output.unsqueeze(-1).expand_as(x))
+            # print(res_y)
+            if((dist == 0).sum() != 0):
+                # it exist example having same representation
+                res_x[dist == 0 ] = 0 
+                res_y[dist == 0 ] = 0
+            return res_x, res_y 
 
 
 def poincare_distance(x, y):
@@ -94,7 +100,7 @@ def exp(k, x):
     norm_x = x.norm(2,-1, keepdim=True).expand_as(x)
     direction = x/norm_x
     factor = torch.tanh(lambda_k * norm_x)
-    res = add(k,direction*factor)
+    res = add(k, direction*factor)
     if(0 != len((norm_x==0).nonzero())):
         res[norm_x == 0] = k[norm_x == 0]
     return res
