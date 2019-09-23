@@ -199,6 +199,8 @@ if(args.save):
     import matplotlib.pyplot as plt
     import matplotlib.colors as plt_colors
     import numpy as np
+    torch.save(representation_d, "RESULTS/"+args.id+"/embeddings.t7")
+    torch.save( {"pi": pi_d, "mu":mu_d, "sigma":sigma_d}, "RESULTS/"+args.id+"/pi_mu_sigma.t7")
     unique_label = np.unique(sum([ y for k, y in D.Y.items()],[]))
     colors = []
 
@@ -211,6 +213,6 @@ if(args.save):
                                                 labels=None, N=100, colors=colors, 
                                                 save_path="RESULTS/"+args.id+"/fig.pdf")
 
-    torch.save(representation_d, "RESULTS/"+args.id+"/embeddings.t7")
+
     print({"pi": pi_d, "mu":mu_d, "sigma":sigma_d})
-    torch.save( {"pi": pi_d, "mu":mu_d, "sigma":sigma_d}, "RESULTS/"+args.id+"/pi_mu_sigma.t7")
+
