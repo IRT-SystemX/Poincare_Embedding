@@ -7,7 +7,6 @@ from matplotlib.transforms import Affine2D
 from matplotlib.patches import Circle, PathPatch
 import numpy as np
 import torch 
-from function_tools import modules
 import math
 pi_2_3 = pow((2*math.pi),2/3)
 a_for_erf = 8.0/(3.0*np.pi)*(np.pi-3.0)/(4.0-np.pi)
