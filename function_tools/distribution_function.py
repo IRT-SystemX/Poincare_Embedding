@@ -77,8 +77,7 @@ class ZetaPhiStorage(object):
         self.sigma = sigma
         self.m_zeta_var = (zeta(sigma, N)).detach()
         self.phi_inv_var = (self.sigma**3 * log_grad_zeta(self.sigma, N)).detach()
-        # print("phi->" , self.phi_inv_var.shape)
-        # print("phi->" , self.m_zeta_var.shape)
+
 
     def zeta(self, sigma):
         N, P = sigma.shape[0], self.sigma.shape[0]
@@ -91,8 +90,6 @@ class ZetaPhiStorage(object):
         N, P = phi_val.shape[0], self.sigma.shape[0]
         ref = self.phi_inv_var.unsqueeze(0).expand(N, P)
         val = phi_val.unsqueeze(1).expand(N,P)
-        # print("ref -> ", ref)
-        # print("val -> ", val)
         values, index = torch.abs(ref - val).min(-1)
         return self.sigma[index]
 
@@ -143,7 +140,7 @@ def gaussianPDF(x, mu, sigma, distance=pf.distance, norm_func=zeta):
     # computing numerator
     num = torch.exp((-(distance(x_rd, mu_rd)**2))/(2*(sigma**2)))
 
-    den = norm_func(sigma, mu.shape[-1])
+    den = norm_func(sigma)
     print("sigma",sigma)
     print(num)
     print("den ", den)

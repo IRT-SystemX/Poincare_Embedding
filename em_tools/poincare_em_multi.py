@@ -11,12 +11,6 @@ from function_tools import poincare_function as pf
 from function_tools import poincare_alg as pa
 
 class RiemannianEM(object):
-    @staticmethod
-    def _get_zeta_value(dim, n_gaussian, start=5e-2, end=1.5, step_size=1e-2):
-        sigma = torch.arange(start, end, step_size)
-        lgz = df.log_grad_zeta(sigma, dim)
-        return sigma, lgz * sigma**3
-
     def __init__(self, dim, n_gaussian, init_mod="rand", verbose=True):
         self._n_g = n_gaussian
         self._d = dim
@@ -34,7 +28,7 @@ class RiemannianEM(object):
             print("\t mu -> ", self._mu)
             print("\t sigma -> ", self._sigma)
             print("\t weight -> ", self._w)
-        self.sigma_eml, self.zeta_eml = RiemannianEM._get_zeta_value(dim, n_gaussian)
+        self.zeta_phi = df.ZetaPhiStorage(torch.arange(5e-2, 1.5, 0.05), dim)
 
     def update_w(self, z, wik, g_index=-1):
         # get omega mu
@@ -50,20 +44,6 @@ class RiemannianEM(object):
             self._mu[g_index] = pa.barycenter(z, wik[:, g_index], lr_mu, tau_mu, max_iter=max_iter, normed=True).squeeze()
         else:
             self._mu = pa.barycenter(z.unsqueeze(1).expand(N, M, D), wik, lr_mu,  tau_mu, max_iter=max_iter, normed=True).squeeze()
-          
-    def phi(self, values):
-        if(values.dim() <= 0):  
-
-            if((self.zeta_eml>=values).sum().item() < 1):
-                print("Too low variance....")
-                return self.sigma_eml[0]
-            return self.sigma_eml[(self.zeta_eml>values).nonzero()[0][0]]
-
-        else:
-            res = []
-            for i in range(values.size(0)):
-                res.append(self.phi(values[i]).unsqueeze(0))
-            return torch.cat(res, 0)
 
     def update_sigma(self, z, wik, g_index=-1):
         N, D, M = z.shape + (self._mu.shape[0],)
@@ -73,11 +53,11 @@ class RiemannianEM(object):
         else:
             dtm = ((self._distance(z.unsqueeze(1).expand(N,M,D), self._mu.unsqueeze(0).expand(N,M,D))**2) * wik).sum(0)/wik.sum(0)
             print("dtms ", dtm.size())
-            self.sigma = self.phi(dtm)        
+            self.sigma = self.zeta_phi.phi(dtm)        
 
     def _expectation(self, z):
         # computing wik 
-        pdf = df.gaussianPDF(z, self._mu, self._sigma) 
+        pdf = df.gaussianPDF(z, self._mu, self._sigma, norm_func=self.zeta_phi.zeta) 
         print("pdf", pdf)
         p_pdf = pdf * self._w.unsqueeze(0).expand_as(pdf)
         print(p_pdf.sum(0, keepdim=True).expand_as(pdf)  )
@@ -85,9 +65,9 @@ class RiemannianEM(object):
         return wik
 
     def _maximization(self, z, wik, lr_mu=5e-1, tau_mu=5e-3, max_iter_bar=50):
-        print(self._w)
-        print("qsdfjfsdjqsdfn->",wik)
-        print("qsdfjfsdjqsdfn->", self._mu)
+        # print(self._w)
+        # print("qsdfjfsdjqsdfn->",wik)
+        # print("qsdfjfsdjqsdfn->", self._mu)
         self.update_w(z, wik)
 
         self.update_mu(z, wik, lr_mu=lr_mu, tau_mu=tau_mu, max_iter=max_iter_bar)
@@ -118,10 +98,10 @@ class RiemannianEM(object):
 
     def get_pik(self, z):
         N, D, M = z.shape + (self._mu.shape[0],)
-        pdf = df.gaussianPDF(z, self._mu, self._sigma) 
-        print("pdf", pdf)
+        pdf = df.gaussianPDF(z, self._mu, self._sigma, norm_func=self.zeta_phi.zeta) 
+        # print("pdf", pdf)
         p_pdf = pdf * self._w.unsqueeze(0).expand_as(pdf)
         # print("ppdf", p_pdf)
-        print(p_pdf.sum(0, keepdim=True).expand_as(pdf)  )
+        # print(p_pdf.sum(0, keepdim=True).expand_as(pdf)  )
         wik = p_pdf/p_pdf.sum(0, keepdim=True).expand_as(pdf)  
         return wik  

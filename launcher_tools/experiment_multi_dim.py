@@ -58,7 +58,7 @@ parser.add_argument('--context-size', dest="context_size", type=int, default=5,
                     help="size of the context used on the random walk")
 parser.add_argument("--negative-sampling", dest="negative_sampling", type=int, default=10,
                     help="number of negative samples for loss O2")
-parser.add_argument("--embedding-optimizer", dest="embedding_optimizer", type=str, default="addhsgd", 
+parser.add_argument("--embedding-optimizer", dest="embedding_optimizer", type=str, default="exphsgd", 
                     help="the type of optimizer used for learning poincaré embedding")
 parser.add_argument("--em-iter", dest="em_iter", type=int, default=10,
                     help="Number of EM iterations")
