@@ -146,7 +146,7 @@ def accuracy_disc_kmeans(z, y, mu, verbose=False):
     from em_tools.kmeans_hyperbolic import PoincareKMeans
     # first getting the pdf for each disc distribution
  
-    kmeans = Poinca'reKMeans(n_distrib)
+    kmeans = PoincareKMeans(n_distrib)
     kmeans.fit(z)
     associated_distrib =  kmeans.predict(z)
     print("associated distribution size ->",associated_distrib.shape)

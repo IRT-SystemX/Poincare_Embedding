@@ -7,7 +7,7 @@ from matplotlib.transforms import Affine2D
 from matplotlib.patches import Circle, PathPatch
 import numpy as np
 import torch 
-from function_tools import modules
+from function_tools import poincare_function as pf
 import math
 pi_2_3 = pow((2*math.pi),2/3)
 a_for_erf = 8.0/(3.0*np.pi)*(np.pi-3.0)/(4.0-np.pi)
@@ -47,7 +47,7 @@ def subplot_embedding_distribution(ax, W, pi, mu, sigma,  labels=None, N=100, co
     # compute the mixture 
     for z_index in range(len(Z)):
         x =  torch.cat((torch.FloatTensor(X[z_index]).unsqueeze(-1), torch.FloatTensor(Y[z_index]).unsqueeze(-1)), -1)
-        zz = weighted_gmm_pdf(pi, x, mu, sigma, modules.hyperbolicDistance)
+        zz = weighted_gmm_pdf(pi, x, mu, sigma, pf.distance)
         zz[zz != zz ]= 0
         Z[z_index] = zz.sum(-1).numpy()
 
@@ -111,11 +111,11 @@ def plot_embedding_distribution(W, pi, mu, sigma,  labels=None, N=100, colors=No
     for z_index in range(len(Z)):
         #    print(torch.Tensor(X[z_index]))
         x =  torch.cat((torch.FloatTensor(X[z_index]).unsqueeze(-1), torch.FloatTensor(Y[z_index]).unsqueeze(-1)), -1)
-        zz = weighted_gmm_pdf(pi, x, mu, sigma, modules.hyperbolicDistance)
+        zz = weighted_gmm_pdf(pi, x, mu, sigma, pf.distance)
         zz[zz != zz ]= 0
         #    print(zz.size())
         #    print(zz)
-        #    print(weighted_gmm_pdf(pi, mu, mu, sigma, modules.hyperbolicDistance))
+        #    print(weighted_gmm_pdf(pi, mu, mu, sigma, pf.distance))
         Z[z_index] = zz.sum(-1).numpy() 
     # print(Z.max())
     fig = plt.figure("Embedding-Distribution")
