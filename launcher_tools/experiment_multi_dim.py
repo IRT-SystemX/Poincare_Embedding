@@ -149,6 +149,17 @@ representation_d = []
 pi_d = []
 mu_d = []
 sigma_d = []
+# if dimension is 2 we can plot 
+# we store colors here
+if(args.size == 2):
+    import matplotlib.pyplot as plt
+    import matplotlib.colors as plt_colors
+    import numpy as np
+    unique_label = np.unique(sum([ y for k, y in D.Y.items()],[]))
+    colors = []
+
+    for i in range(len(D.Y)):
+        colors.append(plt_colors.hsv_to_rgb([D.Y[i][0]/(len(unique_label)),0.5,0.8]))
 
 for disc in range(args.n_disc):
     alpha, beta = args.init_alpha, args.init_beta
@@ -169,6 +180,10 @@ for disc in range(args.n_disc):
         em_alg.fit(embedding_alg.get_PoincareEmbeddings().cpu(), max_iter=args.em_iter)
         pi, mu, sigma = em_alg.get_parameters()
         pik = em_alg.get_pik(embedding_alg.get_PoincareEmbeddings().cpu())
+        if(args.size == 2):
+            plot_tools.plot_embedding_distribution_multi(representation_d, pi_d, mu_d,  sigma_d, 
+                                                        labels=None, N=100, colors=colors, 
+                                                        save_path="RESULTS/"+args.id+"/fig_epoch_"+str(i)+".pdf")
     representation_d.append(embedding_alg.get_PoincareEmbeddings().cpu())
     pi_d.append(pi)
     mu_d.append(mu)
@@ -196,14 +211,9 @@ if(args.save):
     import numpy as np
     torch.save(representation_d, "RESULTS/"+args.id+"/embeddings.t7")
     torch.save( {"pi": pi_d, "mu":mu_d, "sigma":sigma_d}, "RESULTS/"+args.id+"/pi_mu_sigma.t7")
+
+
     if(args.size == 2):
-        unique_label = np.unique(sum([ y for k, y in D.Y.items()],[]))
-        colors = []
-
-        for i in range(len(representation_d[0])):
-            colors.append(plt_colors.hsv_to_rgb([D.Y[i][0]/(len(unique_label)),0.5,0.8]))
-
-
 
         plot_tools.plot_embedding_distribution_multi(representation_d, pi_d, mu_d,  sigma_d, 
                                                     labels=None, N=100, colors=colors, 

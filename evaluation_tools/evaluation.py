@@ -1,5 +1,6 @@
 import torch
 from function_tools import distribution_function, poincare_function
+from function_tools import euclidean_function as ef
 from collections import Counter
 import numpy as np
 import math
@@ -113,6 +114,33 @@ def accuracy_cross_validation(Z, Y, pi,  mu, sigma, nb_set, verbose=True):
 
 # in the following function we perform prediction using disc product
 # Z, Y, pi, mu, sigma are list of tensor with the size number of disc
+
+def accuracy_euclidean(z, y, pi, mu, sigma, verbose=False):
+    n_disc = len(z)
+    n_example = len(z[0])
+    n_distrib = len(mu[0])
+    y = torch.LongTensor([y[i][0]-1 for i in range(len(y))])
+    D = z[0].shape[-1]
+    # first getting the pdf for each disc distribution
+    def nfunc(sigma):
+        return distribution_function.euclidean_norm_factor(sigma, D)
+    prob = [distribution_function.weighted_gmm_pdf(pi[i], z[i], mu[i], sigma[i], distance=ef.distance, norm_func=nfunc).unsqueeze(0) 
+            for i in range(n_disc)]
+    print(torch.cat(prob, 0).shape)
+    summed_prob = torch.cat(prob, 0).sum(0)
+    print("summed prob size ->",summed_prob.shape)
+    _, associated_distrib = summed_prob.max(-1)
+    print("associated distribution size ->",associated_distrib.shape)
+    print("associated distribution ->",associated_distrib)
+    print("source labels ->", y)
+    label = associated_distrib.numpy()
+    label_source = y.numpy()
+    sources_number = n_distrib
+    if(n_distrib <= 6):
+        return accuracy_small_disc_product(label, label_source, sources_number)
+    else:
+        return accuracy_huge_disc_product(label, label_source, sources_number)
+
 
 def accuracy_disc_product(z, y, pi, mu, sigma, verbose=False):
     n_disc = len(z)

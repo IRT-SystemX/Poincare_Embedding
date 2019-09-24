@@ -12,7 +12,7 @@ def erf_approx(x):
     return torch.sign(x)*torch.sqrt(1-torch.exp(-x*x*(4/np.pi+a_for_erf*x*x)/(1+a_for_erf*x*x)))
 
 
-def weighted_gmm_pdf(w, z, mu, sigma, distance):
+def weighted_gmm_pdf(w, z, mu, sigma, distance, norm_func=None):
     #print(w.size())
     z_u = z.unsqueeze(1).expand(z.size(0), len(mu), z.size(1))
     mu_u = mu.unsqueeze(0).expand_as(z_u)
@@ -20,7 +20,10 @@ def weighted_gmm_pdf(w, z, mu, sigma, distance):
     distance_to_mean = distance(z_u, mu_u)
     sigma_u = sigma.unsqueeze(0).expand_as(distance_to_mean)
     distribution_normal = torch.exp(-((distance_to_mean)**2)/(2 * sigma_u**2))
-    zeta_sigma = pi_2_3 * sigma *  torch.exp((sigma**2/2) * erf_approx(sigma/math.sqrt(2)))
+    if(norm_func is None):
+        zeta_sigma = pi_2_3 * sigma *  torch.exp((sigma**2/2) * erf_approx(sigma/math.sqrt(2)))
+    else:
+        zeta_sigma = norm_func(sigma)
     # print("dist ", distribution_normal.size())
     return w*(distribution_normal/zeta_sigma.unsqueeze(0).expand_as(distribution_normal).detach())
 
@@ -93,6 +96,31 @@ class ZetaPhiStorage(object):
         values, index = torch.abs(ref - val).min(-1)
         return self.sigma[index]
 
+
+
+def euclidean_norm_factor(sigma, N):
+    return 1/((2*math.pi)**(N/2) * torch.sqrt(sigma))
+
+def gaussianPDF(x, mu, sigma, distance=pf.distance, norm_func=zeta):
+    print(x.shape, mu.shape)
+    N, D, M = x.shape + (mu.shape[0],)
+    print("N, M, D ->", N, M, D)
+    # x <- N x M x D
+    # mu <- N x M x D
+    # sigma <- N x M
+    x_rd = x.unsqueeze(1).expand(N, M, D)
+    mu_rd = mu.unsqueeze(0).expand(N, M, D)
+    sigma_rd = sigma.unsqueeze(0).expand(N, M)
+    # computing numerator
+    num = torch.exp((-(distance(x_rd, mu_rd)**2))/(2*(sigma**2)))
+
+    den = norm_func(sigma)
+    print("sigma",sigma)
+    print(num)
+    print("den ", den)
+    return num/den.unsqueeze(0).expand(N, M)
+
+####################################### TESTING #####################################
 def zeta_test():
     sigma = torch.arange(1e-1, 1.4, 0.02)
     N = 10
@@ -125,26 +153,6 @@ def zeta_test():
                 print(sigma)
                 print(ZPS.phi_inv_var)
                 quit()
-
-
-def gaussianPDF(x, mu, sigma, distance=pf.distance, norm_func=zeta):
-    print(x.shape, mu.shape)
-    N, D, M = x.shape + (mu.shape[0],)
-    print("N, M, D ->", N, M, D)
-    # x <- N x M x D
-    # mu <- N x M x D
-    # sigma <- N x M
-    x_rd = x.unsqueeze(1).expand(N, M, D)
-    mu_rd = mu.unsqueeze(0).expand(N, M, D)
-    sigma_rd = sigma.unsqueeze(0).expand(N, M)
-    # computing numerator
-    num = torch.exp((-(distance(x_rd, mu_rd)**2))/(2*(sigma**2)))
-
-    den = norm_func(sigma)
-    print("sigma",sigma)
-    print(num)
-    print("den ", den)
-    return num/den.unsqueeze(0).expand(N, M)
 
 
 
