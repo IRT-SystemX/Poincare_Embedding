@@ -17,8 +17,7 @@ from launcher_tools import logger
 from optim_tools import optimizer
 
 parser = argparse.ArgumentParser(description='Start an experiment')
-parser.add_argument('--n-disc', metavar='d', dest="n_disc", type=int, default=1,
-                    help="Number of disc used in the experiment")
+
 parser.add_argument('--init-lr', dest="init_lr", type=float, default=-1.0,
                     help="Learning rate for the first embedding step")
 parser.add_argument('--lr', dest="lr", type=float, default=5e-1,
@@ -29,7 +28,7 @@ parser.add_argument('--alpha', dest="alpha", type=float, default=1e-2,
                     help="alpha for embedding")
 parser.add_argument('--init-beta', dest="init_beta", type=float, default=-1.0,
                     help="beta for the first embedding step")
-parser.add_argument('--beta', dest="beta", type=float, default=10,
+parser.add_argument('--beta', dest="beta", type=float, default=1,
                     help="beta for embedding")
 parser.add_argument('--gamma', dest="gamma", type=float, default=1e-1,
                     help="gamma rate for embedding")
@@ -161,39 +160,36 @@ if(args.size == 2):
     for i in range(len(D.Y)):
         colors.append(plt_colors.hsv_to_rgb([D.Y[i][0]/(len(unique_label)),0.5,0.8]))
 
-for disc in range(args.n_disc):
-    alpha, beta = args.init_alpha, args.init_beta
-    embedding_alg = PEmbed(len(embedding_dataset), size=args.size, lr=args.init_lr, cuda=args.cuda, negative_distribution=frequency,
-                            optimizer_method=optimizer_dict[args.embedding_optimizer])
-    em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=True)
-    pi, mu, sigma = None, None, None
-    pik = None
-    epoch_embedding = args.epoch_embedding_init
-    for i in tqdm.trange(args.epoch):
-        if(i==1):
-            embedding_alg.set_lr(args.lr)
-            alpha, beta = args.alpha, args.beta
-            epoch_embedding = args.epoch_embedding
 
-        embedding_alg.fit(training_dataloader, alpha=alpha, beta=beta, gamma=args.gamma, max_iter=epoch_embedding,
-                         pi=pik, mu=mu, sigma=sigma, negative_sampling=args.negative_sampling)
-        em_alg.fit(embedding_alg.get_PoincareEmbeddings().cpu(), max_iter=args.em_iter)
-        pi, mu, sigma = em_alg.get_parameters()
-        pik = em_alg.get_pik(embedding_alg.get_PoincareEmbeddings().cpu())
-        if(args.size == 2):
-            plot_tools.plot_embedding_distribution_multi([embedding_alg.get_PoincareEmbeddings().cpu()], 
-                                                         [pi], [mu],  [sigma], 
-                                                        labels=None, N=100, colors=colors, 
-                                                        save_path="RESULTS/"+args.id+"/fig_epoch_"+str(i)+".pdf")
-    representation_d.append(embedding_alg.get_PoincareEmbeddings().cpu())
-    pi_d.append(pi)
-    mu_d.append(mu)
-    sigma_d.append(sigma)
-    current_accuracy = evaluation.accuracy_cross_validation(representation_d[-1], D.Y, pi, mu, sigma, 5, verbose=False)
-    print("\nPerformances disc "+str(disc+1)+"-> " ,current_accuracy,"\n")
-    if(args.save):
-        logger_object.append({"disc-"+str(disc):{"accuracy": current_accuracy}})
-print("pi-> ", pi)
+alpha, beta = args.init_alpha, args.init_beta
+embedding_alg = PEmbed(len(embedding_dataset), size=args.size, lr=args.init_lr, cuda=args.cuda, negative_distribution=frequency,
+                        optimizer_method=optimizer_dict[args.embedding_optimizer])
+em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=True)
+pi, mu, sigma = None, None, None
+pik = None
+epoch_embedding = args.epoch_embedding_init
+for i in tqdm.trange(args.epoch):
+    if(i==1):
+        embedding_alg.set_lr(args.lr)
+        alpha, beta = args.alpha, args.beta
+        epoch_embedding = args.epoch_embedding
+
+    embedding_alg.fit(training_dataloader, alpha=alpha, beta=beta, gamma=args.gamma, max_iter=epoch_embedding,
+                        pi=pik, mu=mu, sigma=sigma, negative_sampling=args.negative_sampling)
+    em_alg.fit(embedding_alg.get_PoincareEmbeddings().cpu(), max_iter=args.em_iter)
+    pi, mu, sigma = em_alg.get_parameters()
+    pik = em_alg.get_pik(embedding_alg.get_PoincareEmbeddings().cpu())
+    if(args.size == 2):
+        plot_tools.plot_embedding_distribution_multi([embedding_alg.get_PoincareEmbeddings().cpu()], 
+                                                        [pi], [mu],  [sigma], 
+                                                    labels=None, N=100, colors=colors, 
+                                                    save_path="RESULTS/"+args.id+"/fig_epoch_"+str(i)+".pdf")
+representation_d.append(embedding_alg.get_PoincareEmbeddings().cpu())
+pi_d.append(pi)
+mu_d.append(mu)
+sigma_d.append(sigma)
+
+
 #evaluate performances on all disc
 total_accuracy = evaluation.accuracy_disc_product(representation_d, D.Y, pi_d, mu_d, sigma_d, verbose=False)
 print("\nPerformances joined -> " ,
@@ -205,6 +201,7 @@ total_accuracy = evaluation.accuracy_disc_kmeans(representation_d[0], D.Y, mu_d[
 print("\nPerformances  kmeans-> " ,
     total_accuracy
 )
+
 logger_object.append({"accuracy_kmeans": total_accuracy})
 if(args.save):
     import matplotlib.pyplot as plt
