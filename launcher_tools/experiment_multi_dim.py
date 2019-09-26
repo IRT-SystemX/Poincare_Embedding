@@ -140,7 +140,7 @@ embedding_dataset = corpora_tools.zip_datasets(dataset_index,
 training_dataloader = DataLoader(embedding_dataset, 
                             batch_size=args.batch_size, 
                             shuffle=True,
-                            num_workers=8,
+                            num_workers=4,
                             collate_fn=data_tools.PadCollate(dim=0),
                             drop_last=False
                     )
@@ -181,7 +181,8 @@ for disc in range(args.n_disc):
         pi, mu, sigma = em_alg.get_parameters()
         pik = em_alg.get_pik(embedding_alg.get_PoincareEmbeddings().cpu())
         if(args.size == 2):
-            plot_tools.plot_embedding_distribution_multi(representation_d, pi_d, mu_d,  sigma_d, 
+            plot_tools.plot_embedding_distribution_multi([embedding_alg.get_PoincareEmbeddings().cpu()], 
+                                                         [pi], [mu],  [sigma], 
                                                         labels=None, N=100, colors=colors, 
                                                         save_path="RESULTS/"+args.id+"/fig_epoch_"+str(i)+".pdf")
     representation_d.append(embedding_alg.get_PoincareEmbeddings().cpu())

@@ -57,6 +57,50 @@ class PoincareDistance2(torch.autograd.Function):
             return res_x, res_y 
 
 
+class PoincareDistanceSquared(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, x, y):
+        with torch.no_grad():
+            # eps = torch.randu(x.shape[-1], device=x.device)
+            x_norm = torch.sum(x ** 2, dim=-1)
+            y_norm = torch.sum(y ** 2, dim=-1)
+            d_norm = torch.sum((x-y) ** 2, dim=-1)
+            cc = 1+2*d_norm/((1-x_norm)*(1-y_norm)) 
+            dist = torch.log(cc + torch.sqrt(cc**2-1))
+            # print("x_norm -> ", x_norm.max())
+            # print("y_norm -> ", y_norm.max())
+            # print("d_norm -> ", d_norm.max())
+            # print("max_cc -> ", cc.max())
+            # print("max_dist -> ", dist.max())
+            if((dist==dist).float().mean() != 1 ):
+                print("ERROR DIST")
+                quit()            
+            ctx.save_for_backward( x, y, dist)
+            return  dist **2
+    @staticmethod
+    def backward(ctx, grad_output):
+        with torch.no_grad():
+            x, y, dist = ctx.saved_tensors
+            if((log(x,y)==log(x,y)).float().mean() != 1 ):
+                print("ERROR LOG")
+                quit()
+            res_x, res_y =  (- 2* (log(x, y)) * grad_output.unsqueeze(-1).expand_as(x),
+                     - ( 2* log(y, x) ) * grad_output.unsqueeze(-1).expand_as(x))
+            # print("max log  -> ", (log(x, y).max()))
+            # print("min log  -> ", (log(x, y).min()))
+            # print("max log inv  -> ", (log(y, x).max()))
+            # print("min log inv  -> ", (log(y, x).min()))
+            # print("res_y max ",res_y.max())
+            # print("res_x max ",res_x.max())
+            if((dist == 0).sum() != 0):
+                # it exist example having same representation
+                res_x[dist == 0 ] = 0 
+                res_y[dist == 0 ] = 0
+            return res_x, res_y 
+
+def poincare_distance_squared(x, y):
+    return PoincareDistanceSquared.apply(x, y)
+
 def poincare_distance(x, y):
     return PoincareDistance2.apply(x, y)
 
