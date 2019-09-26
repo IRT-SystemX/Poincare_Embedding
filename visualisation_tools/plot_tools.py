@@ -8,7 +8,56 @@ from matplotlib.patches import Circle, PathPatch
 import numpy as np
 import torch 
 from function_tools import poincare_function as pf
+from function_tools import euclidean_function as ef
+from function_tools import distribution_function as df
 import math
+
+
+def euclidean_plot(z, pi, mu, sigma, labels=None, grid_size=100, colors=None, ax=None, path=None):
+    if(ax  is None):
+        fig = plt.figure("Embedding-Distribution")
+        ax = fig.add_subplot(1, 1, 1, projection='3d')
+    r_min, r_max = z.min().item(), z.max().item()
+    # wher drawing
+    X, Y = np.linspace(r_min, r_max ,grid_size), np.linspace(r_min, r_max ,grid_size)
+    X, Y = np.meshgrid(X, Y)
+    z_circle = -0.8
+    Z = np.zeros((grid_size, grid_size))
+    N, D, M = z.shape + (pi.size(0),)
+    # compute the mixture 
+    # def nfunc(sigma):
+    #     return df.euclidean_norm_factor(sigma, D)
+    # for z_index in range(len(Z)):
+    #     x =  torch.cat((torch.FloatTensor(X[z_index]).unsqueeze(-1), torch.FloatTensor(Y[z_index]).unsqueeze(-1)), -1)
+    #     zz = (pi.unsqueeze(0).expand(grid_size, M) *df.gaussianPDF(x, mu, sigma, distance=ef.distance, norm_func=nfunc)).sum(-1)
+    #     print(zz)
+    #     zz[zz != zz ]= 0
+    #     Z[z_index] = zz.sum(-1).numpy()
+
+    # ax.plot_surface(X, Y, Z, rstride=1, cstride=1, linewidth=1, antialiased=True, cmap=plt.get_cmap("viridis"))    
+
+
+    for q in range(len(z)):
+        if(colors is not None):
+            ax.scatter(z[q][0].item(), z[q][1].item(), z_circle, c=[colors[q]], marker='.')            
+        else:
+            ax.scatter(z[q][0].item(), z[q][1].item(), z_circle, c='b', marker='.')
+        #print('Print labels', labels[q])
+
+    for j in range(len(mu)):
+        ax.scatter(mu[j][0].item(), mu[j][1].item(), z_circle, c='r', marker='D')
+
+    ax.set_xlim(r_min, r_max)
+    ax.set_ylim(r_min, r_max)
+    ax.set_zlim(-0.8, 0.4)
+
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('P')
+    if(path is not None):
+        plt.savefig(path, format="pdf")
+    return fig
+
 pi_2_3 = pow((2*math.pi),2/3)
 a_for_erf = 8.0/(3.0*np.pi)*(np.pi-3.0)/(4.0-np.pi)
 
