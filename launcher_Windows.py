@@ -12,7 +12,7 @@ from data_tools import corpora_tools
 from data_tools import corpora
 from data_tools import data_tools
 from evaluation_tools import evaluation
-#from visualisation_tools import plot_tools
+from visualisation_tools import plot_tools
 from launcher_tools import logger
 from optim_tools import optimizer
 
@@ -76,9 +76,7 @@ if __name__ == "__main__":
                     "flickr": corpora.load_flickr,
                     "dblp": corpora.load_dblp,
                     "books": corpora.load_books,
-                    "blogCatalog": corpora.load_blogCatalog,
-                    "adjnoun": corpora.load_adjnoun(),
-                    "polblogs":corpora.load_polblogs()
+                    "blogCatalog": corpora.load_blogCatalog
                     }
 
     optimizer_dict = {"addhsgd": optimizer.PoincareBallSGDAdd,
@@ -194,3 +192,22 @@ if __name__ == "__main__":
           total_accuracy
           )
     logger_object.append({"accuracy_kmeans": total_accuracy})
+    if (args.save):
+        import matplotlib.pyplot as plt
+        import matplotlib.colors as plt_colors
+        import numpy as np
+
+        torch.save(representation_d, "RESULTS/" + args.id + "/embeddings.t7")
+        torch.save({"pi": pi_d, "mu": mu_d, "sigma": sigma_d}, "RESULTS/" + args.id + "/pi_mu_sigma.t7")
+        if (args.size == 2):
+            unique_label = np.unique(sum([y for k, y in D.Y.items()], []))
+            colors = []
+
+            for i in range(len(representation_d[0])):
+                colors.append(plt_colors.hsv_to_rgb([D.Y[i][0] / (len(unique_label)), 0.5, 0.8]))
+
+            plot_tools.plot_embedding_distribution_multi(representation_d, pi_d, mu_d, sigma_d,
+                                                         labels=None, N=100, colors=colors,
+                                                         save_path="RESULTS/" + args.id + "/fig.pdf")
+
+        print({"pi": pi_d, "mu": mu_d, "sigma": sigma_d})
