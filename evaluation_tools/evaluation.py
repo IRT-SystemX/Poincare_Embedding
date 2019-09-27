@@ -176,9 +176,9 @@ def accuracy_disc_kmeans(z, y, mu, verbose=False):
     kmeans = PoincareKMeans(n_distrib)
     kmeans.fit(z)
     associated_distrib =  kmeans.predict(z)
-    print("associated distribution size ->",associated_distrib.shape)
-    print("associated distribution ->",associated_distrib)
-    print("source labels ->", y)
+    # print("associated distribution size ->",associated_distrib.shape)
+    # print("associated distribution ->",associated_distrib)
+    # print("source labels ->", y)
     label = associated_distrib.numpy()
     label_source = y.numpy()
     sources_number = n_distrib
@@ -249,7 +249,7 @@ def accuracy_small_disc_product(label, label_source, sources_number):
 
 
 
-    print('result',result_percentage)
+    # print('result',result_percentage)
     return max(result_percentage)
 
 def accuracy_huge_disc_product(label, label_source, sources_number):
