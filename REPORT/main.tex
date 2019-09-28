@@ -115,127 +115,167 @@
 
     \section{Evaluating EM Algorithm On large dataset}
 
-    \begin{figure}[!ht]
-        \centering
-        \begin{subfigure}[b]{0.48\linewidth}
-            \centering
-            \includegraphics[scale=0.5]{media/fig0.pdf}
-            \caption{\label{fig:n1}:Kmeans only}
-        \end{subfigure}
-        \begin{subfigure}[b]{0.48\linewidth}
-             \centering
-            \includegraphics[scale=0.5]{media/fig1.pdf}
-            \caption{\label{fig:n2}: $1^{st}$ EM iteration}
+%     \begin{figure}[!ht]
+%         \centering
+%         \begin{subfigure}[b]{0.48\linewidth}
+%             \centering
+%             \includegraphics[scale=0.5]{media/fig0.pdf}
+%             \caption{\label{fig:n1}:Kmeans only}
+%         \end{subfigure}
+%         \begin{subfigure}[b]{0.48\linewidth}
+%              \centering
+%             \includegraphics[scale=0.5]{media/fig1.pdf}
+%             \caption{\label{fig:n2}: $1^{st}$ EM iteration}
     
-        \end{subfigure}
-        \begin{subfigure}[b]{0.48\linewidth}
-            \centering
-            \includegraphics[scale=0.5]{media/fig2.pdf}
-            \caption{\label{fig:n1}:$2^{nd}$ EM iteration}
-        \end{subfigure}
-        \begin{subfigure}[b]{0.48\linewidth}
-             \centering
-            \includegraphics[scale=0.5]{media/fig50.pdf}
-            \caption{\label{fig:n2}:$50^{nd}$ EM iteration}
+%         \end{subfigure}
+%         \begin{subfigure}[b]{0.48\linewidth}
+%             \centering
+%             \includegraphics[scale=0.5]{media/fig2.pdf}
+%             \caption{\label{fig:n1}:$2^{nd}$ EM iteration}
+%         \end{subfigure}
+%         \begin{subfigure}[b]{0.48\linewidth}
+%              \centering
+%             \includegraphics[scale=0.5]{media/fig50.pdf}
+%             \caption{\label{fig:n2}:$50^{nd}$ EM iteration}
     
-        \end{subfigure}    
-        \caption{EM over a dblp representation}
-        \label{fig:embedding}
-    \end{figure}
-    \subsection{Variance and mixing coefficient evolution}
+%         \end{subfigure}    
+%         \caption{EM over a dblp representation}
+%         \label{fig:embedding}
+%     \end{figure}
+%     \subsection{Variance and mixing coefficient evolution}
 
-    \begin{figure}[!ht]
-        \centering
-        \begin{subfigure}[b]{0.48\linewidth}
-            \centering
-            \includegraphics[scale=0.5]{media/_mixture_weights.pdf}
-            \caption{\label{fig:n1}:Mixture weights}
-        \end{subfigure}
-        \begin{subfigure}[b]{0.48\linewidth}
-             \centering
-            \includegraphics[scale=0.5]{media/_variances.pdf}
-            \caption{\label{fig:n2}:variance}
+%     \begin{figure}[!ht]
+%         \centering
+%         \begin{subfigure}[b]{0.48\linewidth}
+%             \centering
+%             \includegraphics[scale=0.5]{media/_mixture_weights.pdf}
+%             \caption{\label{fig:n1}:Mixture weights}
+%         \end{subfigure}
+%         \begin{subfigure}[b]{0.48\linewidth}
+%              \centering
+%             \includegraphics[scale=0.5]{media/_variances.pdf}
+%             \caption{\label{fig:n2}:variance}
     
-        \end{subfigure}
-        \caption{EM over a dblp representation}
-        \label{fig:embedding}
-    \end{figure}
+%         \end{subfigure}
+%         \caption{EM over a dblp representation}
+%         \label{fig:embedding}
+%     \end{figure}
 
-    \section{Experiments}
-    \begin{table}
-            \begin{tabular}{|cccccccc|c|}
-                \hline
-                lr & alpha & beta & gamma & Method Optimization& epoch & embed iter &em iter & Performances \\
-                \hline
-                .5 & .5 & 10.& 20 & exphsgd & 3 & 600 & 1 & 78.81 \\
-                \hline
-            \end{tabular}
-        \label{DBLP-RES}
-        \caption{DBLP Performances obtained 1 Disc}
-    \end{table}
+%     \section{Experiments}
+%     \begin{table}
+%             \begin{tabular}{|cccccccc|c|}
+%                 \hline
+%                 lr & alpha & beta & gamma & Method Optimization& epoch & embed iter &em iter & Performances \\
+%                 \hline
+%                 .5 & .5 & 10.& 20 & exphsgd & 3 & 600 & 1 & 78.81 \\
+%                 \hline
+%             \end{tabular}
+%         \label{DBLP-RES}
+%         \caption{DBLP Performances obtained 1 Disc}
+%     \end{table}
 
-    \subsection{Compareason KMEANS-EM}
-    \begin{table}
-        \begin{tabular}{|ccccccccc|c|}
-            \hline
-            lr & alpha & beta & dim & Method Optimization& epoch & embed iter &em iter & Performances & REF-FILE\\
-            \hline
-            10 & .1 & 1.& 2 & exphsgd & 1 & 1000 & 1 & $69.56 \pm 7.38$& football-1\\
-            10 & .1 & 1.& 3 & exphsgd & 1 & 1000 & 1 & $79.13 \pm 1.23$& football-3D-1\\
-            10 & .1 & 1.& 4 & exphsgd & 1 & 1000 & 1 & $84.16 \pm 3.43$& football-4D-1\\
-            10 & .1 & 1.& 10 & exphsgd & 1 & 1000 & 1 & $87.38 \pm 1.84$& football-10D-1\\
-            \hline
-        \end{tabular}
-    \label{DBLP-RES}
-    \caption{FOOTBALL Performances obtained  with kmeans (2 experiments each)}
-\end{table}
-    \begin{table}
-        \begin{tabular}{|ccccccccc|c|}
-            \hline
-            lr & alpha & beta & dim & Method Optimization& epoch & embed iter &em iter & Performances & REF-FILE\\
-            \hline
-            10 & .1 & 1.& 2 & exphsgd & 1 & 1000 & 1 & $76.08 \pm 0.615$& football-1D-1EM\\
-            10 & .1 & 1.& 3 & exphsgd & 1 & 1000 & 10 & $86.08 \pm 1.23$& football-3D-1-EM\\
-            10 & .1 & 1.& 4 & exphsgd & 1 & 1000 & 10 & $87.82 \pm 1.23$& football-4D-1-EM\\
-            10 & .1 & 1.& 10 & exphsgd & 1 & 1000 & 10 & $91.3 \pm 0$& football-10D-1-EM\\
-            \hline
-        \end{tabular}
-    \label{DBLP-RES}
-    \caption{FOOTBALL Performances obtained  with EM (2 experiments each)}
-\end{table}
+%     \subsection{Compareason KMEANS-EM}
+%     \begin{table}
+%         \begin{tabular}{|ccccccccc|c|}
+%             \hline
+%             lr & alpha & beta & dim & Method Optimization& epoch & embed iter &em iter & Performances & REF-FILE\\
+%             \hline
+%             10 & .1 & 1.& 2 & exphsgd & 1 & 1000 & 1 & $69.56 \pm 7.38$& football-1\\
+%             10 & .1 & 1.& 3 & exphsgd & 1 & 1000 & 1 & $79.13 \pm 1.23$& football-3D-1\\
+%             10 & .1 & 1.& 4 & exphsgd & 1 & 1000 & 1 & $84.16 \pm 3.43$& football-4D-1\\
+%             10 & .1 & 1.& 10 & exphsgd & 1 & 1000 & 1 & $87.38 \pm 1.84$& football-10D-1\\
+%             \hline
+%         \end{tabular}
+%     \label{DBLP-RES}
+%     \caption{FOOTBALL Performances obtained  with kmeans (2 experiments each)}
+% \end{table}
+%     \begin{table}
+%         \begin{tabular}{|ccccccccc|c|}
+%             \hline
+%             lr & alpha & beta & dim & Method Optimization& epoch & embed iter &em iter & Performances & REF-FILE\\
+%             \hline
+%             10 & .1 & 1.& 2 & exphsgd & 1 & 1000 & 1 & $76.08 \pm 0.615$& football-1D-1EM\\
+%             10 & .1 & 1.& 3 & exphsgd & 1 & 1000 & 10 & $86.08 \pm 1.23$& football-3D-1-EM\\
+%             10 & .1 & 1.& 4 & exphsgd & 1 & 1000 & 10 & $87.82 \pm 1.23$& football-4D-1-EM\\
+%             10 & .1 & 1.& 10 & exphsgd & 1 & 1000 & 10 & $91.3 \pm 0$& football-10D-1-EM\\
+%             \hline
+%         \end{tabular}
+%     \label{DBLP-RES}
+%     \caption{FOOTBALL Performances obtained  with EM (2 experiments each)}
+% \end{table}
+% \begin{table}
+%     \begin{tabular}{|ccccccccc|c|}
+%         \hline
+%         lr & alpha & beta & dim & Method Optimization& epoch & embed iter & context & Performances & REF-FILE\\
+%         \hline
+%         1.0 & .1 & 1.& 2 & exphsgd & 1 & 1000 & 17 & LAUNCHED& \\
+
+%         \hline
+%     \end{tabular}
+% \label{DBLP-RES}
+% \caption{DBLP Performances KEMANS (2 experiments each)}
+% \end{table}
+% \begin{table}
+%     \begin{tabular}{|ccccccccc|c|}
+%         \hline
+%         lr & alpha & beta & dim & Method Optimization& epoch & embed iter & context & Performances & REF-FILE\\
+%         \hline
+%         20 & .1 & 1.& 2 & exphsgd & 1 & 500 & 17 & $69.49 \pm 6.78$& DBLP-2D-KMEANS \\
+%         20 & .1 & 1.& 3 & exphsgd & 1 & 500 & 17 & RUNNING& DBLP-2D-KMEANS \\
+%         20 & .1 & 1.& 4 & exphsgd & 1 & 500 & 17 & $80.8 \pm 1.42$& DBLP-4D-KMEANS \\
+%         20 & .1 & 1.& 10 & exphsgd & 1 & 500 & 17 & 79.8 & DBLP-2D-KMEANS \\
+
+%         \hline
+%     \end{tabular}
+% \label{DBLP-RES}
+% \caption{DBLP Performances KEMANS (2 experiments each)}
+% \end{table}
+% \begin{figure}[!ht]
+%     \centering
+
+%         \includegraphics[scale=2]{media/kmeans3d.png}
+%         \caption{3D kmeans}
+
+% \end{figure}
+\section{K-Means results}
 \begin{table}
-    \begin{tabular}{|ccccccccc|c|}
-        \hline
-        lr & alpha & beta & dim & Method Optimization& epoch & embed iter & context & Performances & REF-FILE\\
-        \hline
-        1.0 & .1 & 1.& 2 & exphsgd & 1 & 1000 & 17 & LAUNCHED& \\
-
-        \hline
-    \end{tabular}
-\label{DBLP-RES}
-\caption{DBLP Performances KEMANS (2 experiments each)}
-\end{table}
-\begin{table}
-    \begin{tabular}{|ccccccccc|c|}
-        \hline
-        lr & alpha & beta & dim & Method Optimization& epoch & embed iter & context & Performances & REF-FILE\\
-        \hline
-        20 & .1 & 1.& 2 & exphsgd & 1 & 500 & 17 & $69.49 \pm 6.78$& DBLP-2D-KMEANS \\
-        20 & .1 & 1.& 3 & exphsgd & 1 & 500 & 17 & RUNNING& DBLP-2D-KMEANS \\
-        20 & .1 & 1.& 4 & exphsgd & 1 & 500 & 17 & $80.8 \pm 1.42$& DBLP-4D-KMEANS \\
-        20 & .1 & 1.& 10 & exphsgd & 1 & 500 & 17 & 79.8 & DBLP-2D-KMEANS \\
-
-        \hline
-    \end{tabular}
-\label{DBLP-RES}
-\caption{DBLP Performances KEMANS (2 experiments each)}
-\end{table}
-\begin{figure}[!ht]
     \centering
+    \begin{tabular}{|c|cc|}
+    \hline Dimension & performance hyperbolic & performance euclidean\\ \hline
+    2& $74.6 \pm 2.9$ & $69.9 \pm 4.5$\\ \hline
+    3& $81.5 \pm 3.9$ & $79.2 \pm 3.2$\\ \hline
+    4& $82.9 \pm 3.6$ & $84.4 \pm 2.2$\\ \hline
+    5& $86.2 \pm 2.5$ & $86.8 \pm 3.0$\\ \hline
+    10& $88.6 \pm 2.1$ & $87.7 \pm 2.9$\\ \hline
 
-        \includegraphics[scale=2]{media/kmeans3d.png}
-        \caption{3D kmeans}
+    \end{tabular} 
+    \caption{KMeans football 10 kmeans init}
+\end{table}
 
-\end{figure}
+\begin{table} 
+    \centering
+    \begin{tabular}{|c|cc|}
+
+    \hline Dimension & performance hyperbolic & performance euclidean\\ \hline
+    2& $93.2 \pm 1.4$ & $85.8 \pm 17.3$\\ \hline
+    3& $96.1 \pm 1.4$ & $92.9 \pm 1.5$\\ \hline
+    4& $91.7 \pm 7.4$ & $94.1 \pm 0.0$\\ \hline
+    5& $94.1 \pm 0.0$ & $94.1 \pm 0.0$\\ \hline
+    10& $94.1 \pm 0.0$ & $94.1 \pm 0.0$\\ \hline
+    \end{tabular}
+\caption{KMeans karate 10 kmeans init}
+ \end{table}
+ \begin{table} 
+    \centering 
+    \begin{tabular}{|c|cc|}
+      \hline Dimension & performance hyperbolic & performance euclidean\\ \hline
+      2& $93.2 \pm 1.4$ & $85.8 \pm 17.3$\\ \hline
+      3& $96.1 \pm 1.4$ & $92.9 \pm 1.5$\\ \hline
+      4& $91.7 \pm 7.4$ & $94.1 \pm 0.0$\\ \hline
+      5& $94.1 \pm 0.0$ & $94.1 \pm 0.0$\\ \hline
+      10& $94.1 \pm 0.0$ & $94.1 \pm 0.0$\\ \hline
+  \end{tabular}
+  \caption{KMeans BOOKS 10 kmeans init}
+\end{table}
 
 \end{document}
