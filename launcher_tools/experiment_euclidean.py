@@ -74,7 +74,9 @@ dataset_dict = { "karate": corpora.load_karate,
             "flickr": corpora.load_flickr,
             "dblp": corpora.load_dblp,
             "books": corpora.load_books,
-            "blogCatalog": corpora.load_blogCatalog
+            "blogCatalog": corpora.load_blogCatalog,
+            "polblog": corpora.load_polblogs,
+            "adjnoun": corpora.load_adjnoun
           }
 
 optimizer_dict = {"sgd": optim.SGD}
@@ -174,20 +176,15 @@ for i in tqdm.trange(args.epoch):
 
     embedding_alg.fit(training_dataloader, alpha=alpha, beta=beta, gamma=args.gamma, max_iter=epoch_embedding,
                         pi=pik, mu=mu, sigma=sigma, negative_sampling=args.negative_sampling)
-    em_alg.fit(embedding_alg.get_PoincareEmbeddings().cpu(), max_iter=args.em_iter)
-    pi, mu, sigma = em_alg.get_parameters()
-    pik = em_alg.get_pik(embedding_alg.get_PoincareEmbeddings().cpu())
 
 representation_d.append(embedding_alg.get_PoincareEmbeddings().cpu())
-pi_d.append(pi)
-mu_d.append(mu)
-sigma_d.append(sigma)
+
 #evaluate performances on all disc
-total_accuracy = evaluation.accuracy_euclidean(representation_d, D.Y, pi_d, mu_d, sigma_d, verbose=False)
-print("\nPerformances joined -> " ,
+#evaluate performances on all disc
+total_accuracy = evaluation.accuracy_euclidean_kmeans(representation_d[0], D.Y,torch.zeros(args.n_gaussian), verbose=False)
+print("\nPerformances  kmeans-> " ,
     total_accuracy
 )
-logger_object.append({"accuracy": total_accuracy})
 #evaluate performances on all disc
 # total_accuracy = evaluation.accuracy_disc_kmeans(representation_d[0], D.Y, mu_d[0], verbose=False)
 # print("\nPerformances  kmeans-> " ,
@@ -199,14 +196,14 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as plt_colors
 import numpy as np
 torch.save(representation_d, "RESULTS/"+args.id+"/embeddings.t7")
-torch.save( {"pi": pi_d, "mu":mu_d, "sigma":sigma_d}, "RESULTS/"+args.id+"/pi_mu_sigma.t7")
+# torch.save( {"pi": pi_d, "mu":mu_d, "sigma":sigma_d}, "RESULTS/"+args.id+"/pi_mu_sigma.t7")
 
 
-if(args.size == 2):
+# if(args.size == 2):
 
-    fig = plot_tools.euclidean_plot(representation_d[0], pi_d[0], mu_d[0],  sigma_d[0], 
-                                                labels=None, grid_size=100, colors=colors, 
-                                                path="RESULTS/"+args.id+"/fig.pdf")
-    # plt.savefig("RESULTS/"+args.id+"/fig.pdf", format="pdf")
+#     fig = plot_tools.euclidean_plot(representation_d[0], pi_d[0], mu_d[0],  sigma_d[0], 
+#                                                 labels=None, grid_size=100, colors=colors, 
+#                                                 path="RESULTS/"+args.id+"/fig.pdf")
+#     # plt.savefig("RESULTS/"+args.id+"/fig.pdf", format="pdf")
 
-print({"pi": pi_d, "mu":mu_d, "sigma":sigma_d})
+# print({"pi": pi_d, "mu":mu_d, "sigma":sigma_d})
