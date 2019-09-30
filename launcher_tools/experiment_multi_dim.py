@@ -199,7 +199,7 @@ print("\nPerformances joined -> " ,
 )
 logger_object.append({"accuracy": total_accuracy})
 #evaluate performances on all disc
-total_accuracy, var = evaluation.accuracy_disc_kmeans(representation_d[0], D.Y, mu_d[0], verbose=False)
+total_accuracy, stdmx, stdmean, all_std = evaluation.accuracy_disc_kmeans(representation_d[0], D.Y, mu_d[0], verbose=False)
 print("\nPerformances  kmeans-> " ,
     total_accuracy
 )

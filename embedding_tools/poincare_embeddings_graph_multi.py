@@ -67,9 +67,9 @@ class RiemannianEmbedding(nn.Module):
                 embed_source_rw, embed_context_rw = embed_source_rw[:,:,0], embed_source_rw[:,:,1]
                 embed_negative = self.W(negative)
                 # computing O1 loss
-                loss_o1 = losses.SGDLoss.O1(embed_source, embed_neigbhor).sum()
+                loss_o1 = losses.SGDLoss.O1(embed_source, embed_neigbhor).mean()
                 # computing O2 loss
-                loss_o2 = losses.SGDLoss.O2(embed_source_rw, embed_context_rw, embed_negative).sum()
+                loss_o2 = losses.SGDLoss.O2(embed_source_rw, embed_context_rw, embed_negative).mean()
                 # computing total loss
                 loss = alpha * loss_o1 + beta * loss_o2 
                 # if we want to use the prior loss

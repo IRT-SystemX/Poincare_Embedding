@@ -182,10 +182,12 @@ def accuracy_disc_kmeans(z, y, mu, verbose=False):
     label = associated_distrib.numpy()
     label_source = y.numpy()
     sources_number = n_distrib
+    std =   kmeans.getStd(z)
     if(n_distrib <= 6):
-        return accuracy_small_disc_product(label, label_source, sources_number), kmeans.getStd(z)
+
+        return accuracy_small_disc_product(label, label_source, sources_number), std.max(), std.mean(), std
     else:
-        return accuracy_huge_disc_product(label, label_source, sources_number), kmeans.getStd(z)
+        return accuracy_huge_disc_product(label, label_source, sources_number),std.max(), std.mean(), std
 
 def accuracy_euclidean_kmeans(z, y, mu, verbose=False):
     n_disc = len(z)

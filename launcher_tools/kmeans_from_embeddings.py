@@ -52,7 +52,7 @@ std_kmeans = []
 representations = torch.load(args.file+"embeddings.t7")[0]
 
 for i in tqdm.trange(args.n):
-    total_accuracy, std = evaluation.accuracy_disc_kmeans(representations, D.Y, torch.zeros(n_gaussian),  verbose=False)
+    total_accuracy, stdmx, stdmn, std = evaluation.accuracy_disc_kmeans(representations, D.Y, torch.zeros(n_gaussian),  verbose=False)
     results.append(total_accuracy)
     std_kmeans.append(std.tolist())
 

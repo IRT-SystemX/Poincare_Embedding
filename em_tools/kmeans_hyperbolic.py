@@ -128,10 +128,10 @@ class PoincareKMeans(object):
         dst = self._distance(centroids, x)
         value, indexes = dst.min(-1)
         stds = []
-        for i range(self._n_c):
-            stds.append(values[indexes==i].std())
+        for i in range(self._n_c):
+            stds.append(value[indexes==i].std())
         stds = torch.Tensor(stds)
-        return return stds
+        return stds
 def test():
     import torch
     import matplotlib.pyplot as plt
