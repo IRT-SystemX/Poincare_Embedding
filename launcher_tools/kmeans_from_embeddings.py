@@ -54,7 +54,7 @@ representations = torch.load(args.file+"embeddings.t7")[0]
 for i in tqdm.trange(args.n):
     total_accuracy, std = evaluation.accuracy_disc_kmeans(representations, D.Y, torch.zeros(n_gaussian),  verbose=False)
     results.append(total_accuracy)
-    std_kmeans.append(std)
+    std_kmeans.append(std.tolist())
 
 R = torch.Tensor(results)
 S = torch.Tensor(std_kmeans)
