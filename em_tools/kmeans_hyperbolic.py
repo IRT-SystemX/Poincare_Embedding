@@ -121,6 +121,17 @@ class PoincareKMeans(object):
     def predict(self, X):
         return self._expectation(self.centroids, X)
 
+    def getStd(self, x):
+        N, K, D = x.shape[0], self.centroids.shape[0], x.shape[1]
+        centroids = self.centroids.unsqueeze(0).expand(N, K, D)
+        x = x.unsqueeze(1).expand(N, K, D)
+        dst = self._distance(centroids, x)
+        value, indexes = dst.min(-1)
+        stds = []
+        for i range(self._n_c):
+            stds.append(values[indexes==i].std())
+        stds = torch.Tensor(stds)
+        return return stds
 def test():
     import torch
     import matplotlib.pyplot as plt

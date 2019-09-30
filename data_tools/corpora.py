@@ -169,9 +169,9 @@ def load_flickr():
     return loading_social_computing_corpus(edges_path, groups_path, symetric=True)
 
 def load_blogCatalog():
-    os.makedirs("data/BlogCatalog-dataset/", exist_ok=True)
-    dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/BlogCatalog-dataset/edges.csv", "data/BlogCatalog-dataset/edges.csv")
-    dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/BlogCatalog-dataset/group-edges.csv", "data/BlogCatalog-dataset/group-edges.csv")
+    # os.makedirs("data/BlogCatalog-dataset/", exist_ok=True)
+    # dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/BlogCatalog-dataset/edges.csv", "data/BlogCatalog-dataset/edges.csv")
+    # dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/BlogCatalog-dataset/group-edges.csv", "data/BlogCatalog-dataset/group-edges.csv")
     edges_path = "data/BlogCatalog-dataset/edges.csv"
     groups_path = "data/BlogCatalog-dataset/group-edges.csv"
     return loading_social_computing_corpus(edges_path, groups_path, symetric=True)

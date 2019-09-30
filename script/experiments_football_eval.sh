@@ -1,0 +1,10 @@
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 40 --file RESULTS/football-2D-KMEANS-1/  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 40 --file RESULTS/football-2D-KMEANS-2/  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 40 --file RESULTS/football-3D-KMEANS-1/  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 40 --file RESULTS/football-3D-KMEANS-2/  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 40 --file RESULTS/football-4D-KMEANS-1/  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 40 --file RESULTS/football-4D-KMEANS-2/  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 40 --file RESULTS/football-5D-KMEANS-1/  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 40 --file RESULTS/football-5D-KMEANS-2/ 
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 40 --file RESULTS/football-10D-KMEANS-1/ 
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 40 --file RESULTS/football-10D-KMEANS-2/  

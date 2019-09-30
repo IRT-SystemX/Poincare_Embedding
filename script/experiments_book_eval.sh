@@ -1,0 +1,10 @@
+CUDA_VISBLE_DEVICES=0 python launcher_tools/kmeans_from_embeddings.py --n 40 --file RESULTS/BOOKS-2D-KMEANS-1/  
+CUDA_VISBLE_DEVICES=0 python launcher_tools/kmeans_from_embeddings.py --n 40 --file RESULTS/BOOKS-2D-KMEANS-2/  
+CUDA_VISBLE_DEVICES=0 python launcher_tools/kmeans_from_embeddings.py --n 40 --file RESULTS/BOOKS-3D-KMEANS-1/  
+CUDA_VISBLE_DEVICES=0 python launcher_tools/kmeans_from_embeddings.py --n 40 --file RESULTS/BOOKS-3D-KMEANS-2/  
+CUDA_VISBLE_DEVICES=0 python launcher_tools/kmeans_from_embeddings.py --n 40 --file RESULTS/BOOKS-4D-KMEANS-1/  
+CUDA_VISBLE_DEVICES=0 python launcher_tools/kmeans_from_embeddings.py --n 40 --file RESULTS/BOOKS-4D-KMEANS-2/  
+CUDA_VISBLE_DEVICES=0 python launcher_tools/kmeans_from_embeddings.py --n 40 --file RESULTS/BOOKS-5D-KMEANS-1/  
+CUDA_VISBLE_DEVICES=0 python launcher_tools/kmeans_from_embeddings.py --n 40 --file RESULTS/BOOKS-5D-KMEANS-2/ 
+CUDA_VISBLE_DEVICES=0 python launcher_tools/kmeans_from_embeddings.py --n 40 --file RESULTS/BOOKS-10D-KMEANS-1/ 
+CUDA_VISBLE_DEVICES=0 python launcher_tools/kmeans_from_embeddings.py --n 40 --file RESULTS/BOOKS-10D-KMEANS-2/ 

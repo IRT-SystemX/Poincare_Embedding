@@ -47,16 +47,19 @@ print("Loading Corpus ")
 D, X, Y = dataset_dict[dataset_name]()
 
 results = []
+std_kmeans = []
 representations = torch.load(args.file+"embeddings.t7")[0]
 
 for i in tqdm.trange(args.n):
-    total_accuracy = evaluation.accuracy_euclidean_kmeans(representations, D.Y, torch.zeros(n_gaussian),  verbose=False)
+    total_accuracy, std = evaluation.accuracy_euclidean_kmeans(representations, D.Y, torch.zeros(n_gaussian),  verbose=False)
     results.append(total_accuracy)
+    std_kmeans.append(std)
 
 R = torch.Tensor(results)
-
+S = torch.Tensor(std_kmeans)
 log_in.append({"kmeans_from_embeddings": {"RES":R.tolist(), "MIN":R.min().item(),
-                "MAX":R.max().item(), "MEANS":R.mean().item(), "STD": R.std().item()}})
+                "MAX":R.max().item(), "MEANS":R.mean().item(), "STD": R.std().item(),
+                "STD_KMEANS":S.tolist()}})
 print("MEANS -> ", R.mean())
 print("MAX -> ", R.max())
 print("MIN -> ", R.min())

@@ -1,0 +1,10 @@
+CUDA_VISBLE_DEVICES=0 python launcher_tools/kmeans_from_embeddings_euclidean.py --n 10 --file RESULTS/blogs-euclidean-2D-KMEANS-1/  
+CUDA_VISBLE_DEVICES=0 python launcher_tools/kmeans_from_embeddings_euclidean.py --n 10 --file RESULTS/blogs-euclidean-2D-KMEANS-2/  
+CUDA_VISBLE_DEVICES=0 python launcher_tools/kmeans_from_embeddings_euclidean.py --n 10 --file RESULTS/blogs-euclidean-3D-KMEANS-1/  
+CUDA_VISBLE_DEVICES=0 python launcher_tools/kmeans_from_embeddings_euclidean.py --n 10 --file RESULTS/blogs-euclidean-3D-KMEANS-2/  
+CUDA_VISBLE_DEVICES=0 python launcher_tools/kmeans_from_embeddings_euclidean.py --n 10 --file RESULTS/blogs-euclidean-4D-KMEANS-1/  
+CUDA_VISBLE_DEVICES=0 python launcher_tools/kmeans_from_embeddings_euclidean.py --n 10 --file RESULTS/blogs-euclidean-4D-KMEANS-2/  
+CUDA_VISBLE_DEVICES=0 python launcher_tools/kmeans_from_embeddings_euclidean.py --n 10 --file RESULTS/blogs-euclidean-5D-KMEANS-1/  
+CUDA_VISBLE_DEVICES=0 python launcher_tools/kmeans_from_embeddings_euclidean.py --n 10 --file RESULTS/blogs-euclidean-5D-KMEANS-2/ 
+CUDA_VISBLE_DEVICES=0 python launcher_tools/kmeans_from_embeddings_euclidean.py --n 10 --file RESULTS/blogs-euclidean-10D-KMEANS-1/ 
+CUDA_VISBLE_DEVICES=0 python launcher_tools/kmeans_from_embeddings_euclidean.py --n 10 --file RESULTS/blogs-euclidean-10D-KMEANS-2/ 

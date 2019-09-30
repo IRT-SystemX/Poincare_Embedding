@@ -14,7 +14,7 @@ class EuclideanEmbedding(nn.Module):
         super(EuclideanEmbedding, self).__init__()
         self.cuda = cuda
         self.N = n_exemple
-        self.W = nn.Embedding(n_exemple, size)
+        self.W = nn.Embedding(n_exemple, size, sparse=True)
         if(self.cuda):
             self.W.cuda()
         self.optimizer = optimizer_method(self.W.parameters(), lr=lr)
