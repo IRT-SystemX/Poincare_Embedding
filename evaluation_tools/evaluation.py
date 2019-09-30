@@ -202,13 +202,23 @@ def accuracy_euclidean_kmeans(z, y, mu, verbose=False):
     # print("associated distribution size ->",associated_distrib.shape)
     # print("associated distribution ->",associated_distrib)
     # print("source labels ->", y)
+    centroids = torch.Tensor(kmeans.cluster_centers_)
+    N, K, D = z.shape[0], centroids.shape[0], z.shape[1]
+    centroids = centroids.unsqueeze(0).expand(N, K, D)
+    x = z.unsqueeze(1).expand(N, K, D)
+    dst =(centroids-x).norm(2,-1)
+    value, indexes = dst.min(-1)
+    std = []
+    for i in range(n_disc):
+        std.append(value[indexes==i].std())
+    std = torch.Tensor(std)
     label = associated_distrib
     label_source = y.numpy()
     sources_number = n_distrib
     if(n_distrib <= 6):
-        return accuracy_small_disc_product(label, label_source, sources_number), kmeans.inertia_
+        return accuracy_small_disc_product(label, label_source, sources_number), std.tolist()
     else:
-        return accuracy_huge_disc_product(label, label_source, sources_number), kmeans.inertia_
+        return accuracy_huge_disc_product(label, label_source, sources_number), std.tolist()
 def accuracy_small_disc_product(label, label_source, sources_number):
     combinations = []
     zero_fill_comb = np.zeros(len(label))
