@@ -1,6 +1,6 @@
 {
-    "accuracy": 75.23809523809524,
-    "accuracy_kmeans": 77.14285714285715,
+    "accuracy": 46.666666666666664,
+    "accuracy_kmeans": 37.142857142857146,
     "alpha": 0.1,
     "batch_size": 512,
     "beta": 1.0,
@@ -22,6 +22,7 @@
     "negative_sampling": 10,
     "precompute_rw": 5,
     "save": true,
+    "seed": 42,
     "size": 3,
     "walk_lenght": 20
 }

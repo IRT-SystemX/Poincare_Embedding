@@ -206,12 +206,12 @@ def accuracy_euclidean_kmeans(z, y, mu, verbose=False):
     N, K, D = z.shape[0], centroids.shape[0], z.shape[1]
     centroids = centroids.unsqueeze(0).expand(N, K, D)
     x = z.unsqueeze(1).expand(N, K, D)
-    dst =(centroids-x).norm(2,-1)
+    dst =(centroids-x).norm(2,-1)**2
     value, indexes = dst.min(-1)
-    std = []
-    for i in range(n_disc):
-        std.append(value[indexes==i].std())
-    std = torch.Tensor(std)
+    stds = []
+    for i in range(n_distrib):
+        stds.append(value[indexes==i].sum())
+    std  = torch.Tensor(stds)
     label = associated_distrib
     label_source = y.numpy()
     sources_number = n_distrib

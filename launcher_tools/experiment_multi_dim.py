@@ -140,6 +140,7 @@ d_rw = corpora.ContextCorpus(d_rw, context_size=args.context_size, precompute=ar
 # neigbhor dataset
 d_v = D.light_copy()
 d_v.set_walk(1, 1.0)
+print(d_rw[1][0].size())
 
 print("Merging dataset")
 embedding_dataset = corpora_tools.zip_datasets(dataset_index,
