@@ -16,6 +16,8 @@ from evaluation_tools import evaluation
 from visualisation_tools import plot_tools
 from launcher_tools import logger
 from optim_tools import optimizer
+import random 
+import numpy as np
 
 parser = argparse.ArgumentParser(description='Start an experiment')
 parser.add_argument('--init-lr', dest="init_lr", type=float, default=-1.0,
@@ -65,8 +67,15 @@ parser.add_argument("--size", dest="size", type=int, default=3,
                     help="dimenssion of the ball")
 parser.add_argument("--batch-size", dest="batch_size", type=int, default=512,
                     help="Batch number of elements")
+parser.add_argument("--seed", dest="seed", type=int, default=42,
+                    help="the seed used for sampling random numbers in the experiment")     
               
 args = parser.parse_args()
+
+# set the seed for random sampling
+torch.manual_seed(args.seed)
+np.random.seed(args.seed)
+random.seed(a=args.seed)
 
 
 dataset_dict = { "karate": corpora.load_karate,
@@ -105,7 +114,7 @@ if(args.init_alpha < 0):
     args.init_alpha = args.alpha
 if(args.init_beta < 0):
     args.init_beta = args.beta
-
+# set the seed for random sampling
 alpha, beta = args.init_alpha, args.init_beta
 
 print("Loading Corpus ")
@@ -114,6 +123,9 @@ print("Creating dataset")
 # index of examples dataset
 dataset_index = corpora_tools.from_indexable(torch.arange(0,len(D),1).unsqueeze(-1))
 print("Dataset Size -> ", len(D))
+
+
+
 D.set_path(False)
 
 # negative sampling distribution
@@ -136,9 +148,10 @@ embedding_dataset = corpora_tools.zip_datasets(dataset_index,
                                                 corpora_tools.select_from_index(d_v, element_index=0),
                                                 d_rw
                                                 )
+print(embedding_dataset[29][-1][20:25])
 training_dataloader = DataLoader(embedding_dataset, 
                             batch_size=args.batch_size, 
-                            shuffle=True,
+                            shuffle=False,
                             num_workers=8,
                             collate_fn=data_tools.PadCollate(dim=0),
                             drop_last=False
