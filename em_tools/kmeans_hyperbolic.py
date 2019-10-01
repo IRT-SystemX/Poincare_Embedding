@@ -11,6 +11,9 @@ from function_tools.numpy_function import RiemannianFunction
 
 from function_tools import poincare_alg as pa
 from function_tools import poincare_function as pf
+
+import pytorch_categorical
+
 class RiemannianKMeans(object):
 
     def __init__(self, n_clusters, init_mod="rand", verbose=True, minimum_element_cluster=-1):
@@ -75,12 +78,12 @@ class RiemannianKMeans(object):
 
 # the pytorch version
 class PoincareKMeans(object):
-    def __init__(self, n_clusters, min_cluster_size=5, verbose=False):
+    def __init__(self, n_clusters, min_cluster_size=5, verbose=False, init_method="kmeans++"):
         self._n_c = n_clusters
         self._distance = pf.distance
         self.centroids = None
         self._mec = min_cluster_size
-    
+        self._init_method = init_method
     def _maximisation(self, x, indexes):
         centroids = x.new(self._n_c, x.size(-1))
         for i in range(self._n_c):
@@ -98,14 +101,39 @@ class PoincareKMeans(object):
         value, indexes = dst.min(-1)
         return indexes
 
+    def _init_random(self, X):
+        self.centroids_index = (torch.rand(self._n_c, device=X.device) * len(X)).long()
+        self.centroids = X[self.centroids_index]
+
+    def __init_kmeansPP(self, X):
+        distribution = torch.ones(len(X))/len(X)
+        frequency = pytorch_categorical.Categorical(distribution)
+        centroids_index = []
+        N, D = X.shape
+        while(len(centroids_index)!=self._n_c):
+
+            f = frequency.sample(sample_shape=(1,1)).item()
+            if(f not in centroids_index):
+                centroids_index.append(f)
+                centroids = X[centroids_index]
+                x = X.unsqueeze(1).expand(N, len(centroids_index), D)
+                dst = self._distance(centroids, x)
+                value, indexes = dst.min(-1)
+                vs = value**2
+                distribution = vs/(vs.sum())
+                frequency = pytorch_categorical.Categorical(distribution)
+        self.centroids_index = torch.tensor(centroids_index, device=X.device).long()
+        self.centroids = X[self.centroids_index]
+
     def fit(self, X, max_iter=500):
         with torch.no_grad():
             if(self._mec < 0):
-                self._mec = len(X)/self._n_c
-            if(self.centroids == None):
-                self.centroids_index = (torch.rand(self._n_c, device=X.device) * len(X)).long()
-                self.centroids = X[self.centroids_index]
-
+                self._mec = len(X)/(self._n_c**2)
+            if(self.centroids is None):
+                if(self._init_method == "kmeans++"):
+                    self.__init_kmeansPP(X)
+                else:
+                    self._init_random(X)
             for iteration in range(max_iter):
                 if(iteration >= 1):
                     old_indexes = self.indexes
@@ -125,11 +153,11 @@ class PoincareKMeans(object):
         N, K, D = x.shape[0], self.centroids.shape[0], x.shape[1]
         centroids = self.centroids.unsqueeze(0).expand(N, K, D)
         x = x.unsqueeze(1).expand(N, K, D)
-        dst = self._distance(centroids, x)
+        dst = self._distance(centroids, x)**2
         value, indexes = dst.min(-1)
         stds = []
         for i in range(self._n_c):
-            stds.append(value[indexes==i].std())
+            stds.append(value[indexes==i].sum())
         stds = torch.Tensor(stds)
         return stds
 def test():
@@ -140,21 +168,21 @@ def test():
     from itertools import product, combinations
     from mpl_toolkits.mplot3d import Axes3D
 
-    x1 = torch.randn(50000, 2)*0.10 +(torch.rand(1, 2).expand(50000, 2) -0.5) * 3
-    x2 = torch.randn(50000, 2)*0.10 +(torch.rand(1, 2).expand(50000, 2) -0.5) * 3
-    x3 = torch.randn(50000, 2)*0.10 +(torch.rand(1, 2).expand(50000, 2) -0.5) * 3
+    x1 = torch.randn(500, 2)*0.10 +(torch.rand(1, 2).expand(500, 2) -0.5) * 3
+    x2 = torch.randn(500, 2)*0.10 +(torch.rand(1, 2).expand(500, 2) -0.5) * 3
+    x3 = torch.randn(500, 2)*0.10 +(torch.rand(1, 2).expand(500, 2) -0.5) * 3
     X = torch.cat((x1,x2,x3), 0)
     X_b = torch.cat((x1.unsqueeze(0),x2.unsqueeze(0),x3.unsqueeze(0)), 0)
     xn  = X.norm(2,-1)
 
     X[xn>1] /= ((xn[xn>1]).unsqueeze(-1).expand((xn[xn>1]).shape[0], 2) +1e-3)
-    X_b = torch.cat((X[0:50000].unsqueeze(0),X[50000:100000].unsqueeze(0),X[100000:].unsqueeze(0)), 0)
-    km = PoincareKMeans(3, min_cluster_size=500)
+    X_b = torch.cat((X[0:500].unsqueeze(0),X[500:1000].unsqueeze(0),X[1000:].unsqueeze(0)), 0)
+    km = PoincareKMeans(3, min_cluster_size=10)
     import time
     start_time = time.time()
     print("start fitting")
-    # mu = km.fit(X.cuda())
-    mu = km.fit(X)
+    mu = km.fit(X.cuda())
+    #    mu = km.fit(X)
     end_time = time.time()
     print("end fitting")
     # took ~31 seconds for 150000 data on gpu 1070 gtx 50 epochs
@@ -165,8 +193,8 @@ def test():
     p = Circle((0, 0), 1, edgecolor='b', lw=1, facecolor='none')
     ax.add_patch(p)
     plt.scatter(X[:100,0].numpy(), X[:100,1].numpy())
-    plt.scatter(X[50000:50100,0].numpy(), X[50000:50100,1].numpy())
-    plt.scatter(X[100000:100100,0].numpy(), X[100000:100100,1].numpy())
+    plt.scatter(X[500:600,0].numpy(), X[500:600,1].numpy())
+    plt.scatter(X[1000:1100,0].numpy(), X[1000:1100,1].numpy())
     print(mu)
     print(mu.shape)
     plt.scatter(mu[:,0].cpu().numpy(),mu[:,1].cpu().numpy(), label="Poincare barycenter",
@@ -179,7 +207,7 @@ def test():
 
     fig = plt.figure()
     ax = fig.gca(projection='3d')
-    ax.set_aspect("equal")
+    #ax.set_aspect("equal")
     # draw sphere
     u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
     x = np.cos(u)*np.sin(v)
