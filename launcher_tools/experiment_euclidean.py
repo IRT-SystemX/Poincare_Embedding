@@ -69,7 +69,8 @@ parser.add_argument("--batch-size", dest="batch_size", type=int, default=512,
                     help="Batch number of elements")
 parser.add_argument("--seed", dest="seed", type=int, default=42,
                     help="the seed used for sampling random numbers in the experiment")     
-              
+parser.add_argument('--force-rw', dest="force_rw", action="store_false", default=True,
+                    help="if set will automatically compute a new random walk for the experiment")                
 args = parser.parse_args()
 
 # set the seed for random sampling
@@ -134,9 +135,24 @@ frequency[:,1] /= frequency[:,1].sum()
 frequency = pytorch_categorical.Categorical(frequency[:,1])
 # random walk dataset
 d_rw = D.light_copy()
-d_rw.set_walk(args.walk_lenght, 1.0)
-d_rw.set_path(True)
-d_rw = corpora.ContextCorpus(d_rw, context_size=args.context_size, precompute=args.precompute_rw)
+rw_log = logger.JSONLogger("ressources/random_walk.conf", mod="continue")
+if(args.force_rw):
+    key = args.dataset+"_"+str(args.context_size)+"_"+str(args.walk_lenght)
+    if(key in rw_log):
+        print('Loading random walks from files')
+        d_rw = torch.load(rw_log[key]["file"])
+    else:
+        d_rw.set_walk(args.walk_lenght, 1.0)
+        d_rw.set_path(True)
+        d_rw = corpora.ContextCorpus(d_rw, context_size=args.context_size, precompute=args.precompute_rw)
+        torch.save(d_rw, "/local/gerald/KMEANS_RESULTS/"+key+".t7")
+        rw_log[key] = {"file":"/local/gerald/KMEANS_RESULTS/"+key+".t7", 
+                       "context_size":args.context_size, "walk_lenght": args.walk_lenght,
+                       "precompute_rw": args.precompute_rw}
+else:
+    d_rw.set_walk(args.walk_lenght, 1.0)
+    d_rw.set_path(True)
+    d_rw = corpora.ContextCorpus(d_rw, context_size=args.context_size, precompute=args.precompute_rw)   
 # neigbhor dataset
 d_v = D.light_copy()
 d_v.set_walk(1, 1.0)
