@@ -34,11 +34,11 @@ class RiemannianKMeans(object):
             iteration+=1
             mean_w = RiemannianFunction.log(barycenter.repeat(N), x).mean()
             if(mean_w.sum() != mean_w.sum()):
-                print("mean->",mean_w)
-                print(x.shape, barycenter.repeat(N).shape)
-                print("barycenter->",barycenter)
-                print("ERROR NAN Value")
-                print("iteration nb ->",iteration)
+                # print("mean->",mean_w)
+                # print(x.shape, barycenter.repeat(N).shape)
+                # print("barycenter->",barycenter)
+                # print("ERROR NAN Value")
+                # print("iteration nb ->",iteration)
                 raise NameError('Not A Number Exception')
             # update weight step
             barycenter = RiemannianFunction.exp(barycenter, lr * mean_w)

@@ -36,11 +36,11 @@ class PoincareDistance2(torch.autograd.Function):
     def forward(ctx, x, y):
         with torch.no_grad():
             # eps = torch.randu(x.shape[-1], device=x.device)
-            x_norm = torch.clamp(torch.sum(x ** 2, dim=-1), 0, 1-1e-3)
-            y_norm = torch.clamp(torch.sum(y ** 2, dim=-1), 0, 1-1e-3)
+            x_norm = torch.sum(x ** 2, dim=-1)
+            y_norm = torch.sum(y ** 2, dim=-1)
             d_norm = torch.sum((x-y) ** 2, dim=-1)
             cc = 1+2*d_norm/((1-x_norm)*(1-y_norm)) 
-            dist = torch.log(cc + torch.sqrt(cc**2-1))
+            dist = torch.log(cc + torch.sqrt(cc**2-1)+1e-4)
             ctx.save_for_backward( x, y, dist)
             return  dist
     @staticmethod

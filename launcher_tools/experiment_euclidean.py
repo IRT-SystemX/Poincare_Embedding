@@ -137,7 +137,7 @@ frequency = pytorch_categorical.Categorical(frequency[:,1])
 d_rw = D.light_copy()
 rw_log = logger.JSONLogger("ressources/random_walk.conf", mod="continue")
 if(args.force_rw):
-    key = args.dataset+"_"+str(args.context_size)+"_"+str(args.walk_lenght)
+    key = args.dataset+"_"+str(args.context_size)+"_"+str(args.walk_lenght)+"_"+str(args.seed) 
     if(key in rw_log):
         print('Loading random walks from files')
         d_rw = torch.load(rw_log[key]["file"])

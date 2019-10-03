@@ -135,11 +135,24 @@ d_rw = D.light_copy()
 
 rw_log = logger.JSONLogger("ressources/random_walk.conf", mod="continue")
 if(args.force_rw):
-    key = args.dataset+"_"+str(args.context_size)+"_"+str(args.walk_lenght)
+    key = args.dataset+"_"+str(args.context_size)+"_"+str(args.walk_lenght)+"_"+str(args.seed) 
     if(key in rw_log):
-        print('Loading random walks from files')
-        d_rw = torch.load(rw_log[key]["file"])
+
+        try:
+            print('Loading random walks from files')
+            d_rw = torch.load(rw_log[key]["file"])
+            print('Loaded')
+        except:
+            os.makedirs("/local/gerald/KMEANS_RESULTS/", exist_ok=True)
+            d_rw.set_walk(args.walk_lenght, 1.0)
+            d_rw.set_path(True)
+            d_rw = corpora.ContextCorpus(d_rw, context_size=args.context_size, precompute=args.precompute_rw)
+            torch.save(d_rw, "/local/gerald/KMEANS_RESULTS/"+key+".t7")
+            rw_log[key] = {"file":"/local/gerald/KMEANS_RESULTS/"+key+".t7", 
+                        "context_size":args.context_size, "walk_lenght": args.walk_lenght,
+                        "precompute_rw": args.precompute_rw}            
     else:
+        os.makedirs("/local/gerald/KMEANS_RESULTS/", exist_ok=True)
         d_rw.set_walk(args.walk_lenght, 1.0)
         d_rw.set_path(True)
         d_rw = corpora.ContextCorpus(d_rw, context_size=args.context_size, precompute=args.precompute_rw)
@@ -170,7 +183,10 @@ training_dataloader = DataLoader(embedding_dataset,
                             collate_fn=data_tools.PadCollate(dim=0),
                             drop_last=False
                     )
-
+if(args.save):
+    os.makedirs("RESULTS/"+args.id+"/", exist_ok=True)
+    logger_object = logger.JSONLogger("RESULTS/"+args.id+"/log.json")
+    logger_object.append(vars(args))
 representation_d = []
 pi_d = []
 mu_d = []
@@ -216,10 +232,7 @@ pi_d.append(pi)
 mu_d.append(mu)
 sigma_d.append(sigma)
 
-if(args.save):
-    os.makedirs("RESULTS/"+args.id+"/", exist_ok=True)
-    logger_object = logger.JSONLogger("RESULTS/"+args.id+"/log.json")
-    logger_object.append(vars(args))
+
 
 #evaluate performances on all disc
 total_accuracy = evaluation.accuracy_disc_product(representation_d, D.Y, pi_d, mu_d, sigma_d, verbose=False)

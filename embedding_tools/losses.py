@@ -2,21 +2,21 @@ import torch
 
 from function_tools import poincare_function as pf
 from function_tools import distribution_function as df
-
+from torch.nn import functional as tf
 
 class SGALoss(object):
     @staticmethod
     def O1(x, y, distance=None):
         if(distance is None):
             distance = pf.distance
-        return torch.log(torch.sigmoid(-distance(x, y)**2))
+        return tf.logsigmoid(-(distance(x, y)**2))
 
     @staticmethod
     def O2(x, y, z, distance=None):
         if(distance is None):
             distance = pf.distance
         y_reshape = y.unsqueeze(2).expand_as(z)
-        return SGALoss.O1(x, y, distance=distance) + torch.log(((distance(y_reshape,z)**2).sigmoid())).sum(-1)
+        return SGALoss.O1(x, y, distance=distance) + tf.logsigmoid(distance(y_reshape,z)**2).sum(-1)
     
     # x = BxD
     # pi = BxM
