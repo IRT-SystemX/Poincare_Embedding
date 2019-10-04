@@ -112,8 +112,107 @@ def accuracy_cross_validation(Z, Y, pi,  mu, sigma, nb_set, verbose=True):
         acc_total += acc.item()
     return acc_total/(len(I_CV))
 
+
+
 # in the following function we perform prediction using disc product
 # Z, Y, pi, mu, sigma are list of tensor with the size number of disc
+
+def accuracy_supervised(z, y, mu, nb_set=5, verbose=True):
+    n_example = len(z)
+    n_distrib = len(mu)
+    subset_index = torch.randperm(n_example)
+    nb_value = n_example//nb_set
+    I_CV = [subset_index[nb_value *i:min(nb_value * (i+1), n_example)] for i in range(nb_set)]
+    # print(I_CV)
+    acc_total = 0.
+    for i, test_index in enumerate(I_CV):
+        # create train dataset
+        train_index = torch.cat([ subset for ci, subset in enumerate(I_CV) if(i!=ci)],0)
+        Z_train = z[train_index]
+        Y_train = torch.LongTensor([y[ic.item()] for ic in train_index])
+
+        #create test datase
+        Z_test = z[test_index]
+        Y_test = torch.LongTensor([y[ic.item()] for ic in test_index])      
+        
+        if(verbose):
+            print("Set "+str(i)+" :")
+            print("\t train size -> "+str(len(Z_train)))
+            print("\t test size -> "+str(len(Z_test)))
+            print("Obtaining centroids for each classes")
+        
+        from function_tools import poincare_alg as pa
+        min_label = Y_train.min().item()
+        max_label = Y_train.max().item()
+
+
+        centroids = []
+        for i in range(n_distrib):
+            # print((Z_train[Y_train[:,0]== (min_label + i)]).size())
+            centroids.append(pa.barycenter(Z_train[Y_train[:,0]== (min_label + i)], normed=True).tolist())
+        
+        centroids = torch.Tensor(centroids).squeeze()
+        # predicting 
+        Z_test_reshape = Z_test.unsqueeze(1).expand(Z_test.size(0), n_distrib, Z_test.size(-1))
+        centroid_reshape = centroids.unsqueeze(0).expand_as(Z_test_reshape)
+
+        d2 = poincare_function.distance(Z_test_reshape, centroid_reshape)**2
+
+        predicted_labels = d2.min(-1)[1] + min_label
+
+        acc = (predicted_labels == Y_test.squeeze()).float().mean()
+        acc_total += acc.item()
+        print(acc)
+    return acc_total/(len(I_CV))
+
+
+def accuracy_supervised_euclidean(z, y, mu, nb_set=5, verbose=True):
+    n_example = len(z)
+    n_distrib = len(mu)
+    subset_index = torch.randperm(n_example)
+    nb_value = n_example//nb_set
+    I_CV = [subset_index[nb_value *i:min(nb_value * (i+1), n_example)] for i in range(nb_set)]
+    # print(I_CV)
+    acc_total = 0.
+    for i, test_index in enumerate(I_CV):
+        # create train dataset
+        train_index = torch.cat([ subset for ci, subset in enumerate(I_CV) if(i!=ci)],0)
+        Z_train = z[train_index]
+        Y_train = torch.LongTensor([y[ic.item()] for ic in train_index])
+
+        #create test datase
+        Z_test = z[test_index]
+        Y_test = torch.LongTensor([y[ic.item()] for ic in test_index])      
+        
+        if(verbose):
+            print("Set "+str(i)+" :")
+            print("\t train size -> "+str(len(Z_train)))
+            print("\t test size -> "+str(len(Z_test)))
+            print("Obtaining centroids for each classes")
+        
+        from function_tools import poincare_alg as pa
+        min_label = Y_train.min().item()
+        max_label = Y_train.max().item()
+
+
+        centroids = []
+        for i in range(n_distrib):
+            print(Z_train[Y_train[:,0]== (min_label + i)].size())
+            centroids.append((Z_train[Y_train[:,0]== (min_label + i)].mean(0)).tolist())
+        
+        centroids = torch.Tensor(centroids).squeeze()
+        # predicting 
+        Z_test_reshape = Z_test.unsqueeze(1).expand(Z_test.size(0), n_distrib, Z_test.size(-1))
+        centroid_reshape = centroids.unsqueeze(0).expand_as(Z_test_reshape)
+
+        d2 = ef.distance(Z_test_reshape, centroid_reshape)**2
+
+        predicted_labels = d2.min(-1)[1] + min_label
+
+        acc = (predicted_labels == Y_test.squeeze()).float().mean()
+        acc_total += acc.item()
+        print(acc)
+    return acc_total/(len(I_CV))
 
 def accuracy_euclidean(z, y, pi, mu, sigma, verbose=False):
     n_disc = len(z)
@@ -188,6 +287,9 @@ def accuracy_disc_kmeans(z, y, mu, verbose=False):
         return accuracy_small_disc_product(label, label_source, sources_number), std.max(), std.mean(), std
     else:
         return accuracy_huge_disc_product(label, label_source, sources_number),std.max(), std.mean(), std
+
+
+
 
 def accuracy_euclidean_kmeans(z, y, mu, verbose=False):
     n_disc = len(z)

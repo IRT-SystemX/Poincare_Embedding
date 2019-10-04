@@ -1,10 +1,66 @@
-CUDA_VISIBLE_DEVICES=1 python3.7 launcher_tools/experiment_multi_dim.py --dataset blogCatalog  --n-gaussian 39 --walk-lenght 60  --precompute-rw 5  --epoch-embedding-init 500 --beta 1.  --alpha .1 --lr 20.0   --negative-sampling 10  --context-size 20  --epoch 1  --cuda --embedding-optimizer exphsgd  --em-iter 0 --id blogCatalog-2D-KMEANS-1 --size 2 
-CUDA_VISIBLE_DEVICES=1 python3.7 launcher_tools/experiment_multi_dim.py --dataset blogCatalog  --n-gaussian 39 --walk-lenght 60  --precompute-rw 5  --epoch-embedding-init 500 --beta 1.  --alpha .1 --lr 20.0   --negative-sampling 10  --context-size 20  --epoch 1  --cuda --embedding-optimizer exphsgd  --em-iter 0 --id blogCatalog-2D-KMEANS-2 --size 2 
-CUDA_VISIBLE_DEVICES=1 python3.7 launcher_tools/experiment_multi_dim.py --dataset blogCatalog  --n-gaussian 39 --walk-lenght 60  --precompute-rw 5  --epoch-embedding-init 500 --beta 1.  --alpha .1 --lr 20.0   --negative-sampling 10  --context-size 20  --epoch 1  --cuda --embedding-optimizer exphsgd  --em-iter 0 --id blogCatalog-3D-KMEANS-1 --size 3 
-CUDA_VISIBLE_DEVICES=1 python3.7 launcher_tools/experiment_multi_dim.py --dataset blogCatalog  --n-gaussian 39 --walk-lenght 60  --precompute-rw 5  --epoch-embedding-init 500 --beta 1.  --alpha .1 --lr 20.0   --negative-sampling 10  --context-size 20  --epoch 1  --cuda --embedding-optimizer exphsgd  --em-iter 0 --id blogCatalog-3D-KMEANS-2 --size 3 
-CUDA_VISIBLE_DEVICES=1 python3.7 launcher_tools/experiment_multi_dim.py --dataset blogCatalog  --n-gaussian 39 --walk-lenght 60  --precompute-rw 5  --epoch-embedding-init 500 --beta 1.  --alpha .1 --lr 20.0   --negative-sampling 10  --context-size 20  --epoch 1  --cuda --embedding-optimizer exphsgd  --em-iter 0 --id blogCatalog-4D-KMEANS-1 --size 4 
-CUDA_VISIBLE_DEVICES=1 python3.7 launcher_tools/experiment_multi_dim.py --dataset blogCatalog  --n-gaussian 39 --walk-lenght 60  --precompute-rw 5  --epoch-embedding-init 500 --beta 1.  --alpha .1 --lr 20.0   --negative-sampling 10  --context-size 20  --epoch 1  --cuda --embedding-optimizer exphsgd  --em-iter 0 --id blogCatalog-4D-KMEANS-2 --size 4 
-CUDA_VISIBLE_DEVICES=1 python3.7 launcher_tools/experiment_multi_dim.py --dataset blogCatalog  --n-gaussian 39 --walk-lenght 60  --precompute-rw 5  --epoch-embedding-init 500 --beta 1.  --alpha .1 --lr 20.0   --negative-sampling 10  --context-size 20  --epoch 1  --cuda --embedding-optimizer exphsgd  --em-iter 0 --id blogCatalog-5D-KMEANS-1 --size 5 
-CUDA_VISIBLE_DEVICES=1 python3.7 launcher_tools/experiment_multi_dim.py --dataset blogCatalog  --n-gaussian 39 --walk-lenght 60  --precompute-rw 5  --epoch-embedding-init 500 --beta 1.  --alpha .1 --lr 20.0   --negative-sampling 10  --context-size 20  --epoch 1  --cuda --embedding-optimizer exphsgd  --em-iter 0 --id blogCatalog-5D-KMEANS-2 --size 5
-CUDA_VISIBLE_DEVICES=1 python3.7 launcher_tools/experiment_multi_dim.py --dataset blogCatalog  --n-gaussian 39 --walk-lenght 60  --precompute-rw 5  --epoch-embedding-init 500 --beta 1.  --alpha .1 --lr 20.0   --negative-sampling 10  --context-size 20  --epoch 1  --cuda --embedding-optimizer exphsgd  --em-iter 0 --id blogCatalog-10D-KMEANS-1 --size 10 
-CUDA_VISIBLE_DEVICES=1 python3.7 launcher_tools/experiment_multi_dim.py --dataset blogCatalog  --n-gaussian 39 --walk-lenght 60  --precompute-rw 5  --epoch-embedding-init 500 --beta 1.  --alpha .1 --lr 20.0   --negative-sampling 10  --context-size 20  --epoch 1  --cuda --embedding-optimizer exphsgd  --em-iter 0 --id blogCatalog-10D-KMEANS-2 --size 10 
+
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-2D-KMEANS-01 
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-2D-KMEANS-02 
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-2D-KMEANS-03  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-2D-KMEANS-04  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-2D-KMEANS-05  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-2D-KMEANS-06  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-2D-KMEANS-07  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-2D-KMEANS-08  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-2D-KMEANS-09  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-2D-KMEANS-10  
+
+
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-3D-KMEANS-01 
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-3D-KMEANS-02 
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-3D-KMEANS-03  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-3D-KMEANS-04  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-3D-KMEANS-05  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-3D-KMEANS-06  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-3D-KMEANS-07  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-3D-KMEANS-08  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-3D-KMEANS-09  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-3D-KMEANS-10  
+
+
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-4D-KMEANS-01 
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-4D-KMEANS-02 
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-4D-KMEANS-03  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-4D-KMEANS-04  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-4D-KMEANS-05  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-4D-KMEANS-06  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-4D-KMEANS-07  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-4D-KMEANS-08  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-4D-KMEANS-09  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-4D-KMEANS-10  
+
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-5D-KMEANS-01   
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-5D-KMEANS-02   
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-5D-KMEANS-03    
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-5D-KMEANS-04    
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-5D-KMEANS-05    
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-5D-KMEANS-06    
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-5D-KMEANS-07    
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-5D-KMEANS-08    
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-5D-KMEANS-09    
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-5D-KMEANS-10  
+
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-10D-KMEANS-01  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-10D-KMEANS-02  
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-10D-KMEANS-03   
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-10D-KMEANS-04   
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-10D-KMEANS-05   
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-10D-KMEANS-06   
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-10D-KMEANS-07   
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-10D-KMEANS-08   
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-10D-KMEANS-09   
+CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20 --file /local/gerald/AISTAT_RESULTS/polblog-10D-KMEANS-10 
+
+# CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20ng-filet/local/gerald/AISTAT_RESULTS/imizer exphsgd  --em-ill-3D-KMEANS-1 --size 3 
+# CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20ng-filet/local/gerald/AISTAT_RESULTS/imizer exphsgd  --em-ill-3D-KMEANS-2 --size 3 
+# CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20ng-filet/local/gerald/AISTAT_RESULTS/imizer exphsgd  --em-ill-4D-KMEANS-1 --size 4 
+# CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20ng-filet/local/gerald/AISTAT_RESULTS/imizer exphsgd  --em-ill-4D-KMEANS-2 --size 4 
+# CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20ng-filet/local/gerald/AISTAT_RESULTS/imizer exphsgd  --em-ill-5D-KMEANS-1 --size 5 
+# CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20ng-filet/local/gerald/AISTAT_RESULTS/imizer exphsgd  --em-ill-5D-KMEANS-2 --size 5
+# CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20ng-filet/local/gerald/AISTAT_RESULTS/imizer exphsgd  --em-ill-10D-KMEANS-1 --size 10 
+# CUDA_VISBLE_DEVICES=0 python3.7 launcher_tools/kmeans_from_embeddings.py --n 20ng-filet/local/gerald/AISTAT_RESULTS/imizer exphsgd  --em-ill-10D-KMEANS-2 --size 10 

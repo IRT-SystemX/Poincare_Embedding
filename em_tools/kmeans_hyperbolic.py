@@ -160,6 +160,7 @@ class PoincareKMeans(object):
             stds.append(value[indexes==i].sum())
         stds = torch.Tensor(stds)
         return stds
+
 def test():
     import torch
     import matplotlib.pyplot as plt

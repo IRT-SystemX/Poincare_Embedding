@@ -84,6 +84,41 @@ class ContextCorpus(Dataset):
     def __len__(self):
         return len(self._dataset)
 
+class ExtendedContextCorpus(Dataset):
+    def __init__(self, dataset, context_size=5, precompute=1):
+        self._dataset = dataset
+        self.c_s = context_size
+        self.precompute = precompute
+        if(precompute < 1):
+            print("Precompute is mandatory value "+str(precompute)+ " must be a positive integer instead")
+            precompute = 1
+        self.context = self._precompute()
+        self.n_sample = 5
+
+    def _precompute(self):
+        precompute = self.precompute
+        self.precompute = -1
+        context = [set() for i in range(len(self._dataset))]
+        for i in tqdm.trange(len(self._dataset)):
+            # get the random walk
+            path = self._dataset[i][0].squeeze()
+            for k in range(len(path)):
+                for j in range(max(0, k - self.c_s), min(len(path), k + self.c_s)):
+                    if(k!=j):
+                        context[path[k].item()].add(path[j].item())
+        for i in range(len(context)):
+            context[i] = torch.LongTensor(list(context[i]))
+
+        return context
+
+    def __getitem__(self, index):
+        c_context = self.context[index]
+        indexes = (torch.rand(self.n_sample) * len(c_context)).long()
+        return (c_context[indexes],)
+
+    def __len__(self):
+        return len(self.context)
+
 def loading_matlab_corpus(mat_path, label_path):
 
     # Graph

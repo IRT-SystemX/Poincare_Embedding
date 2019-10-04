@@ -34,7 +34,7 @@ dataset_dict = { "karate": corpora.load_karate,
             "polblog": corpora.load_polblogs,
             "adjnoun": corpora.load_adjnoun
           }
-log_in = logger.JSONLogger(args.file+"log.json", mod="continue")
+log_in = logger.JSONLogger(os.path.join(args.file,"log.json"), mod="continue")
 dataset_name = log_in["dataset"]
 n_gaussian = log_in["n_gaussian"]
 if(dataset_name not in dataset_dict):
@@ -48,7 +48,7 @@ D, X, Y = dataset_dict[dataset_name]()
 
 results = []
 std_kmeans = []
-representations = torch.load(args.file+"embeddings.t7")[0]
+representations = torch.load(os.path.join(args.file,"embeddings.t7"))[0]
 
 for i in tqdm.trange(args.n):
     total_accuracy, std = evaluation.accuracy_euclidean_kmeans(representations, D.Y, torch.zeros(n_gaussian),  verbose=False)

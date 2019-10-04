@@ -40,7 +40,7 @@ class PoincareDistance2(torch.autograd.Function):
             y_norm = torch.sum(y ** 2, dim=-1)
             d_norm = torch.sum((x-y) ** 2, dim=-1)
             cc = 1+2*d_norm/((1-x_norm)*(1-y_norm)) 
-            dist = torch.log(cc + torch.sqrt(cc**2-1)+1e-4)
+            dist = torch.log(cc + torch.sqrt(cc**2-1))
             ctx.save_for_backward( x, y, dist)
             return  dist
     @staticmethod

@@ -91,11 +91,11 @@ dataset_dict = { "karate": corpora.load_karate,
 
 optimizer_dict = {"sgd": optim.SGD}
 
-if(args.save):
-    print("The following options are use for the current experiment ", args)
-    os.makedirs("RESULTS/"+args.id+"/", exist_ok=True)
-    logger_object = logger.JSONLogger("RESULTS/"+args.id+"/log.json")
-    logger_object.append(vars(args))
+# if(args.save):
+#     print("The following options are use for the current experiment ", args)
+#     os.makedirs("RESULTS/"+args.id+"/", exist_ok=True)
+#     logger_object = logger.JSONLogger("RESULTS/"+args.id+"/log.json")
+#     logger_object.append(vars(args))
 
 # check if dataset exists
 
@@ -139,9 +139,22 @@ rw_log = logger.JSONLogger("ressources/random_walk.conf", mod="continue")
 if(args.force_rw):
     key = args.dataset+"_"+str(args.context_size)+"_"+str(args.walk_lenght)+"_"+str(args.seed) 
     if(key in rw_log):
-        print('Loading random walks from files')
-        d_rw = torch.load(rw_log[key]["file"])
+
+        try:
+            print('Loading random walks from files')
+            d_rw = torch.load(rw_log[key]["file"])
+            print('Loaded')
+        except:
+            os.makedirs("/local/gerald/KMEANS_RESULTS/", exist_ok=True)
+            d_rw.set_walk(args.walk_lenght, 1.0)
+            d_rw.set_path(True)
+            d_rw = corpora.ContextCorpus(d_rw, context_size=args.context_size, precompute=args.precompute_rw)
+            torch.save(d_rw, "/local/gerald/KMEANS_RESULTS/"+key+".t7")
+            rw_log[key] = {"file":"/local/gerald/KMEANS_RESULTS/"+key+".t7", 
+                        "context_size":args.context_size, "walk_lenght": args.walk_lenght,
+                        "precompute_rw": args.precompute_rw}            
     else:
+        os.makedirs("/local/gerald/KMEANS_RESULTS/", exist_ok=True)
         d_rw.set_walk(args.walk_lenght, 1.0)
         d_rw.set_path(True)
         d_rw = corpora.ContextCorpus(d_rw, context_size=args.context_size, precompute=args.precompute_rw)
@@ -153,6 +166,10 @@ else:
     d_rw.set_walk(args.walk_lenght, 1.0)
     d_rw.set_path(True)
     d_rw = corpora.ContextCorpus(d_rw, context_size=args.context_size, precompute=args.precompute_rw)   
+if(args.save):
+    os.makedirs("/local/gerald/AISTAT_RESULTS/"+args.id+"/", exist_ok=True)
+    logger_object = logger.JSONLogger("/local/gerald/AISTAT_RESULTS/"+args.id+"/log.json")
+    logger_object.append(vars(args))
 # neigbhor dataset
 d_v = D.light_copy()
 d_v.set_walk(1, 1.0)
@@ -224,7 +241,7 @@ logger_object.append({"accuracy_kmeans": total_accuracy})
 import matplotlib.pyplot as plt
 import matplotlib.colors as plt_colors
 import numpy as np
-torch.save(representation_d, "RESULTS/"+args.id+"/embeddings.t7")
+torch.save(representation_d, "/local/gerald/AISTAT_RESULTS/"+args.id+"/embeddings.t7")
 # torch.save( {"pi": pi_d, "mu":mu_d, "sigma":sigma_d}, "RESULTS/"+args.id+"/pi_mu_sigma.t7")
 
 

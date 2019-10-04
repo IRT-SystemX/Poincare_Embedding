@@ -178,14 +178,14 @@ embedding_dataset = corpora_tools.zip_datasets(dataset_index,
 print(embedding_dataset[29][-1][20:25])
 training_dataloader = DataLoader(embedding_dataset, 
                             batch_size=args.batch_size, 
-                            shuffle=False,
+                            shuffle=True,
                             num_workers=4,
                             collate_fn=data_tools.PadCollate(dim=0),
                             drop_last=False
                     )
 if(args.save):
-    os.makedirs("RESULTS/"+args.id+"/", exist_ok=True)
-    logger_object = logger.JSONLogger("RESULTS/"+args.id+"/log.json")
+    os.makedirs("/local/gerald/AISTAT_RESULTS/"+args.id+"/", exist_ok=True)
+    logger_object = logger.JSONLogger("/local/gerald/AISTAT_RESULTS/"+args.id+"/log.json")
     logger_object.append(vars(args))
 representation_d = []
 pi_d = []
@@ -226,7 +226,7 @@ for i in tqdm.trange(args.epoch):
         plot_tools.plot_embedding_distribution_multi([embedding_alg.get_PoincareEmbeddings().cpu()], 
                                                         [pi], [mu],  [sigma], 
                                                     labels=None, N=100, colors=colors, 
-                                                    save_path="RESULTS/"+args.id+"/fig_epoch_"+str(i)+".pdf")
+                                                    save_path="/local/gerald/AISTAT_RESULTS/"+args.id+"/fig_epoch_"+str(i)+".pdf")
 representation_d.append(embedding_alg.get_PoincareEmbeddings().cpu())
 pi_d.append(pi)
 mu_d.append(mu)
@@ -251,15 +251,15 @@ if(args.save):
     import matplotlib.pyplot as plt
     import matplotlib.colors as plt_colors
     import numpy as np
-    torch.save(representation_d, "RESULTS/"+args.id+"/embeddings.t7")
-    torch.save( {"pi": pi_d, "mu":mu_d, "sigma":sigma_d}, "RESULTS/"+args.id+"/pi_mu_sigma.t7")
+    torch.save(representation_d, "/local/gerald/AISTAT_RESULTS/"+args.id+"/embeddings.t7")
+    torch.save( {"pi": pi_d, "mu":mu_d, "sigma":sigma_d}, "/local/gerald/AISTAT_RESULTS/"+args.id+"/pi_mu_sigma.t7")
 
 
     if(args.size == 2):
 
         plot_tools.plot_embedding_distribution_multi(representation_d, pi_d, mu_d,  sigma_d, 
                                                     labels=None, N=100, colors=colors, 
-                                                    save_path="RESULTS/"+args.id+"/fig.pdf")
+                                                    save_path="/local/gerald/AISTAT_RESULTS/"+args.id+"/fig.pdf")
 
 
     print({"pi": pi_d, "mu":mu_d, "sigma":sigma_d})

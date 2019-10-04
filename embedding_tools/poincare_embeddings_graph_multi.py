@@ -67,11 +67,11 @@ class RiemannianEmbedding(nn.Module):
                 embed_source_rw, embed_context_rw = embed_source_rw[:,:,0], embed_source_rw[:,:,1]
                 embed_negative = self.W(negative)
                 # computing O1 loss
-                loss_o1 = losses.SGDLoss.O1(embed_source, embed_neigbhor).mean()
+                loss_o1 = losses.SGDLoss.O1(embed_source, embed_neigbhor)
                 # computing O2 loss
-                loss_o2 = losses.SGDLoss.O2(embed_source_rw, embed_context_rw, embed_negative).mean()
+                loss_o2 = losses.SGDLoss.O2(embed_source_rw, embed_context_rw, embed_negative)
                 # computing total loss
-                loss = alpha * loss_o1 + beta * loss_o2 
+                loss = alpha * loss_o1.mean() + beta * loss_o2.mean() 
                 # if we want to use the prior loss
                 if(gamma > 0):
                     r_example = self.W(example).squeeze()
@@ -82,8 +82,8 @@ class RiemannianEmbedding(nn.Module):
                     loss_value3 = loss_o3.sum(-1).mean().item()
                     loss_pdf3 = torch.exp(-loss_o3.mean()).item()
 
-                loss_value1 = loss_o1.item()
-                loss_value2 = loss_o2.item()
+                loss_value1 = loss_o1.mean().item()
+                loss_value2 = loss_o2.mean().item()
                 loss.backward()
                 self.optimizer.step()
             if(self.verbose):
