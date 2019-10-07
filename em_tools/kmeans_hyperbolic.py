@@ -78,7 +78,7 @@ class RiemannianKMeans(object):
 
 # the pytorch version
 class PoincareKMeans(object):
-    def __init__(self, n_clusters, min_cluster_size=5, verbose=False, init_method="kmeans++"):
+    def __init__(self, n_clusters, min_cluster_size=5, verbose=False, init_method="random"):
         self._n_c = n_clusters
         self._distance = pf.distance
         self.centroids = None
