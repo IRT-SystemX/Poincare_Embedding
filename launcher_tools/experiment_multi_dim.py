@@ -67,7 +67,7 @@ parser.add_argument("--em-iter", dest="em_iter", type=int, default=10,
                     help="Number of EM iterations")
 parser.add_argument("--size", dest="size", type=int, default=3,
                     help="dimenssion of the ball")
-parser.add_argument("--batch-size", dest="batch_size", type=int, default=512,
+parser.add_argument("--batch-size", dest="batch_size", type=int, default=4096,
                     help="Batch number of elements")
 parser.add_argument("--seed", dest="seed", type=int, default=42,
                     help="the seed used for sampling random numbers in the experiment")  
@@ -163,7 +163,7 @@ if(args.force_rw):
             os.makedirs("/local/gerald/KMEANS_RESULTS/", exist_ok=True)
             d_rw.set_walk(args.walk_lenght, 1.0)
             d_rw.set_path(True)
-            d_rw = corpora.ContextCorpus(d_rw, context_size=args.context_size, precompute=args.precompute_rw)
+            d_rw = corpora.FlatContextCorpus(d_rw, context_size=args.context_size, precompute=args.precompute_rw)
             torch.save(d_rw, "/local/gerald/KMEANS_RESULTS/"+key+".t7")
             rw_log[key] = {"file":"/local/gerald/KMEANS_RESULTS/"+key+".t7", 
                         "context_size":args.context_size, "walk_lenght": args.walk_lenght,
@@ -172,7 +172,7 @@ if(args.force_rw):
         os.makedirs("/local/gerald/KMEANS_RESULTS/", exist_ok=True)
         d_rw.set_walk(args.walk_lenght, 1.0)
         d_rw.set_path(True)
-        d_rw = corpora.ContextCorpus(d_rw, context_size=args.context_size, precompute=args.precompute_rw)
+        d_rw = corpora.FlatContextCorpus(d_rw, context_size=args.context_size, precompute=args.precompute_rw)
         torch.save(d_rw, "/local/gerald/KMEANS_RESULTS/"+key+".t7")
         rw_log[key] = {"file":"/local/gerald/KMEANS_RESULTS/"+key+".t7", 
                        "context_size":args.context_size, "walk_lenght": args.walk_lenght,
@@ -185,13 +185,13 @@ else:
 # neigbhor dataset
 d_v = D.light_copy()
 d_v.set_walk(1, 1.0)
+
+dataset_repeated = corpora_tools.zip_datasets(dataset_index, corpora_tools.select_from_index(d_v, element_index=0))
+dataset_repeated = corpora_tools.repeat_dataset(dataset_repeated, len(d_rw))
 print(d_rw[1][0].size())
 
 print("Merging dataset")
-embedding_dataset = corpora_tools.zip_datasets(dataset_index,
-                                                corpora_tools.select_from_index(d_v, element_index=0),
-                                                d_rw
-                                                )
+embedding_dataset = corpora_tools.zip_datasets(dataset_repeated, d_rw)
 print(embedding_dataset[29][-1][20:25])
 training_dataloader = DataLoader(embedding_dataset, 
                             batch_size=args.batch_size, 
@@ -219,7 +219,7 @@ if(args.size == 2):
 
 
 alpha, beta = args.init_alpha, args.init_beta
-embedding_alg = PEmbed(len(embedding_dataset), size=args.size, lr=args.init_lr, cuda=args.cuda, negative_distribution=frequency,
+embedding_alg = PEmbed(len(dataset_index), size=args.size, lr=args.init_lr, cuda=args.cuda, negative_distribution=frequency,
                         optimizer_method=optimizer_dict[args.embedding_optimizer], aggregation=aggregation_dict[args.loss_aggregation])
 em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=True)
 pi, mu, sigma = None, None, None

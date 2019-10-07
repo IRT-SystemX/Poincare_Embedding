@@ -50,23 +50,27 @@ class RiemannianEmbedding(nn.Module):
         progress_bar = tqdm.trange(max_iter) if(self.verbose) else range(max_iter)
         for i in progress_bar:
             loss_value1, loss_value2, loss_value3, loss_pdf3 = 0,0,0,0
-            for example, neigbhors, walks in dataloader:
+            for example, neigbhors, index_source_rw, index_context_rw in dataloader:
                 self.optimizer.zero_grad()
                 # obtain negatives examples sampled according to the given distribution
                 with torch.no_grad():
-                    negative = self.n_dist.sample(sample_shape=(walks.size(0), walks.size(1), negative_sampling))
+                    negative = self.n_dist.sample(sample_shape=(index_context_rw.size(0),  negative_sampling))
                 # set variables to cuda device
                 if(self.cuda):
-                    example = example.cuda()
-                    neigbhors = neigbhors.cuda()
-                    walks = walks.cuda()
+                    example = example.cuda().squeeze()
+                    neigbhors = neigbhors.cuda().squeeze()
+                    index_source_rw, index_context_rw = index_source_rw.cuda().squeeze(), index_context_rw.cuda().squeeze()
                     negative = negative.cuda()
+                else:
+                    example = example.squeeze()
+                    neigbhors = neigbhors.squeeze()
+                    index_source_rw, index_context_rw = index_source_rw.squeeze(), index_context_rw.squeeze()
+                    negative = negative                    
                 # get the needed embeddings
-                r_example = example.unsqueeze(1).expand_as(neigbhors)
-                embed_source, embed_neigbhor = self.W(r_example), self.W(neigbhors)
-                embed_source_rw  = self.W(walks)
-                embed_source_rw, embed_context_rw = embed_source_rw[:,:,0], embed_source_rw[:,:,1]
+                embed_source, embed_neigbhor = self.W(example), self.W(neigbhors)
+                embed_source_rw, embed_context_rw  = self.W(index_source_rw), self.W(index_context_rw)
                 embed_negative = self.W(negative)
+                # print(index_source_rw.size(),embed_source.size(), embed_neigbhor.size(), embed_source_rw.size(), embed_context_rw.size(), embed_negative.size())
                 # computing O1 loss
                 loss_o1 = losses.SGDLoss.O1(embed_source, embed_neigbhor)
                 # computing O2 loss
