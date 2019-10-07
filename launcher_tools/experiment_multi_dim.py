@@ -17,6 +17,8 @@ from launcher_tools import logger
 from optim_tools import optimizer
 import random 
 import numpy as np
+from data_tools import config
+
 
 parser = argparse.ArgumentParser(description='Start an experiment')
 
@@ -70,13 +72,19 @@ parser.add_argument("--batch-size", dest="batch_size", type=int, default=512,
 parser.add_argument("--seed", dest="seed", type=int, default=42,
                     help="the seed used for sampling random numbers in the experiment")  
 parser.add_argument('--force-rw', dest="force_rw", action="store_false", default=True,
-                    help="if set will automatically compute a new random walk for the experiment")           
+                    help="if set will automatically compute a new random walk for the experiment") 
+parser.add_argument('--loss-aggregation', dest="loss_aggregation", type=str, default="sum",
+                    help="The type of loss aggregation sum or mean")                                       
 args = parser.parse_args()
 
 # set the seed for random sampling
 torch.manual_seed(args.seed)
 np.random.seed(args.seed)
 random.seed(a=args.seed)
+
+global_config = config.ConfigurationFile("./data/config.conf")
+saving_folder = global_config["save_folder"]
+
 
 dataset_dict = { "karate": corpora.load_karate,
             "football": corpora.load_football,
@@ -87,6 +95,7 @@ dataset_dict = { "karate": corpora.load_karate,
             "polblog": corpora.load_polblogs,
             "adjnoun": corpora.load_adjnoun
           }
+aggregation_dict = { "sum": torch.sum, "mean": torch.mean}
 
 optimizer_dict = {"addhsgd": optimizer.PoincareBallSGDAdd,
                     "exphsgd": optimizer.PoincareBallSGDExp,
@@ -101,6 +110,10 @@ if(args.dataset not in dataset_dict):
     print(list(dataset_dict.keys()))
     quit()
 
+if(args.loss_aggregation not in aggregation_dict):
+    print("Aggregation method " + args.dataset + " does not exist, please select one of the following : ")
+    print(list(aggregation_dict.keys()))
+    quit()
 if(args.embedding_optimizer not in optimizer_dict):
     print("Optimizer " + args.embedding_optimizer + " does not exist, please select one of the following : ")
     print(list(optimizer_dict.keys()))
@@ -121,7 +134,11 @@ print("Creating dataset")
 # index of examples dataset
 dataset_index = corpora_tools.from_indexable(torch.arange(0,len(D),1).unsqueeze(-1))
 print("Dataset Size -> ", len(D))
-
+print(os.path.join(saving_folder,args.id+"/"))
+if(args.save):
+    os.makedirs(os.path.join(saving_folder,args.id+"/"), exist_ok=True)
+    logger_object = logger.JSONLogger(os.path.join(saving_folder,args.id+"/log.json"))
+    logger_object.append(vars(args))
 
 
 D.set_path(False)
@@ -183,10 +200,7 @@ training_dataloader = DataLoader(embedding_dataset,
                             collate_fn=data_tools.PadCollate(dim=0),
                             drop_last=False
                     )
-if(args.save):
-    os.makedirs("/local/gerald/AISTAT_RESULTS/"+args.id+"/", exist_ok=True)
-    logger_object = logger.JSONLogger("/local/gerald/AISTAT_RESULTS/"+args.id+"/log.json")
-    logger_object.append(vars(args))
+
 representation_d = []
 pi_d = []
 mu_d = []
@@ -206,7 +220,7 @@ if(args.size == 2):
 
 alpha, beta = args.init_alpha, args.init_beta
 embedding_alg = PEmbed(len(embedding_dataset), size=args.size, lr=args.init_lr, cuda=args.cuda, negative_distribution=frequency,
-                        optimizer_method=optimizer_dict[args.embedding_optimizer])
+                        optimizer_method=optimizer_dict[args.embedding_optimizer], aggregation=aggregation_dict[args.loss_aggregation])
 em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=True)
 pi, mu, sigma = None, None, None
 pik = None
@@ -226,7 +240,7 @@ for i in tqdm.trange(args.epoch):
         plot_tools.plot_embedding_distribution_multi([embedding_alg.get_PoincareEmbeddings().cpu()], 
                                                         [pi], [mu],  [sigma], 
                                                     labels=None, N=100, colors=colors, 
-                                                    save_path="/local/gerald/AISTAT_RESULTS/"+args.id+"/fig_epoch_"+str(i)+".pdf")
+                                                    save_path=os.path.join(saving_folder, args.id+"/fig_epoch_"+str(i)+".png"))
 representation_d.append(embedding_alg.get_PoincareEmbeddings().cpu())
 pi_d.append(pi)
 mu_d.append(mu)
@@ -251,15 +265,15 @@ if(args.save):
     import matplotlib.pyplot as plt
     import matplotlib.colors as plt_colors
     import numpy as np
-    torch.save(representation_d, "/local/gerald/AISTAT_RESULTS/"+args.id+"/embeddings.t7")
-    torch.save( {"pi": pi_d, "mu":mu_d, "sigma":sigma_d}, "/local/gerald/AISTAT_RESULTS/"+args.id+"/pi_mu_sigma.t7")
+    torch.save(representation_d, os.path.join(saving_folder,args.id+"/embeddings.t7"))
+    torch.save( {"pi": pi_d, "mu":mu_d, "sigma":sigma_d},os.path.join(saving_folder,args.id+"/pi_mu_sigma.t7"))
 
 
     if(args.size == 2):
 
         plot_tools.plot_embedding_distribution_multi(representation_d, pi_d, mu_d,  sigma_d, 
                                                     labels=None, N=100, colors=colors, 
-                                                    save_path="/local/gerald/AISTAT_RESULTS/"+args.id+"/fig.pdf")
+                                                    save_path=os.path.join(saving_folder,args.id+"/fig.png"))
 
 
     print({"pi": pi_d, "mu":mu_d, "sigma":sigma_d})

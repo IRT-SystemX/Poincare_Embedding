@@ -10,7 +10,7 @@ from optim_tools import optimizer
 
 class RiemannianEmbedding(nn.Module):
     def __init__(self, n_exemple, size=10,  cuda=False, lr=1e-2, verbose=True, negative_distribution=None,
-                optimizer_method=optimizer.PoincareBallSGDAdd):
+                optimizer_method=optimizer.PoincareBallSGDAdd, aggregation=torch.sum):
         super(RiemannianEmbedding, self).__init__()
         self.cuda = cuda
         self.N = n_exemple
@@ -24,7 +24,8 @@ class RiemannianEmbedding(nn.Module):
             self.n_dist = torch.distributions.Categorical(torch.ones(self.N)/self.N)
         else:
             self.n_dist = negative_distribution
-
+        self.agg = aggregation
+    
     def forward(self, x):
         return self.W(x)
 
@@ -71,7 +72,7 @@ class RiemannianEmbedding(nn.Module):
                 # computing O2 loss
                 loss_o2 = losses.SGDLoss.O2(embed_source_rw, embed_context_rw, embed_negative)
                 # computing total loss
-                loss = alpha * loss_o1.mean() + beta * loss_o2.mean() 
+                loss = alpha * self.agg(loss_o1) + beta * self.agg(loss_o2)
                 # if we want to use the prior loss
                 if(gamma > 0):
                     r_example = self.W(example).squeeze()

@@ -13,7 +13,7 @@ from function_tools import distribution_function as df
 import math
 
 
-def euclidean_plot(z, pi, mu, sigma, labels=None, grid_size=100, colors=None, ax=None, path=None):
+def euclidean_plot(z, labels=None, grid_size=100, colors=None, ax=None, save_path=None):
     if(ax  is None):
         fig = plt.figure("Embedding-Distribution")
         ax = fig.add_subplot(1, 1, 1, projection='3d')
@@ -23,7 +23,7 @@ def euclidean_plot(z, pi, mu, sigma, labels=None, grid_size=100, colors=None, ax
     X, Y = np.meshgrid(X, Y)
     z_circle = -0.8
     Z = np.zeros((grid_size, grid_size))
-    N, D, M = z.shape + (pi.size(0),)
+    N, D = z.shape 
     # compute the mixture 
     # def nfunc(sigma):
     #     return df.euclidean_norm_factor(sigma, D)
@@ -44,8 +44,8 @@ def euclidean_plot(z, pi, mu, sigma, labels=None, grid_size=100, colors=None, ax
             ax.scatter(z[q][0].item(), z[q][1].item(), z_circle, c='b', marker='.')
         #print('Print labels', labels[q])
 
-    for j in range(len(mu)):
-        ax.scatter(mu[j][0].item(), mu[j][1].item(), z_circle, c='r', marker='D')
+    # for j in range(len(mu)):
+    #     ax.scatter(mu[j][0].item(), mu[j][1].item(), z_circle, c='r', marker='D')
 
     ax.set_xlim(r_min, r_max)
     ax.set_ylim(r_min, r_max)
@@ -54,8 +54,8 @@ def euclidean_plot(z, pi, mu, sigma, labels=None, grid_size=100, colors=None, ax
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('P')
-    if(path is not None):
-        plt.savefig(path, format="pdf")
+    if(save_path is not None):
+        plt.savefig(save_path, format="png")
     return fig
 
 pi_2_3 = pow((2*math.pi),2/3)
@@ -132,7 +132,7 @@ def plot_embedding_distribution_multi(W, pi, mu, sigma, labels=None, N=100, colo
     for i in range(len(W)):
         ax = fig.add_subplot(border_size, border_size, i+1, projection='3d')
         subplot_embedding_distribution(ax, W[i], pi[i], mu[i], sigma[i], labels=labels, N=N, colors=colors)
-    plt.savefig(save_path, format="pdf")
+    plt.savefig(save_path, format="png")
 
     return fig
 

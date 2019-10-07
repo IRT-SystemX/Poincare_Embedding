@@ -10,7 +10,7 @@ from torch import optim
 
 class EuclideanEmbedding(nn.Module):
     def __init__(self, n_exemple, size=10,  cuda=False, lr=1e-2, verbose=True, negative_distribution=None,
-                optimizer_method=optim.SGD):
+                optimizer_method=optim.SGD, aggregation=torch.sum):
         super(EuclideanEmbedding, self).__init__()
         self.cuda = cuda
         self.N = n_exemple
@@ -25,7 +25,7 @@ class EuclideanEmbedding(nn.Module):
             self.n_dist = torch.distributions.Categorical(torch.ones(self.N)/self.N)
         else:
             self.n_dist = negative_distribution
-
+        self.agg = aggregation
     def forward(self, x):
         return self.W(x)
 
@@ -68,11 +68,12 @@ class EuclideanEmbedding(nn.Module):
                 embed_source_rw, embed_context_rw = embed_source_rw[:,:,0], embed_source_rw[:,:,1]
                 embed_negative = self.W(negative)
                 # computing O1 loss
-                loss_o1 = losses.SGDLoss.O1(embed_source, embed_neigbhor, distance=self.d).mean()
+                loss_o1 = losses.SGDLoss.O1(embed_source, embed_neigbhor, distance=self.d)
                 # computing O2 loss
-                loss_o2 = losses.SGDLoss.O2(embed_source_rw, embed_context_rw, embed_negative, distance=self.d).mean()
+                loss_o2 = losses.SGDLoss.O2(embed_source_rw, embed_context_rw, embed_negative, distance=self.d)
                 # computing total loss
-                loss = alpha * loss_o1 + beta * loss_o2 
+                # print(self.d(embed_source, embed_neigbhor).mean())
+                loss = alpha * self.agg(loss_o1) + beta * self.agg(loss_o2)
                 # if we want to use the prior loss
                 if(gamma > 0):
                     def nfunc(sigma):
@@ -85,8 +86,8 @@ class EuclideanEmbedding(nn.Module):
                     loss_value3 = loss_o3.sum(-1).mean().item()
                     loss_pdf3 = torch.exp(-loss_o3.mean()).item()
 
-                loss_value1 = loss_o1.item()
-                loss_value2 = loss_o2.item()
+                loss_value1 = loss_o1.mean().item()
+                loss_value2 = loss_o2.mean().item()
                 loss.backward()
                 self.optimizer.step()
             if(self.verbose):

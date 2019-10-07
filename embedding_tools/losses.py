@@ -9,7 +9,7 @@ class SGALoss(object):
     def O1(x, y, distance=None):
         if(distance is None):
             distance = pf.distance
-        return tf.logsigmoid(-((distance(x, y))**2))
+        return tf.logsigmoid(-torch.clamp(((distance(x, y))**2), max=100))
 
     @staticmethod
     def O2(x, y, z, distance=None):
