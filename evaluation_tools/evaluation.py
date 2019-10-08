@@ -149,7 +149,7 @@ def accuracy_supervised(z, y, mu, nb_set=5, verbose=True):
         centroids = []
         for i in range(n_distrib):
             # print((Z_train[Y_train[:,0]== (min_label + i)]).size())
-            centroids.append(pa.barycenter(Z_train[Y_train[:,0]== (min_label + i)], normed=True).tolist())
+            centroids.append(pa.barycenter(Z_train[Y_train[:,0]== (min_label + i)], normed=False).tolist())
         
         centroids = torch.Tensor(centroids).squeeze()
         # predicting 
