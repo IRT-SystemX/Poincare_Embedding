@@ -192,7 +192,22 @@ class SamplerDataset(Dataset):
 
     def __len__(self):
         return len(self.dataset)
+
+class RepeaterDataset(Dataset):
+    def __init__(self, dataset, size):
+        self.dataset = dataset
+        self.size = size
+        self.real_len = len(self.dataset)
+
+    def __getitem__(self, index):
+        return self.dataset[index%self.real_len]
+
+    def __len__(self):
+        return self.size 
 ############################ FACTORY #############################
+
+def repeat_dataset(dataset, size):
+    return RepeaterDataset(dataset, size)
 
 def zip_datasets(*args):
     return ZipDataset(*args)
