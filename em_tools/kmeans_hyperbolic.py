@@ -78,7 +78,7 @@ class RiemannianKMeans(object):
 
 # the pytorch version
 class PoincareKMeans(object):
-    def __init__(self, n_clusters, min_cluster_size=5, verbose=False, init_method="kmeans++"):
+    def __init__(self, n_clusters, min_cluster_size=2, verbose=False, init_method="kmeans++"):
         self._n_c = n_clusters
         self._distance = pf.distance
         self.centroids = None
@@ -90,7 +90,7 @@ class PoincareKMeans(object):
             lx = x[indexes == i]
             if(lx.shape[0] <= self._mec):
                 lx = x[random.randint(0,len(x)-1)].unsqueeze(0)
-            centroids[i] = pa.barycenter(lx, normed=True)
+            centroids[i] = pa.barycenter(lx, normed=False)
         return centroids
     
     def _expectation(self, centroids, x):
@@ -125,7 +125,7 @@ class PoincareKMeans(object):
         self.centroids_index = torch.tensor(centroids_index, device=X.device).long()
         self.centroids = X[self.centroids_index]
 
-    def fit(self, X, max_iter=500):
+    def fit(self, X, max_iter=50):
         with torch.no_grad():
             if(self._mec < 0):
                 self._mec = len(X)/(self._n_c**2)

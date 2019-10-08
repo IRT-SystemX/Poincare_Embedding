@@ -273,15 +273,15 @@ def accuracy_disc_kmeans(z, y, mu, verbose=False):
     from em_tools.kmeans_hyperbolic import PoincareKMeans
     # first getting the pdf for each disc distribution
     kmeans = PoincareKMeans(n_distrib)
-    kmeans.fit(z)
-    associated_distrib =  kmeans.predict(z)
+    kmeans.fit(z.cuda())
+    associated_distrib =  kmeans.predict(z.cuda()).cpu()
     # print("associated distribution size ->",associated_distrib.shape)
     # print("associated distribution ->",associated_distrib)
     # print("source labels ->", y)
     label = associated_distrib.numpy()
     label_source = y.numpy()
     sources_number = n_distrib
-    std =   kmeans.getStd(z)
+    std =   kmeans.getStd(z.cuda())
     if(n_distrib <= 6):
 
         return accuracy_small_disc_product(label, label_source, sources_number), std.max(), std.mean(), std
@@ -298,7 +298,7 @@ def accuracy_euclidean_kmeans(z, y, mu, verbose=False):
     y = torch.LongTensor([y[i][0]-1 for i in range(len(y))])
     from sklearn.cluster import KMeans
     # first getting the pdf for each disc distribution
-    kmeans = KMeans(n_distrib, n_init=1)
+    kmeans = KMeans(n_distrib, n_init=1, init="random")
     kmeans.fit(z.numpy())
     associated_distrib =  kmeans.predict(z.numpy())
     # print("associated distribution size ->",associated_distrib.shape)

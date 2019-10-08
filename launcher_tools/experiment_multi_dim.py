@@ -195,7 +195,7 @@ embedding_dataset = corpora_tools.zip_datasets(dataset_index,
 print(embedding_dataset[29][-1][20:25])
 training_dataloader = DataLoader(embedding_dataset, 
                             batch_size=args.batch_size, 
-                            shuffle=True,
+                            shuffle=False,
                             num_workers=4,
                             collate_fn=data_tools.PadCollate(dim=0),
                             drop_last=False

@@ -71,7 +71,7 @@ parser.add_argument("--seed", dest="seed", type=int, default=42,
                     help="the seed used for sampling random numbers in the experiment")     
 parser.add_argument('--force-rw', dest="force_rw", action="store_false", default=True,
                     help="if set will automatically compute a new random walk for the experiment")   
-parser.add_argument('--loss-aggregation', dest="loss_aggregation", type=str, default="mean",
+parser.add_argument('--loss-aggregation', dest="loss_aggregation", type=str, default="sum",
                     help="The type of loss aggregation sum or mean")                
 args = parser.parse_args()
 
