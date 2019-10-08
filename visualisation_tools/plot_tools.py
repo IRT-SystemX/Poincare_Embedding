@@ -11,6 +11,7 @@ from function_tools import poincare_function as pf
 from function_tools import euclidean_function as ef
 from function_tools import distribution_function as df
 import math
+import os
 
 
 def euclidean_plot(z, pi, mu, sigma, labels=None, grid_size=100, colors=None, ax=None, path=None):
@@ -124,7 +125,40 @@ def subplot_embedding_distribution(ax, W, pi, mu, sigma,  labels=None, N=100, co
     ax.set_ylabel('Y')
     ax.set_zlabel('P')
 
+def kmean_plot(z, centroids, gt_colors, pr_colors, save_folder):
+    fig = plt.figure("Embedding-Distribution Ground truth")
+
+    theta = np.linspace(0, 2*np.pi, 100)
+
+    r = np.sqrt(1.0)
+
+    x1 = r*np.cos(theta)
+    x2 = r*np.sin(theta)
+
+    plt.plot(x1, x2)
+    for q in range(len(z)):
+        plt.scatter(z[q][0].item(), z[q][1].item(), c=[gt_colors[q]], marker='.')            
+    filepath = os.path.join(save_folder, "ground_truth_embeddings.png")
+    plt.savefig(filepath, format="png")
+
+    fig= plt.figure("Embedding-Distribution prediction")
+
+    theta = np.linspace(0, 2*np.pi, 100)
+
+    r = np.sqrt(1.0)
+
+    x1 = r*np.cos(theta)
+    x2 = r*np.sin(theta)
+
+    plt.plot(x1, x2)
+    for q in range(len(z)):
+        plt.scatter(z[q][0].item(), z[q][1].item(), c=[pr_colors[q]], marker='.')
+    plt.scatter(centroids[:, 0], centroids[:,1],marker='D')            
+    filepath = os.path.join(save_folder, "prediction_embeddings.png")
+    plt.savefig(filepath, format="png")    
+
 def plot_embedding_distribution_multi(W, pi, mu, sigma, labels=None, N=100, colors=None, save_path="figures/default.pdf"):
+
     fig = plt.figure("Embedding-Distribution")
     border_size = (math.sqrt(len(W)+0.0))
     if(border_size != round(border_size)):

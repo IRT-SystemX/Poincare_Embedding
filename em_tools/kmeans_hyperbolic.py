@@ -84,6 +84,7 @@ class PoincareKMeans(object):
         self.centroids = None
         self._mec = min_cluster_size
         self._init_method = init_method
+
     def _maximisation(self, x, indexes):
         centroids = x.new(self._n_c, x.size(-1))
         for i in range(self._n_c):
