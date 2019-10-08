@@ -126,8 +126,9 @@ def subplot_embedding_distribution(ax, W, pi, mu, sigma,  labels=None, N=100, co
     ax.set_zlabel('P')
 
 def kmean_plot(z, centroids, gt_colors, pr_colors, save_folder):
-    fig = plt.figure("Embedding-Distribution Ground truth")
-
+    fig = plt.figure("Embedding-Distribution Ground truth", figsize=(20, 20))
+    fig.patch.set_visible(False)
+    plt.axis("off")
     theta = np.linspace(0, 2*np.pi, 100)
 
     r = np.sqrt(1.0)
@@ -137,12 +138,13 @@ def kmean_plot(z, centroids, gt_colors, pr_colors, save_folder):
 
     plt.plot(x1, x2)
     for q in range(len(z)):
-        plt.scatter(z[q][0].item(), z[q][1].item(), c=[gt_colors[q]], marker='.')            
+        plt.scatter(z[q][0].item(), z[q][1].item(), c=[gt_colors[q]], marker='.', s=300.)            
     filepath = os.path.join(save_folder, "ground_truth_embeddings.png")
     plt.savefig(filepath, format="png")
 
-    fig= plt.figure("Embedding-Distribution prediction")
-
+    fig= plt.figure("Embedding-Distribution prediction", figsize=(20, 20))
+    fig.patch.set_visible(False)
+    plt.axis("off")
     theta = np.linspace(0, 2*np.pi, 100)
 
     r = np.sqrt(1.0)
@@ -152,8 +154,8 @@ def kmean_plot(z, centroids, gt_colors, pr_colors, save_folder):
 
     plt.plot(x1, x2)
     for q in range(len(z)):
-        plt.scatter(z[q][0].item(), z[q][1].item(), c=[pr_colors[q]], marker='.')
-    plt.scatter(centroids[:, 0], centroids[:,1],marker='D')            
+        plt.scatter(z[q][0].item(), z[q][1].item(), c=[pr_colors[q]], marker='.',s=300.)
+    plt.scatter(centroids[:, 0], centroids[:,1],marker='D', s=600.)            
     filepath = os.path.join(save_folder, "prediction_embeddings.png")
     plt.savefig(filepath, format="png")    
 
