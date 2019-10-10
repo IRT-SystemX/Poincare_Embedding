@@ -1,0 +1,434 @@
+\documentclass{article}
+\usepackage{geometry}
+\geometry{legalpaper,  margin=0.5in}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\usepackage{subcaption}
+
+\usepackage[dvipsnames]{xcolor}
+\newcommand{\todo}{\textcolor{blue}{TODO} : }
+\newcommand{\done}{\textcolor{LimeGreen}{DONE} : }
+\newcommand{\doing}{\textcolor{Purple}{DOING} : }
+\newcommand{\issue}{\textcolor{red}{ISSUE} : }
+\newcommand{\pending}{\textcolor{RedOrange}{PENDING} : }
+
+\title{Report on Hyperpolic Community detection}
+\author{}
+\begin{document}
+    \maketitle
+    \section{Introduction}
+
+        We plan to adapt the paper "Learning Community Embedding with Community Detection and Node Embedding on Graphs"
+        using Hyperbolic space instead of euclidean one.
+        Today community graph embedding rely on projecting data from a graph (such as adjacency matrix) on an continuous 
+        space, and the retrieve community by clustering based algorithms.
+        The  projection often involve a small representation space, moreover severall communauties are overlapping each others.
+        In particular hierarchical community can exists, taking it into account can be relevant.
+        If mainly used representation space is euclidean, some others manifolds can be used.
+        Particularly hyperbolic manifolds have prooven their efficiency to embed hierarchical data and performs well in low dimenssion space.
+        In this document we report results and experiments in progress experiments on community detection using hyperbolic riemnanian manifolds.
+
+    \section{Learning Community Embedding with Community Detection an Node Embedding Graph}
+    Before describing our approach we sum up the main related articles.  The paper propose to face Community detection in jointly learning detection process and embedding projection function.
+
+    \subsection{Community Detection embedding}
+        In order to retrieve community, authors propose to associate for each examples embeddings a community probability by $p(z_i=k)$ the probability of node $v_i$ to belong to the community indexed by $k$. They model the prosteriot $p(v_i|z, \Theta)$ by a multivariate gaussian distritbution, thus we can write :
+        $$
+            p(v_i |z_i = k; \phi_i, \psi_k, \Sigma_k) = \mathcal{N}(\phi_i| \psi_k, \Sigma_k)
+        $$
+        With $\psi_k$, $\Sigma_k$ respectively the mean and variance of the gaussian distribution.
+
+    \subsection{Node Embedding}
+        The embeddings are obtained by rapproaching neigbhors in terms of graph distance, the first cost function associate is : 
+         $$
+            O_1 = -\alpha_1 \sum \limits_{(v_i, v_j) \in E} log(\sigma(z_i^tz_j)))
+         $$
+         with $E$ the vertices.
+         Unfortunatelly nodes at distance one are not always in the same community and nodes at a further distance can be in a same community.
+         Thus the \textit{DeepWalk} algorithm propose to perform a random walk over the graph allowing to find neigbhors. 
+         The neigbhorhood of a node $v_i$ is called context of $v_i$, denoted $C_i$:
+
+        $$
+            O_2 = -\alpha_2  \sum \limits_{v_i\in V} \sum \limits_{v_j \in C_i} \bigg[  log(\sigma(z_i^tz_j))) + \sum \limits_{t=1, v_l \notin C_i}^T log(\sigma(z_i^t z_l)) \bigg]
+        $$
+        Once the model is fit we must ensure that it fit the multivariate gaussian prior.
+        To connect both, the node embedding must take into account detection process, thus they add an additional loss fixing all except the embedding.
+        This is given by :
+        $$
+            O_3 = - \alpha_3 \sum\limits_{v_i \in V} log\bigg[\sum\limits_{k=1}^K p(z_i=k)p(v_i|z_i=k;\phi_i,\psi_k,\Sigma_k)\bigg]
+        $$
+
+    \section{Adapting to Hyperbolic}
+        \subsection{Node Embedding without a priori on Community detection}
+            In this section we plan to find an alternative to $O_1$ and $O_2$ loss function because we can not use $O_1$ and $O_2$ without considering the poincaré ball distance.
+            To keep the same meaning we can modelize the propabilities of users being in the same community  $P((v_i,v_j)\in C | z_i, z_j)$ we can thus simply modelise it by an exponential distribution :
+            $$
+            p((v_i,v_j)\in E | z_i, z_j) = \lambda e^{-\lambda -d_h(z_i,z_j)}
+            $$
+            with $d_h$ the distance associate to the hyperbolic space.
+            Thus we can use the following loss function considering that items sharing edge often are in the same community :
+            $$
+                O_{h,1} =  - \alpha_1 \sum_{(v_i,v_j) \in E} log(p((v_i,v_j)\in C | z_i, z_j) )
+            $$
+            With $\lambda$ a parameter that may be selected by grid search, however we curently use in experiments $\lambda=1$.
+
+
+
+            \paragraph{}
+            We also need to adapt a loss using negative sampling and randomWalks
+            \begin{align*}
+                O_{h,2} &= - \alpha_2 \sum_{(v_i,v_j)\in R} log\Bigg[ \frac{p((v_i,v_j)\in C | z_i, z_j)}{\sum\limits_{v_k \in N_i \cup v_j}p((v_i,v_k)\in E | z_i, z_k)}\Bigg] \\
+                  & = \alpha_2 \sum_{(v_i,v_j)\in R} log \Bigg[1 + \sum\limits_{v_k \in N_i \cup v_j} \lambda e^{-\lambda(d_h(z_i,z_j) - d_h(z_i,z_k))} \Bigg]
+            \end{align*}
+
+            For optimization we use gradient descent with retractation similarly to the Nickel et al paper \cite{poincareWTV}.
+            We may also use the gradient descent proposed by Wilson and Leimeister \cite{PoincareGradient}, showing better convergence on severall tasks, similarly we can also use the lorentz model method Kiala et al \cite{LorentzEmbeddings} and then projecting in the poincaré model.
+
+            Considering $f_\theta: x \rightarrow r $ the projection function and $L(x,y)$ the loss function, the Nickel et al methods update the parameters $\theta$ by :
+            $$
+                \theta_{t+1} = \theta_{t} - \alpha \frac{(1- ||\theta_t||^2)^2 }{4}\Delta_E
+            $$
+
+            With $\Delta_E$ the gradient of loss function with respect to $\theta_t$
+
+            The second method proposed is based on optimization on the tangent space and then using exponential map to remap gradient on the hyperbolic space. 
+            \subsection{EM}
+
+            % We can write $P(x | p, \mu) = \sum \limits_{k=0}^K p_k  \frac{1}{\zeta(i)}e^{\frac{-(d_h(x,\mu_k))^2} {2\sigma_k^2}} $.
+
+            \subsection{Connecting both}
+                
+                To connect both embeddings must fit the prior,
+                This is done by minimizing :
+                $$
+                    O_{h,3} = -\alpha_3   \sum_{v_i\in V} log\Bigg[ \pi_{ik}\sum \limits_{k=0}^K \frac{1}{\zeta(i)}e^{\frac{-(d_h(x,\mu_k))^2}{2\sigma_k^2}}\Bigg]
+                $$
+                $$
+                    O_{h,3}' =-\alpha_3  \sum_{v_i\in V}  \sum \limits_{k=0}^K \pi_{ik} log\Bigg[\frac{1}{\zeta(i)}e^{\frac{-(d_h(x,\mu_k))^2}{2\sigma_k^2}}\Bigg]
+                $$
+                $$
+                    O_{h,3} \leq O_{h,3}' 
+                $$
+
+    \section{Evaluating EM Algorithm On large dataset}
+
+%     \begin{figure}[!ht]
+%         \centering
+%         \begin{subfigure}[b]{0.48\linewidth}
+%             \centering
+%             \includegraphics[scale=0.5]{media/fig0.pdf}
+%             \caption{\label{fig:n1}:Kmeans only}
+%         \end{subfigure}
+%         \begin{subfigure}[b]{0.48\linewidth}
+%              \centering
+%             \includegraphics[scale=0.5]{media/fig1.pdf}
+%             \caption{\label{fig:n2}: $1^{st}$ EM iteration}
+    
+%         \end{subfigure}
+%         \begin{subfigure}[b]{0.48\linewidth}
+%             \centering
+%             \includegraphics[scale=0.5]{media/fig2.pdf}
+%             \caption{\label{fig:n1}:$2^{nd}$ EM iteration}
+%         \end{subfigure}
+%         \begin{subfigure}[b]{0.48\linewidth}
+%              \centering
+%             \includegraphics[scale=0.5]{media/fig50.pdf}
+%             \caption{\label{fig:n2}:$50^{nd}$ EM iteration}
+    
+%         \end{subfigure}    
+%         \caption{EM over a dblp representation}
+%         \label{fig:embedding}
+%     \end{figure}
+%     \subsection{Variance and mixing coefficient evolution}
+
+%     \begin{figure}[!ht]
+%         \centering
+%         \begin{subfigure}[b]{0.48\linewidth}
+%             \centering
+%             \includegraphics[scale=0.5]{media/_mixture_weights.pdf}
+%             \caption{\label{fig:n1}:Mixture weights}
+%         \end{subfigure}
+%         \begin{subfigure}[b]{0.48\linewidth}
+%              \centering
+%             \includegraphics[scale=0.5]{media/_variances.pdf}
+%             \caption{\label{fig:n2}:variance}
+    
+%         \end{subfigure}
+%         \caption{EM over a dblp representation}
+%         \label{fig:embedding}
+%     \end{figure}
+
+%     \section{Experiments}
+%     \begin{table}
+%             \begin{tabular}{|cccccccc|c|}
+%                 \hline
+%                 lr & alpha & beta & gamma & Method Optimization& epoch & embed iter &em iter & Performances \\
+%                 \hline
+%                 .5 & .5 & 10.& 20 & exphsgd & 3 & 600 & 1 & 78.81 \\
+%                 \hline
+%             \end{tabular}
+%         \label{DBLP-RES}
+%         \caption{DBLP Performances obtained 1 Disc}
+%     \end{table}
+
+%     \subsection{Compareason KMEANS-EM}
+%     \begin{table}
+%         \begin{tabular}{|ccccccccc|c|}
+%             \hline
+%             lr & alpha & beta & dim & Method Optimization& epoch & embed iter &em iter & Performances & REF-FILE\\
+%             \hline
+%             10 & .1 & 1.& 2 & exphsgd & 1 & 1000 & 1 & $69.56 \pm 7.38$& football-1\\
+%             10 & .1 & 1.& 3 & exphsgd & 1 & 1000 & 1 & $79.13 \pm 1.23$& football-3D-1\\
+%             10 & .1 & 1.& 4 & exphsgd & 1 & 1000 & 1 & $84.16 \pm 3.43$& football-4D-1\\
+%             10 & .1 & 1.& 10 & exphsgd & 1 & 1000 & 1 & $87.38 \pm 1.84$& football-10D-1\\
+%             \hline
+%         \end{tabular}
+%     \label{DBLP-RES}
+%     \caption{FOOTBALL Performances obtained  with kmeans (2 experiments each)}
+% \end{table}
+%     \begin{table}
+%         \begin{tabular}{|ccccccccc|c|}
+%             \hline
+%             lr & alpha & beta & dim & Method Optimization& epoch & embed iter &em iter & Performances & REF-FILE\\
+%             \hline
+%             10 & .1 & 1.& 2 & exphsgd & 1 & 1000 & 1 & $76.08 \pm 0.615$& football-1D-1EM\\
+%             10 & .1 & 1.& 3 & exphsgd & 1 & 1000 & 10 & $86.08 \pm 1.23$& football-3D-1-EM\\
+%             10 & .1 & 1.& 4 & exphsgd & 1 & 1000 & 10 & $87.82 \pm 1.23$& football-4D-1-EM\\
+%             10 & .1 & 1.& 10 & exphsgd & 1 & 1000 & 10 & $91.3 \pm 0$& football-10D-1-EM\\
+%             \hline
+%         \end{tabular}
+%     \label{DBLP-RES}
+%     \caption{FOOTBALL Performances obtained  with EM (2 experiments each)}
+% \end{table}
+% \begin{table}
+%     \begin{tabular}{|ccccccccc|c|}
+%         \hline
+%         lr & alpha & beta & dim & Method Optimization& epoch & embed iter & context & Performances & REF-FILE\\
+%         \hline
+%         1.0 & .1 & 1.& 2 & exphsgd & 1 & 1000 & 17 & LAUNCHED& \\
+
+%         \hline
+%     \end{tabular}
+% \label{DBLP-RES}
+% \caption{DBLP Performances KEMANS (2 experiments each)}
+% \end{table}
+% \begin{table}
+%     \begin{tabular}{|ccccccccc|c|}
+%         \hline
+%         lr & alpha & beta & dim & Method Optimization& epoch & embed iter & context & Performances & REF-FILE\\
+%         \hline
+%         20 & .1 & 1.& 2 & exphsgd & 1 & 500 & 17 & $69.49 \pm 6.78$& DBLP-2D-KMEANS \\
+%         20 & .1 & 1.& 3 & exphsgd & 1 & 500 & 17 & RUNNING& DBLP-2D-KMEANS \\
+%         20 & .1 & 1.& 4 & exphsgd & 1 & 500 & 17 & $80.8 \pm 1.42$& DBLP-4D-KMEANS \\
+%         20 & .1 & 1.& 10 & exphsgd & 1 & 500 & 17 & 79.8 & DBLP-2D-KMEANS \\
+
+%         \hline
+%     \end{tabular}
+% \label{DBLP-RES}
+% \caption{DBLP Performances KEMANS (2 experiments each)}
+% \end{table}
+% \begin{figure}[!ht]
+%     \centering
+
+%         \includegraphics[scale=2]{media/kmeans3d.png}
+%         \caption{3D kmeans}
+
+% \end{figure}
+% \section{K-Means results}
+% \begin{table}
+%     \centering
+%     \begin{tabular}{|c|cc|}
+%     \hline Dimension & performance hyperbolic & performance euclidean\\ \hline
+%     2& $74.6 \pm 2.9$ & $69.9 \pm 4.5$\\ \hline
+%     3& $81.5 \pm 3.9$ & $79.2 \pm 3.2$\\ \hline
+%     4& $82.9 \pm 3.6$ & $84.4 \pm 2.2$\\ \hline
+%     5& $86.2 \pm 2.5$ & $86.8 \pm 3.0$\\ \hline
+%     10& $88.6 \pm 2.1$ & $87.7 \pm 2.9$\\ \hline
+
+%     \end{tabular} 
+%     \caption{KMeans football 10 kmeans init}
+% \end{table}
+
+% \begin{table} 
+%     \centering
+%     \begin{tabular}{|c|cc|}
+
+%     \hline Dimension & performance hyperbolic & performance euclidean\\ \hline
+%     2& $93.2 \pm 1.4$ & $85.8 \pm 17.3$\\ \hline
+%     3& $96.1 \pm 1.4$ & $92.9 \pm 1.5$\\ \hline
+%     4& $91.7 \pm 7.4$ & $94.1 \pm 0.0$\\ \hline
+%     5& $94.1 \pm 0.0$ & $94.1 \pm 0.0$\\ \hline
+%     10& $94.1 \pm 0.0$ & $94.1 \pm 0.0$\\ \hline
+%     \end{tabular}
+% \caption{KMeans karate 10 kmeans init}
+%  \end{table}
+%     %  \begin{table} 
+%     %     \centering 
+%     %     \begin{tabular}{|c|cc|}
+%     %       \hline Dimension & performance hyperbolic & performance euclidean\\ \hline
+%     %       2& $93.2 \pm 1.4$ & $85.8 \pm 17.3$\\ \hline
+%     %       3& $96.1 \pm 1.4$ & $92.9 \pm 1.5$\\ \hline
+%     %       4& $91.7 \pm 7.4$ & $94.1 \pm 0.0$\\ \hline
+%     %       5& $94.1 \pm 0.0$ & $94.1 \pm 0.0$\\ \hline
+%     %       10& $94.1 \pm 0.0$ & $94.1 \pm 0.0$\\ \hline
+%     %   \end{tabular}
+%     %   \caption{KMeans BOOKS 10 kmeans init}
+%     % \end{table}
+% \begin{table} 
+%     \centering 
+%     \begin{tabular}{|c|cc|}
+%       \hline Dimension & performance hyperbolic & performance euclidean\\ \hline
+%       2& $95.0 \pm 0.1$ & $95.2 \pm 0.2$\\ \hline
+%       3& $94.9 \pm 0.1$ & $94.9 \pm 0.1$\\ \hline
+%       4& $95.1 \pm 0.0$ & $95.1 \pm 0.1$\\ \hline
+%       5& $95.0 \pm 0.1$ & $95.2 \pm 0.2$\\ \hline
+%       10& $94.9 \pm 0.2$ & $95.1 \pm 0.0$\\ \hline
+%   \end{tabular}
+
+% \caption{KMeans polblogs 10 kmeans init}
+% \end{table}
+% \begin{table} 
+%     \centering 
+%     \begin{tabular}{|c|cc|}
+%       \hline Dimension & performance hyperbolic & performance euclidean\\ \hline
+%       2& $72.7 \pm 2.1$ & $68.9 \pm 5.7$\\ \hline
+%       3& $71.3 \pm 6.8$ & $74.9 \pm 6.9$\\ \hline
+%       4& $74.5 \pm 7.8$ & $77.6 \pm 5.0$\\ \hline
+%       5& $75.3 \pm 8.4$ & $79.2 \pm 0.6$\\ \hline
+%       10& $78.6 \pm 6.6$ & $84.2 \pm 2.1$\\ \hline
+%   \end{tabular}
+%   \caption{KMeans dblp 10 kmeans init}
+% \end{table}
+
+% \section{KMEANS 40 TEST AND min VARIANCE}
+
+% In this section we report results of kmeans, with mean performances obtained with 20 run of kmeans and kmeans selected from following criterion:
+
+% \begin{itemize}
+%     \item[$\circ$]  $ A = \min\limits_{kmeans} \sum\limits_{i=0}^K \sum\limits_{\{x | \min\limits_k d(x,c_k) = i\}} d(x, c_i)^2$
+%     \item[$\circ$]  $ B = \min\limits_{kmeans} \max_{i} \Big[ \sum\limits_{\{x | \min\limits_k d(x,c_k) = i\}} d(x, c_i)^2 \Big]$
+% \end{itemize}
+
+% The criterion A is the default given in the sklearn python library for kmeans algorithm.  We obtain the following results for the different datasets
+% \begin{table} 
+%     \centering 
+%     \begin{tabular}{|c|ccc|ccc|}
+%       \hline Dimension & H-Mean & H-A & H-B &  E-Mean & E-A & E-B \\ \hline
+%       \hline
+%       \multicolumn{7}{|c|}{KARATE} \\
+%         \hline
+%         2& $96.1 \pm 1.4$ & $94.1$ & $97.0$& $94.1 \pm 0.0$&$94.1$ & $94.1$\\ \hline
+%         3& $95.5 \pm 1.5$ & $94.1$ & $97.0$& $94.1 \pm 0.0$&$94.1$ & $94.1$\\ \hline
+%         4& $91.7 \pm 7.4$ & $94.1$ & $94.1$& $94.1 \pm 0.0$&$94.1$ & $94.1$\\ \hline
+%         5& $91.7 \pm 7.4$ & $94.1$ & $94.1$& $94.1 \pm 0.0$&$94.1$ & $94.1$\\ \hline
+%         10& $89.4 \pm 9.9$ & $94.1$ & $94.1$& $94.1 \pm 0.0$&$94.1$ & $94.1$\\ \hline
+%       \hline
+%       \multicolumn{7}{|c|}{FOOTBALL} \\
+%       \hline
+%       2& $72.8 \pm 4.3$ & $78.2$ & $72.1$& $65.3 \pm 4.6$&$67.8$ & $68.6$\\ \hline
+%       3& $81.8 \pm 4.6$ & $86.9$ & $87.8$& $82.8 \pm 3.5$&$84.3$ & $87.8$\\ \hline
+%       4& $86.1 \pm 3.8$ & $88.6$ & $87.8$& $85.3 \pm 3.4$&$87.8$ & $87.8$\\ \hline
+%       5& $88.0 \pm 1.9$ & $90.4$ & $90.4$& $87.9 \pm 4.8$&$91.3$ & $91.3$\\ \hline
+%       10& $88.7 \pm 2.2$ & $91.3$ & $91.3$& $87.4 \pm 4.1$&$91.3$ & $86.9$\\ \hline
+%       \hline
+%       \multicolumn{7}{|c|}{POLBLOGS} \\
+%       \hline
+%       2& $94.8 \pm 0.0$ & $94.8$ & $94.8$& $94.8 \pm 0.0$&$94.8$ & $94.8$\\ \hline
+%       3& $94.7 \pm 0.0$ & $94.7$ & $94.8$& $95.0 \pm 0.0$&$95.0$ & $95.0$\\ \hline
+%       4& $95.1 \pm 0.0$ & $95.1$ & $95.1$& $95.1 \pm 0.0$&$95.1$ & $95.1$\\ \hline
+%       5& $95.1 \pm 0.0$ & $95.1$ & $95.1$& $94.9 \pm 0.0$&$94.9$ & $94.9$\\ \hline
+%       10& $94.6 \pm 0.0$ & $94.6$ & $94.6$& $94.8 \pm 0.0$&$94.8$ & $94.8$\\ \hline
+%   \end{tabular}
+% \end{table}
+
+
+% \section{AISTAT TABLE}
+% In this section we report results of kmeans, with mean performances obtained with 20 run of kmeans and kmeans selected from following criterion:
+
+% \begin{itemize}
+%     \item[$\circ$]  $ A = \min\limits_{kmeans} \sum\limits_{i=0}^K \sum\limits_{\{x | \min\limits_k d(x,c_k) = i\}} d(x, c_i)^2$
+%     \item[$\circ$]  $ B = \min\limits_{kmeans} \max_{i} \Big[ \sum\limits_{\{x | \min\limits_k d(x,c_k) = i\}} d(x, c_i)^2 \Big]$
+% \end{itemize}
+
+% The following acronyme stand for :
+% \begin{itemize}
+%     \item[$\circ$] \textbf{H-A-Mean} Mean over the 10 poincare embeddings of the results using the criterion A
+%     \item[$\circ$] \textbf{H-A-Max } Max over the 10  poincare  embeddings of the results using the criterion A
+%     \item[$\circ$] \textbf{H-B-Mean} Mean over the 10  poincare  embeddings of the results using the criterion B
+%     \item[$\circ$] \textbf{H-B-Max } Max over the 10  poincare  embeddings of the results using the criterion B
+%     \item[$\circ$] \textbf{E-A-Mean} Mean over the 10 euclidean embeddings of the results using the criterion A
+%     \item[$\circ$] \textbf{E-A-Max } Max over the 10  euclidean  embeddings of the results using the criterion A
+%     \item[$\circ$] \textbf{E-B-Mean} Mean over the 10  euclidean  embeddings of the results using the criterion B
+%     \item[$\circ$] \textbf{E-B-Max } Max over the 10  euclidean  embeddings of the results using the criterion B 
+% \end{itemize}
+% \begin{table} 
+%     \centering 
+%     \begin{tabular}{|c|cccc|cccc|}
+%         \hline Dimension & H-A-Mean & H-A-Max & H-B-Mean & H-B-Max & E-A-Mean & E-A-Max & E-B-Mean & E-B-Max\\ \hline
+        
+%         \hline
+%         \multicolumn{9}{|c|}{Karate} \\ 
+%         \hline
+%         2&$94.9 \pm 2.7$&$100.0$&$90.5 \pm 7.4$&$97.0$&$93.5 \pm 3.6$&$97.0$&$86.1 \pm8.9$&$97.0$\\ \hline
+%         3&$93.8 \pm 2.1$&$97.0$&$90.2 \pm 7.0$&$94.1$&$93.5 \pm 3.0$&$97.0$&$92.0 \pm2.7$&$97.0$\\ \hline
+%         4&$93.8 \pm 1.6$&$97.0$&$87.0 \pm 7.4$&$94.1$&$95.0 \pm 2.4$&$100.0$&$86.4 \pm9.7$&$97.0$\\ \hline
+%         5&$93.2 \pm 1.9$&$97.0$&$83.5 \pm 8.4$&$94.1$&$93.2 \pm 1.9$&$97.0$&$86.1 \pm9.6$&$94.1$\\ \hline
+%         10&$93.2 \pm 1.9$&$97.0$&$82.6 \pm 10.6$&$94.1$&$93.5 \pm 2.3$&$97.0$&$79.4 \pm11.1$&$94.1$\\ \hline
+        
+%         \hline
+%         \multicolumn{9}{|c|}{Polblogs} \\ 
+%         \hline
+% 		2&$94.5 \pm 0.2$&$95.0$&$94.5 \pm 0.2$&$95.0$&$93.9 \pm 0.5$&$95.0$&$93.9 \pm0.4$&$94.7$\\ \hline
+% 		3&$94.7 \pm 0.2$&$95.2$&$94.7 \pm 0.2$&$95.2$&$94.3 \pm 0.2$&$94.7$&$94.3 \pm0.2$&$94.7$\\ \hline
+% 		4&$94.5 \pm 0.3$&$95.0$&$94.5 \pm 0.3$&$95.0$&$94.3 \pm 0.2$&$94.8$&$94.3 \pm0.3$&$94.8$\\ \hline
+% 		5&$94.5 \pm 0.2$&$94.8$&$94.6 \pm 0.2$&$94.8$&$94.5 \pm 0.3$&$95.0$&$94.5 \pm0.4$&$95.1$\\ \hline
+% 		10&$94.6 \pm 0.2$&$94.9$&$94.6 \pm 0.2$&$94.9$&$94.4 \pm 0.4$&$95.0$&$94.4 \pm0.4$&$95.0$\\ \hline
+
+%         \hline
+%         \multicolumn{9}{|c|}{Polbooks} \\ 
+%         \hline
+% 		2&$76.9 \pm 3.3$&$82.8$&$73.4 \pm 2.9$&$78.0$&$77.6 \pm 4.1$&$82.8$&$74.2 \pm2.4$&$79.0$\\ \hline
+% 		3&$77.8 \pm 3.1$&$81.9$&$75.9 \pm 2.8$&$79.0$&$78.7 \pm 1.9$&$81.9$&$76.0 \pm2.5$&$79.0$\\ \hline
+% 		4&$78.9 \pm 2.9$&$81.9$&$75.3 \pm 3.8$&$80.0$&$79.9 \pm 1.6$&$81.9$&$76.0 \pm3.4$&$80.9$\\ \hline
+% 		5&$80.8 \pm 1.9$&$83.8$&$73.9 \pm 2.8$&$79.0$&$80.2 \pm 1.6$&$83.8$&$77.2 \pm4.0$&$83.8$\\ \hline
+% 		10&$82.0 \pm 1.5$&$83.8$&$77.7 \pm 2.6$&$80.9$&$80.0 \pm 3.2$&$82.8$&$75.3 \pm3.0$&$80.0$\\ \hline
+
+%         \hline
+%         \multicolumn{9}{|c|}{Football} \\
+%         \hline
+%         2&$68.9 \pm 4.5$&$74.7$&$68.6 \pm 3.2$&$74.7$&$67.8 \pm 6.5$&$78.2$&$64.6 \pm9.7$&$78.2$\\ \hline
+%         3&$80.6 \pm 4.0$&$86.9$&$77.8 \pm 5.0$&$84.3$&$78.0 \pm 4.7$&$83.4$&$74.2 \pm6.5$&$81.7$\\ \hline
+%         4&$84.2 \pm 3.3$&$87.8$&$82.0 \pm 3.2$&$86.0$&$83.9 \pm 2.3$&$86.0$&$81.4 \pm5.4$&$89.5$\\ \hline
+%         5&$84.6 \pm 3.7$&$89.5$&$83.4 \pm 4.4$&$89.5$&$88.3 \pm 2.5$&$91.3$&$85.0 \pm4.3$&$89.5$\\ \hline
+%         10&$86.2 \pm 3.6$&$90.4$&$86.2 \pm 2.9$&$89.5$&$88.0 \pm 2.4$&$90.4$&$84.0 \pm4.6$&$89.5$\\ \hline
+
+%         % \hline
+%         % \multicolumn{9}{|c|}{DBLP} \\
+%         %     2&$59.9 \pm 7.0$&$71.3$&$59.9 \pm 7.0$&$71.3$
+
+%   \end{tabular}
+%   \caption{Unsupervised performances obtained on the different dataset}
+% \end{table}
+
+% \begin{table}
+%     \begin{tabular}{|c|cc|c|}
+%         \hline
+%         Dataset & H-Means & H-Max & Baseline \\
+%         \hline
+%         Karate & $94.7\pm2.67$ & $100$ & - \\
+%         Polblog & $94.6\pm0.25$ & $95.1$ & - \\
+%         Polbook & $80.8 \pm 2.51$ & $83.8$ & - \\
+%         Football & $73.2 \pm 4.20$ & $81.8$ & - \\
+%         DBLP & $65.7\pm4.81$& $73.4$ & - \\
+
+%         \hline
+%     \end{tabular}
+%     \centering
+%     \caption{Performances obtained on the supervised task for the diffrent dataset}
+% \end{table}
+
+
+\end{document}
