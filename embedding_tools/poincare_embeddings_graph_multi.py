@@ -83,7 +83,7 @@ class RiemannianEmbedding(nn.Module):
                     pi_z = pi[example].squeeze()
                     loss_o3 = (-pi_z.detach() * torch.log(1e-4 + distribution_function.weighted_gmm_pdf(pi_z.detach(), r_example, mu.detach(), sigma.detach(), self.d)))
                     # print("loss o3 size ->", loss_o3)
-                    loss += gamma * loss_o3.mean()
+                    loss += gamma * self.agg(loss_o3)
                     loss_value3 = loss_o3.sum(-1).mean().item()
                     loss_pdf3 = torch.exp(-loss_o3.mean()).item()
 

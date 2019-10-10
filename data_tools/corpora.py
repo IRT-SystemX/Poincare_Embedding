@@ -134,13 +134,14 @@ class FlatContextCorpus(Dataset):
         precompute = self.precompute
         self.precompute = -1
         context = [set() for i in range(len(self._dataset))]
-        for i in tqdm.trange(len(self._dataset)):
-            # get the random walk
-            path = self._dataset[i][0].squeeze()
-            for k in range(len(path)):
-                for j in range(max(0, k - self.c_s), min(len(path), k + self.c_s)):
-                    if(k!=j):
-                        context[path[k].item()].add(path[j].item())
+        for p in range(precompute):
+            for i in tqdm.trange(len(self._dataset)):
+                # get the random walk
+                path = self._dataset[i][0].squeeze()
+                for k in range(len(path)):
+                    for j in range(max(0, k - self.c_s), min(len(path), k + self.c_s)):
+                        if(k!=j):
+                            context[path[k].item()].add(path[j].item())
         flat_context = []
         for i, v  in enumerate(context):
             for item in v:

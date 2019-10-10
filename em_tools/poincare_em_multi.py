@@ -58,21 +58,38 @@ class RiemannianEM(object):
     def _expectation(self, z):
         # computing wik 
         pdf = df.gaussianPDF(z, self._mu, self._sigma, norm_func=self.zeta_phi.zeta) 
-        print("pdf", pdf)
-        p_pdf = pdf * self._w.unsqueeze(0).expand_as(pdf)
-        print(p_pdf.sum(0, keepdim=True).expand_as(pdf)  )
+        print("pdf.size()->", pdf.size())
+        if(pdf.mean() != pdf.mean()):
+            print("EXPECTATION : pdf contain not a number elements")
+            quit()
+        p_pdf = torch.clamp(pdf * self._w.unsqueeze(0).expand_as(pdf), min=1e-5)
+        if(p_pdf.sum(1).min() == 0):
+            print("EXPECTATION : pdf.sum(1) contain zero")
+            quit()
         wik = p_pdf/p_pdf.sum(1, keepdim=True).expand_as(pdf)
+        if(wik.mean() != wik.mean()):
+            print("EXPECTATION : wik contain not a number elements")
+            quit()
+
+        if(wik.sum(1).mean() <= 1-1e-4 and wik.sum(1).mean() >= 1+1e-4 ):
+            print("EXPECTATION : wik don't sum to 1")
+            print(wik.sum(1))
+            quit()
         return wik
 
     def _maximization(self, z, wik, lr_mu=5e-1, tau_mu=5e-3, max_iter_bar=50):
-        # print(self._w)
-        # print("qsdfjfsdjqsdfn->",wik)
-        # print("qsdfjfsdjqsdfn->", self._mu)
         self.update_w(z, wik)
-
+        if(self._w.mean() != self._w.mean()):
+            print("UPDATE : w contain not a number elements")
+            quit()            
         self.update_mu(z, wik, lr_mu=lr_mu, tau_mu=tau_mu, max_iter=max_iter_bar)
+        if(self._mu.mean() != self._mu.mean()):
+            print("UPDATE : mu contain not a number elements")
+            quit()      
         self.update_sigma(z, wik)
-
+        if(self._sigma.mean() != self._sigma.mean()):
+            print("UPDATE : sigma contain not a number elements")
+            quit()  
     def fit(self, z, max_iter=5, lr_mu=5e-3, tau_mu=5e-3):
         progress_bar = tqdm.trange(max_iter) if(self._verbose) else range(max_iter)
         # if it is the first time function fit is called

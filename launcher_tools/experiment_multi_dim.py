@@ -67,13 +67,13 @@ parser.add_argument("--em-iter", dest="em_iter", type=int, default=10,
                     help="Number of EM iterations")
 parser.add_argument("--size", dest="size", type=int, default=3,
                     help="dimenssion of the ball")
-parser.add_argument("--batch-size", dest="batch_size", type=int, default=4096,
+parser.add_argument("--batch-size", dest="batch_size", type=int, default=100000,
                     help="Batch number of elements")
 parser.add_argument("--seed", dest="seed", type=int, default=42,
                     help="the seed used for sampling random numbers in the experiment")  
 parser.add_argument('--force-rw', dest="force_rw", action="store_false", default=True,
                     help="if set will automatically compute a new random walk for the experiment") 
-parser.add_argument('--loss-aggregation', dest="loss_aggregation", type=str, default="sum",
+parser.add_argument('--loss-aggregation', dest="loss_aggregation", type=str, default="mean",
                     help="The type of loss aggregation sum or mean")                                       
 args = parser.parse_args()
 
@@ -236,6 +236,11 @@ for i in tqdm.trange(args.epoch):
     em_alg.fit(embedding_alg.get_PoincareEmbeddings().cpu(), max_iter=args.em_iter)
     pi, mu, sigma = em_alg.get_parameters()
     pik = em_alg.get_pik(embedding_alg.get_PoincareEmbeddings().cpu())
+    total_accuracy = evaluation.accuracy_disc_product([embedding_alg.get_PoincareEmbeddings().cpu()], D.Y, [pi], [mu], [sigma], verbose=False)
+    print("\nPerformances joined -> " ,
+        total_accuracy
+    )
+    logger_object.append({"accuracy_iter_"+str(i): total_accuracy})
     if(args.size == 2):
         plot_tools.plot_embedding_distribution_multi([embedding_alg.get_PoincareEmbeddings().cpu()], 
                                                         [pi], [mu],  [sigma], 

@@ -84,13 +84,14 @@ class PoincareKMeans(object):
         self.centroids = None
         self._mec = min_cluster_size
         self._init_method = init_method
+
     def _maximisation(self, x, indexes):
         centroids = x.new(self._n_c, x.size(-1))
         for i in range(self._n_c):
             lx = x[indexes == i]
             if(lx.shape[0] <= self._mec):
                 lx = x[random.randint(0,len(x)-1)].unsqueeze(0)
-            centroids[i] = pa.barycenter(lx, normed=False)
+            centroids[i] = pa.barycenter(lx, normed=True)
         return centroids
     
     def _expectation(self, centroids, x):
