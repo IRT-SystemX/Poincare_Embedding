@@ -77,7 +77,7 @@ class RiemannianEM(object):
             quit()
         return wik
 
-    def _maximization(self, z, wik, lr_mu=5e-1, tau_mu=5e-3, max_iter_bar=50):
+    def _maximization(self, z, wik, lr_mu=5e-2, tau_mu=5e-3, max_iter_bar=math.inf):
         self.update_w(z, wik)
         if(self._w.mean() != self._w.mean()):
             print("UPDATE : w contain not a number elements")
