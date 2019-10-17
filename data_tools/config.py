@@ -9,6 +9,9 @@ class ConfigurationFile(object):
         self.content = {}
         # create the file if does not exist
         if(not os.path.exists(self.filepath)):
+            print("Creating the file at ", self.filepath)
+
+            os.makedirs(os.path.dirname(self.filepath), exist_ok=True)
             self.clear()
 
         # update the object in reading the file
