@@ -311,22 +311,16 @@ def poincare_unsupervised_kmeans(z, y, n_centroid, verbose=False):
 
 
 
-def poincare_unsupervised_em(z, y, n_distrib, verbose=False):
+def poincare_unsupervised_em(z, y, n_distrib, em=None, verbose=False):
     y = torch.LongTensor([y[i][0]-1 for i in range(len(y))])
     from em_tools.poincare_em import RiemannianEM
+    if(em is None):
+        em = RiemannianEM(z.size(-1), n_distrib, verbose=False)
+        em.fit(z, max_iter=1)
 
-    em = RiemannianEM(z.size(-1), n_distrib, verbose=False)
-    em.fit(z, max_iter=1)
-    # kmeans = PoincareKMeans(n_distrib)
-    # kmeans.fit(z)
-    # print(kmeans.centroids)
+    # print(em._mu)
     associated_distrib = em.predict(z)
-    # print(em._mu) 
-    # print(associated_distrib)
 
-    summed_prob = distribution_function.weighted_gmm_pdf(em._w, z, em._mu, em._sigma, poincare_function.distance)
-    # print("summed prob size ->",summed_prob.shape)
-    _, associated_distrib = summed_prob.max(-1)
     label = associated_distrib.numpy()
     label_source = y.numpy()
 

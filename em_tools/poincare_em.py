@@ -127,6 +127,7 @@ class RiemannianEM(object):
         return wik  
     
     def predict(self, z):
+        # print(self._mu)
         N, D, M = z.shape + (self._mu.shape[0],)
         pdf = df.gaussianPDF(z, self._mu, self._sigma, norm_func=self.zeta_phi.zeta) 
         p_pdf = pdf * self._w.unsqueeze(0).expand_as(pdf)

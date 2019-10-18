@@ -10,6 +10,7 @@ class PoincareOptimizer(Optimizer):
             raise ValueError("Invalid learning rate: {}".format(lr))
         defaults = dict(lr=lr)
         super(PoincareOptimizer, self).__init__(params, defaults)
+        self.eps = 1-1e-3
 
     def __setstate__(self, state):
         super(PoincareOptimizer, self).__setstate__(state)
@@ -44,9 +45,18 @@ class PoincareBallSGDAdd(PoincareOptimizer):
 class PoincareBallSGDExp(PoincareOptimizer):
     def __init__(self, params, lr=required):
         super(PoincareBallSGDExp, self).__init__(params, lr=lr)
-
+        self.first_over = False
     def _optimization_method(self, p, d_p, lr):
-        p.copy_(pf.exp(p, -lr*d_p))
+        with torch.no_grad():
+            a = pf.exp(p, -lr*d_p)
+
+            if(((a.norm(2,-1))>=self.eps).max()>0):
+                if(not self.first_over):
+                    print("Over the disk:", a.norm(2,-1).max())
+                    self.first_over = True
+                mask = a[a.norm(2,-1)>=self.eps]
+                a[a.norm(2,-1)>=self.eps] /= ((mask.norm(2,-1)+1e-2).unsqueeze(-1).expand_as(mask))
+            p.copy_(a)
 
 class PoincareBallSGAExp(PoincareOptimizer):
     def __init__(self, params, lr=required):

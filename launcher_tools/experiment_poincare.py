@@ -239,7 +239,7 @@ for i in tqdm.trange(args.epoch):
     em_alg.fit(embedding_alg.get_PoincareEmbeddings().cpu(), max_iter=args.em_iter)
     pi, mu, sigma = em_alg.get_parameters()
     pik = em_alg.get_pik(embedding_alg.get_PoincareEmbeddings().cpu())
-    total_accuracy = evaluation.accuracy_disc_product([embedding_alg.get_PoincareEmbeddings().cpu()], D.Y, [pi], [mu], [sigma], verbose=False)
+    total_accuracy = evaluation.poincare_unsupervised_em(embedding_alg.get_PoincareEmbeddings().cpu(), D.Y, args.n_gaussian, em=em_alg, verbose=False)
     print("\nPerformances joined -> " ,
         total_accuracy
     )
