@@ -50,10 +50,34 @@ D, X, Y = dataset_dict[dataset_name]()
 results = []
 
 representations = torch.load(os.path.join(args.file,"embeddings.t7"))[0]
-for i in tqdm.trange(args.n):
-    total_accuracy = evaluation.poincare_unsupervised_em(representations, D.Y, n_gaussian,  verbose=False)
-    results.append(total_accuracy)
-R = torch.Tensor(results)
-print("Maximum performances -> ", R.max().item())
-print("Mean performances -> ", R.mean().item())
-log_in.append({"evaluation_unsupervised_poincare": {"unsupervised_performances":R.tolist()}})
+# for i in tqdm.trange(args.n):
+#     total_accuracy = evaluation.poincare_unsupervised_em(representations, D.Y, n_gaussian,  verbose=False)
+#     results.append(total_accuracy)
+
+from em_tools.poincare_em import RiemannianEM
+
+em = RiemannianEM(representations.size(-1), n_gaussian, verbose=False)
+em.fit(representations, max_iter=1)
+
+import matplotlib.pyplot as plt
+import matplotlib.colors as plt_colors
+import numpy as np
+
+unique_label = np.unique(sum([ y for k, y in D.Y.items()],[]))
+colors = []
+
+for i in range(len(D.Y)):
+    colors.append(plt_colors.hsv_to_rgb([D.Y[i][0]/(len(unique_label)),0.5,0.8]))
+print(args.file)
+print(os.path.join(args.file,"poincare_visualisation_pred.png"))
+plot_tools.plot_embedding_distribution(representations, em._w, em._mu,  em._sigma, 
+                                                labels=None, N=100, colors=colors, 
+                                                save_path=os.path.join(args.file,"poincare_visualisation_pred.png"))
+
+pred = em.predict(representations)
+for i in range(len(D.Y)):
+    colors.append(plt_colors.hsv_to_rgb([pred[i]/(len(unique_label)),0.5,0.8]))
+
+plot_tools.plot_embedding_distribution(representations, em._w, em._mu,  em._sigma, 
+                                                labels=None, N=100, colors=colors, 
+                                                save_path=os.path.join(args.file,"poincare_visualisation_pred.png"))

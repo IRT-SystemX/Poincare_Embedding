@@ -136,7 +136,7 @@ def plot_embedding_distribution_multi(W, pi, mu, sigma, labels=None, N=100, colo
 
     return fig
 
-def plot_embedding_distribution(W, pi, mu, sigma,  labels=None, N=100, colors=None):
+def plot_embedding_distribution(W, pi, mu, sigma,  labels=None, N=100, colors=None, save_path=""):
 
     # TODO : labels colors
     if(labels is None):
@@ -194,6 +194,5 @@ def plot_embedding_distribution(W, pi, mu, sigma,  labels=None, N=100, colors=No
     ax.set_ylabel('Y')
     ax.set_zlabel('P')
 
-    plt.savefig("figures/embeddings_karate_node_distrib.pdf", format="pdf")
+    plt.savefig(save_path, format="png")  
 
-    return fig

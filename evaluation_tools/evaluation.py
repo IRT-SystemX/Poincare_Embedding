@@ -1,6 +1,8 @@
 import torch
 from function_tools import distribution_function, poincare_function
 from function_tools import euclidean_function as ef
+
+from em_tools.poincare_kmeans import PoincareKMeans
 from collections import Counter
 import numpy as np
 import math
@@ -273,7 +275,7 @@ def accuracy_disc_kmeans(z, y, mu, verbose=False):
     from em_tools.kmeans_hyperbolic import PoincareKMeans
     # first getting the pdf for each disc distribution
     kmeans = PoincareKMeans(n_distrib)
-    kmeans.fit(z.cuda())
+    kmeans.fit(z)
     associated_distrib =  kmeans.predict(z.cuda()).cpu()
     # print("associated distribution size ->",associated_distrib.shape)
     # print("associated distribution ->",associated_distrib)
@@ -288,7 +290,50 @@ def accuracy_disc_kmeans(z, y, mu, verbose=False):
     else:
         return accuracy_huge_disc_product(label, label_source, sources_number),std.max(), std.mean(), std
 
+def poincare_unsupervised_kmeans(z, y, n_centroid, verbose=False):
+    n_example = len(z)
+    y = torch.LongTensor([y[i][0]-1 for i in range(len(y))])
 
+    # first getting the pdf for each disc distribution
+    kmeans = PoincareKMeans(n_centroid)
+    kmeans.fit(z)
+    associated_distrib =  kmeans.predict(z)
+
+    label = associated_distrib.numpy()
+    label_source = y.numpy()
+
+    std = kmeans.getStd(z)
+    if(n_centroid <= 6):
+        return accuracy_small_disc_product(label, label_source, n_centroid), std.max(), std.mean(), std
+    else:
+        return accuracy_huge_disc_product(label, label_source, n_centroid),std.max(), std.mean(), std
+
+
+
+
+def poincare_unsupervised_em(z, y, n_distrib, verbose=False):
+    y = torch.LongTensor([y[i][0]-1 for i in range(len(y))])
+    from em_tools.poincare_em import RiemannianEM
+
+    em = RiemannianEM(z.size(-1), n_distrib, verbose=False)
+    em.fit(z, max_iter=1)
+    # kmeans = PoincareKMeans(n_distrib)
+    # kmeans.fit(z)
+    # print(kmeans.centroids)
+    associated_distrib = em.predict(z)
+    # print(em._mu) 
+    # print(associated_distrib)
+
+    summed_prob = distribution_function.weighted_gmm_pdf(em._w, z, em._mu, em._sigma, poincare_function.distance)
+    # print("summed prob size ->",summed_prob.shape)
+    _, associated_distrib = summed_prob.max(-1)
+    label = associated_distrib.numpy()
+    label_source = y.numpy()
+
+    if(n_distrib <= 6):
+        return accuracy_small_disc_product(label, label_source, n_distrib)
+    else:
+        return accuracy_huge_disc_product(label, label_source, n_distrib)
 
 
 def accuracy_euclidean_kmeans(z, y, mu, verbose=False):

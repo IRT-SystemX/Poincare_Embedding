@@ -41,8 +41,23 @@ if(dataset_name not in dataset_dict):
     print(list(dataset_dict.keys()))
     quit()
 
+results = []
+std_kmeans = []
+representations = torch.load(os.path.join(args.file,"embeddings.t7"))[0]
 
+for i in tqdm.trange(args.n):
+    total_accuracy, stdmx, stdmn, std = evaluation.accuracy_disc_kmeans(representations, D.Y, torch.zeros(n_gaussian),  verbose=False)
+    results.append(total_accuracy)
+    std_kmeans.append(std.tolist())
 print("Loading Corpus ")
+
+R = torch.Tensor(results)
+S = torch.Tensor(std_kmeans)
+
+print("MEANS -> ", R.mean())
+print("MAX -> ", R.max())
+print("MIN -> ", R.min())
+
 D, X, Y = dataset_dict[dataset_name]()
 
 results = []

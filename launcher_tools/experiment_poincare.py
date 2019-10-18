@@ -6,18 +6,18 @@ import pytorch_categorical
 from torch.utils.data import DataLoader
 import os
 from multiprocessing import Process, Manager
-from embedding_tools.poincare_embeddings_graph_multi import RiemannianEmbedding as PEmbed
-from em_tools.poincare_em_multi import RiemannianEM as PEM
+from embedding_tools.poincare_embedding import PoincareEmbedding as PEmbed
+from em_tools.poincare_em import RiemannianEM as PEM
 from data_tools import corpora_tools
 from data_tools import corpora
 from data_tools import data_tools
 from evaluation_tools import evaluation
 from visualisation_tools import plot_tools
-from launcher_tools import logger
+
 from optim_tools import optimizer
 import random 
 import numpy as np
-from data_tools import config
+from data_tools import config, logger
 
 
 parser = argparse.ArgumentParser(description='Start an experiment')
@@ -73,7 +73,7 @@ parser.add_argument("--seed", dest="seed", type=int, default=42,
                     help="the seed used for sampling random numbers in the experiment")  
 parser.add_argument('--force-rw', dest="force_rw", action="store_false", default=True,
                     help="if set will automatically compute a new random walk for the experiment") 
-parser.add_argument('--loss-aggregation', dest="loss_aggregation", type=str, default="mean",
+parser.add_argument('--loss-aggregation', dest="loss_aggregation", type=str, default="sum",
                     help="The type of loss aggregation sum or mean")                                       
 args = parser.parse_args()
 
@@ -192,6 +192,7 @@ print(d_rw[1][0].size())
 
 print("Merging dataset")
 embedding_dataset = corpora_tools.zip_datasets(dataset_repeated, d_rw)
+print(len(embedding_dataset[0]))
 print(embedding_dataset[29][-1][20:25])
 training_dataloader = DataLoader(embedding_dataset, 
                             batch_size=args.batch_size, 
@@ -221,12 +222,11 @@ if(args.size == 2):
 alpha, beta = args.init_alpha, args.init_beta
 embedding_alg = PEmbed(len(dataset_index), size=args.size, lr=args.init_lr, cuda=args.cuda, negative_distribution=frequency,
                         optimizer_method=optimizer_dict[args.embedding_optimizer], aggregation=aggregation_dict[args.loss_aggregation])
-# em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=True)
+em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=True)
 pi, mu, sigma = None, None, None
 pik = None
 epoch_embedding = args.epoch_embedding_init
 for i in tqdm.trange(args.epoch):
-    print("LALALALAL")
     if(i==1):
         embedding_alg.set_lr(args.lr)
         alpha, beta = args.alpha, args.beta
@@ -235,7 +235,7 @@ for i in tqdm.trange(args.epoch):
     embedding_alg.fit(training_dataloader, alpha=alpha, beta=beta, gamma=args.gamma, max_iter=epoch_embedding,
                         pi=pik, mu=mu, sigma=sigma, negative_sampling=args.negative_sampling)
 
-    em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=True)
+    # em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=True)
     em_alg.fit(embedding_alg.get_PoincareEmbeddings().cpu(), max_iter=args.em_iter)
     pi, mu, sigma = em_alg.get_parameters()
     pik = em_alg.get_pik(embedding_alg.get_PoincareEmbeddings().cpu())
@@ -262,13 +262,7 @@ print("\nPerformances joined -> " ,
     total_accuracy
 )
 logger_object.append({"accuracy": total_accuracy})
-#evaluate performances on all disc
-total_accuracy, stdmx, stdmean, all_std = evaluation.accuracy_disc_kmeans(representation_d[0], D.Y, mu_d[0], verbose=False)
-print("\nPerformances  kmeans-> " ,
-    total_accuracy
-)
 
-logger_object.append({"accuracy_kmeans": total_accuracy})
 if(args.save):
     import matplotlib.pyplot as plt
     import matplotlib.colors as plt_colors

@@ -5,18 +5,18 @@ import numpy as np
 import tqdm
 
 
-from em_tools import kmeans_hyperbolic as kmh
+from em_tools import poincare_kmeans as kmh
 from function_tools import distribution_function as df
 from function_tools import poincare_function as pf
 from function_tools import poincare_alg as pa
 
 class RiemannianEM(object):
-    def __init__(self, dim, n_gaussian, init_mod="rand", verbose=True):
+    def __init__(self, dim, n_gaussian, init_mod="kmeans-hyperbolic", verbose=True):
         self._n_g = n_gaussian
         self._d = dim
         self._distance = pf.distance
 
-        self._mu = (torch.rand(n_gaussian, dim) -0.5)/dim
+        self._mu = (torch.rand(n_gaussian, dim) - 0.5)/dim
         self._sigma = torch.rand(n_gaussian)/10 +0.2
         self._w = torch.ones(n_gaussian)/n_gaussian
 
@@ -40,11 +40,12 @@ class RiemannianEM(object):
 
     def update_mu(self, z, wik, lr_mu, tau_mu, g_index=-1, max_iter=50):
         N, D, M = z.shape + (wik.shape[-1],)
+        # print(self._mu)
         if(g_index>0):
             self._mu[g_index] = pa.barycenter(z, wik[:, g_index], lr_mu, tau_mu, max_iter=max_iter, normed=True).squeeze()
         else:
             self._mu = pa.barycenter(z.unsqueeze(1).expand(N, M, D), wik, lr_mu,  tau_mu, max_iter=max_iter, normed=True).squeeze()
-
+        # print("1",self._mu)
     def update_sigma(self, z, wik, g_index=-1):
         N, D, M = z.shape + (self._mu.shape[0],)
         if(g_index>0):
@@ -52,21 +53,22 @@ class RiemannianEM(object):
             self.sigma[:, g_index] = self.phi(dtm)
         else:
             dtm = ((self._distance(z.unsqueeze(1).expand(N,M,D), self._mu.unsqueeze(0).expand(N,M,D))**2) * wik).sum(0)/wik.sum(0)
-            print("dtms ", dtm.size())
+            # print("dtms ", dtm.size())
             self.sigma = self.zeta_phi.phi(dtm)        
 
     def _expectation(self, z):
         # computing wik 
         pdf = df.gaussianPDF(z, self._mu, self._sigma, norm_func=self.zeta_phi.zeta) 
-        print("pdf.size()->", pdf.size())
+        # print("pdf.size()->", pdf.size())
         if(pdf.mean() != pdf.mean()):
             print("EXPECTATION : pdf contain not a number elements")
             quit()
-        p_pdf = torch.clamp(pdf * self._w.unsqueeze(0).expand_as(pdf), min=1e-5)
-        if(p_pdf.sum(1).min() == 0):
-            print("EXPECTATION : pdf.sum(1) contain zero")
-            quit()
-        wik = p_pdf/p_pdf.sum(1, keepdim=True).expand_as(pdf)
+        p_pdf = pdf * self._w.unsqueeze(0).expand_as(pdf)
+        if(p_pdf.sum(-1).min() == 0):
+            print("EXPECTATION : pdf.sum(-1) contain zero")
+            p_pdf[p_pdf.sum(-1) == 0] = 1e-8
+            
+        wik = p_pdf/p_pdf.sum(-1, keepdim=True).expand_as(pdf)
         if(wik.mean() != wik.mean()):
             print("EXPECTATION : wik contain not a number elements")
             quit()
@@ -77,7 +79,7 @@ class RiemannianEM(object):
             quit()
         return wik
 
-    def _maximization(self, z, wik, lr_mu=5e-2, tau_mu=5e-3, max_iter_bar=math.inf):
+    def _maximization(self, z, wik, lr_mu=5e-3, tau_mu=1e-4, max_iter_bar=math.inf):
         self.update_w(z, wik)
         if(self._w.mean() != self._w.mean()):
             print("UPDATE : w contain not a number elements")
@@ -98,7 +100,7 @@ class RiemannianEM(object):
             if(self._init_mod == "kmeans-hyperbolic"):
                 if(self._verbose):
                     print("Initialize means using kmeans hyperbolic algorithm")
-                km = kmh.PoincareKMeans(self._n_g)
+                km = kmh.PoincareKMeansNInit(self._n_g, n_init=20)
                 km.fit(z)
                 self._mu = km.cluster_centers_
             if(self._verbose):
@@ -116,9 +118,16 @@ class RiemannianEM(object):
     def get_pik(self, z):
         N, D, M = z.shape + (self._mu.shape[0],)
         pdf = df.gaussianPDF(z, self._mu, self._sigma, norm_func=self.zeta_phi.zeta) 
-        # print("pdf", pdf)
         p_pdf = pdf * self._w.unsqueeze(0).expand_as(pdf)
-        # print("ppdf", p_pdf)
-        # print(p_pdf.sum(0, keepdim=True).expand_as(pdf)  )
-        wik = p_pdf/p_pdf.sum(0, keepdim=True).expand_as(pdf)  
+        if(p_pdf.sum(-1).min() == 0):
+            print("EXPECTATION : pdf.sum(-1) contain zero")
+            #same if we set = 1
+            p_pdf[p_pdf.sum(-1) == 0] = 1e-8
+        wik = p_pdf/p_pdf.sum(-1, keepdim=True).expand_as(pdf)
         return wik  
+    
+    def predict(self, z):
+        N, D, M = z.shape + (self._mu.shape[0],)
+        pdf = df.gaussianPDF(z, self._mu, self._sigma, norm_func=self.zeta_phi.zeta) 
+        p_pdf = pdf * self._w.unsqueeze(0).expand_as(pdf)
+        return p_pdf.max(-1)[1]

@@ -1,16 +1,23 @@
 import math
+import torch
+from torch import nn
 from function_tools import poincare_function as pf
 
 # z and wik must have same dimenssion except if wik is not given
 def barycenter(z, wik=None, lr=5e-3, tau=5e-3, max_iter=math.inf, distance=pf.distance, normed=False):
+
     if(wik is None):
         wik = 1.
+        barycenter = z.mean(0, keepdim=True)
+
     else:
+        # print("1",wik.size())
         wik = wik.unsqueeze(-1).expand_as(z)
-    if(z.dim()>1):
-        barycenter = z.mean(0, keepdim=True)
-    else:
-        barycenter = z.mean(0, keepdim=True)
+        # print("2",wik.size())*
+        # barycenter = z.mean(0, keepdim=True)
+        barycenter = (z*wik).sum(0, keepdim=True)/wik.sum(0)
+        #print(barycenter)
+        # print()
     if(len(z) == 1):
         return z
     iteration = 0
@@ -19,15 +26,28 @@ def barycenter(z, wik=None, lr=5e-3, tau=5e-3, max_iter=math.inf, distance=pf.di
     while(cvg>tau and max_iter>iteration):
 
         iteration+=1
-        grad_tangent = pf.log(barycenter.expand_as(z), z) * wik
+        if(type(wik) != float):
+            grad_tangent = 2 * pf.log(barycenter.expand_as(z), z) * wik 
+        else:
+            grad_tangent = 2 * pf.log(barycenter.expand_as(z), z)
+        
+        #print(type(wik))
         if(normed):
+            # print(grad_tangent.size())
             if(type(wik) != float):
+                # print(wik.sum(0, keepdim=True))
                 grad_tangent /= wik.sum(0, keepdim=True).expand_as(wik)
             else:
                 grad_tangent /= len(z)
         cc_barycenter = pf.exp(barycenter, lr * grad_tangent.sum(0))
         cvg = distance(cc_barycenter, barycenter).max().item()
+        # print(cvg)
         barycenter = cc_barycenter
+    if(type(wik) != float):
+            # to debug ponderate version
+            #print(cvg, iteration, max_iter) 
+        pass
+
     return barycenter
 
 def test():

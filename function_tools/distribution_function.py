@@ -102,9 +102,9 @@ def euclidean_norm_factor(sigma, N):
     return 1/((2*math.pi)**(N/2) * torch.sqrt(sigma))
 
 def gaussianPDF(x, mu, sigma, distance=pf.distance, norm_func=zeta):
-    print(x.shape, mu.shape)
+    # print(x.shape, mu.shape)
     N, D, M = x.shape + (mu.shape[0],)
-    print("N, M, D ->", N, M, D)
+    # print("N, M, D ->", N, M, D)
     # x <- N x M x D
     # mu <- N x M x D
     # sigma <- N x M
@@ -112,12 +112,12 @@ def gaussianPDF(x, mu, sigma, distance=pf.distance, norm_func=zeta):
     mu_rd = mu.unsqueeze(0).expand(N, M, D)
     sigma_rd = sigma.unsqueeze(0).expand(N, M)
     # computing numerator
-    num = torch.exp((-(distance(x_rd, mu_rd)**2))/(2*(sigma**2)))
+    num = torch.exp((-(distance(x_rd, mu_rd)**2))/(2*(sigma_rd**2)))
 
     den = norm_func(sigma)
-    print("sigma",sigma)
-    print(num)
-    print("den ", den)
+    # print("sigma",sigma)
+    # print(num)
+    # print("den ", den)
     return num/den.unsqueeze(0).expand(N, M)
 
 ####################################### TESTING #####################################
