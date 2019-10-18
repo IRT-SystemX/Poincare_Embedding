@@ -15,7 +15,7 @@
 \newcommand{\issue}{\textcolor{red}{ISSUE} : }
 \newcommand{\pending}{\textcolor{RedOrange}{PENDING} : }
 
-\title{Report on Hyperpolic Community detection}
+\title{Technical Report on Hyperpolic Community detection}
 \author{}
 \begin{document}
     \maketitle
@@ -142,40 +142,18 @@
             \hline
             Dataset & N Random Walk& Dimension & performances \\
             \hline
-            karate & 1 & 2 & $94.12$ \\
-            karate & 5 & 2 & $94.12$ \\    
+            karate & 1 & 2 & $91.17$ \\
+
             polblogs & 1 & 2 & $-$ \\
-            polblogs & 5 & 2 & $-$ \\
-            polbooks & 1 & 2 & $-$ \\
-            polbooks & 5 & 2 & $80.95$\\      
+
+            polbooks & 1 & 2 & $82.857$ \\
+
             Football & 1 & 2 & $74.78$ \\
-            Football & 5 & 2 & $77.39$ \\
+
             DBLP & 1 & 2 & $71.69$\\
-            DBLP & 1 & 5 & $71.69$\\
+
             \hline
         \end{tabular}
      \end{table}
-    \begin{figure}[!ht]
-        \centering
-        \begin{subfigure}[b]{0.48\linewidth}
-            \centering
-            \includegraphics[scale=0.5]{media/dblp/fig_epoch_0.png}
 
-        \end{subfigure}
-        \begin{subfigure}[b]{0.48\linewidth}
-            \centering
-            \includegraphics[scale=0.5]{media/dblp/fig_epoch_1.png}
-        \end{subfigure}
-        \begin{subfigure}[b]{0.48\linewidth}
-            \centering
-            \includegraphics[scale=0.5]{media/dblp/fig_epoch_2.png}
-
-        \end{subfigure}
-        \begin{subfigure}[b]{0.48\linewidth}
-            \centering
-            \includegraphics[scale=0.5]{media/dblp/fig_epoch_3.png}
-        \end{subfigure}
-        \caption{Evolution of the algorithme over iterations (4 first iteration)}
-        \label{fig:embedding}
-    \end{figure}
 \end{document}
