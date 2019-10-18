@@ -50,11 +50,11 @@ class RiemannianEM(object):
         N, D, M = z.shape + (self._mu.shape[0],)
         if(g_index>0):
             dtm = ((self._distance(z, self._mu[:,g_index].expand(N))**2) * wik[:, g_index]).sum()/wik[:, g_index].sum()
-            self.sigma[:, g_index] = self.phi(dtm)
+            self._sigma[:, g_index] = self.phi(dtm)
         else:
             dtm = ((self._distance(z.unsqueeze(1).expand(N,M,D), self._mu.unsqueeze(0).expand(N,M,D))**2) * wik).sum(0)/wik.sum(0)
             # print("dtms ", dtm.size())
-            self.sigma = self.zeta_phi.phi(dtm)        
+            self._sigma = self.zeta_phi.phi(dtm)        
 
     def _expectation(self, z):
         # computing wik 

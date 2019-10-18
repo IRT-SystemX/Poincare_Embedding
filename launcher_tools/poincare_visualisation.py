@@ -57,7 +57,7 @@ representations = torch.load(os.path.join(args.file,"embeddings.t7"))[0]
 from em_tools.poincare_em import RiemannianEM
 
 em = RiemannianEM(representations.size(-1), n_gaussian, verbose=False)
-em.fit(representations, max_iter=1)
+em.fit(representations, max_iter=5)
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as plt_colors
