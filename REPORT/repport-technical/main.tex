@@ -1,0 +1,57 @@
+\documentclass{article}
+\usepackage{geometry}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\usepackage{subcaption}
+
+\usepackage[dvipsnames]{xcolor}
+\newcommand{\todo}{\textcolor{blue}{TODO} : }
+\newcommand{\done}{\textcolor{LimeGreen}{DONE} : }
+\newcommand{\doing}{\textcolor{Purple}{DOING} : }
+\newcommand{\issue}{\textcolor{red}{ISSUE} : }
+\newcommand{\pending}{\textcolor{RedOrange}{PENDING} : }
+
+\title{Report on Hyperpolic Community detection}
+\author{}
+\begin{document}
+    \maketitle
+    \section{Introduction}
+    The objective of this repport is to give tools and insight to execute and run the current project. Learning embedding within the poincare model is a difficult task much more than euclidean usual learning.
+    Optimization in hyperbolic space often leads to machine precision issues and tweeking very precisely hyperparameters.
+    Furthermore, coordinate of vectors is meaningfull contrary to euclidean, thus most centered element often means most general concept or in our work a most central nodes (e.g nodes with high degree relatively to others). This last point is especially important when develloping a cost function using negative sampling, indeed sampling negatives nodes randomly will accentuate the initial behaviour while sampling nodes based on the degree will soften it.
+
+    In this document we will go through issues encountered, by showing examples of errors that can occures and behaviour depending on model tunning.
+
+
+    \section{KMeans and EM algorithm within Poincaré model}
+        \subsection{Barycenter hyper-parameters}
+
+        \subsection{EM:  Machine precision}
+            %Although that 
+            What to do : never clamp unormalised wik 
+
+        \subsection{EM: Updating parameters}
+            \paragraph{Updating $\mu$ : }
+            Because of the gradient descent (or ascent) used for updating $\mu$,this step is subject to failure or taking more or less time to process.
+            Let be the two initalisation possible to start the gradient descent: 
+            \begin{itemize}
+                \item[$\circ$]  $b_k = \frac{1}{n}\sum \limits_{i=1}^n x_i$
+                \item[$\circ$]  $b_k = \frac{1}{\sum \limits_{j=1}^n w_{jk}}\sum \limits_{i=1}^n x_iw_{ik}$ 
+            \end{itemize}
+            Obviously the second initalisation will lead to make less iteration to reach the convergence.
+
+    \section{Learning embeddings}
+            \subsection{Batch, Mini-batch, sum or mean}
+
+            \subsection{Negative sampling}
+
+            \subsection{Compareason of optimization methods}
+
+            \subsection{Going out of the ball border}
+            
+
+\end{document}
