@@ -6,17 +6,17 @@ from torch.nn import functional as tf
 
 class SGALoss(object):
     @staticmethod
-    def O1(x, y, distance=None):
+    def O1(x, y, distance=None, coef=1.):
         if(distance is None):
             distance = pf.distance
-        return tf.logsigmoid(-((distance(x, y))**2))
+        return tf.logsigmoid(-torch.clamp(((distance(x, y) * coef)**2), max=100))
 
     @staticmethod
-    def O2(x, y, z, distance=None):
+    def O2(x, y, z, distance=None, coef=1.):
         if(distance is None):
             distance = pf.distance
-        y_reshape = y.unsqueeze(2).expand_as(z)
-        return SGALoss.O1(x, y, distance=distance) + tf.logsigmoid((distance(y_reshape,z))**2).sum(-1)
+        y_reshape = y.unsqueeze(-2).expand_as(z)
+        return SGALoss.O1(x, y, distance=distance, coef=coef) + tf.logsigmoid((distance(y_reshape,z)*coef)**2).sum(-1)
     
     # x = BxD
     # pi = BxM
@@ -117,16 +117,16 @@ class SGALoss(object):
 
 class SGDLoss(object):
     @staticmethod
-    def O1(x, y, distance=None):
+    def O1(x, y, distance=None, coef=1.):
         if(distance is None):
             distance = pf.distance
-        return -SGALoss.O1(x, y, distance=distance)
+        return -SGALoss.O1(x, y, distance=distance, coef=coef)
 
     @staticmethod
-    def O2(x, y, z, distance=None):
+    def O2(x, y, z, distance=None, coef=1.):
         if(distance is None):
             distance = pf.distance
-        return -SGALoss.O2(x, y, z, distance=distance)
+        return -SGALoss.O2(x, y, z, distance=distance, coef=coef)
     
     # x = BxD
     # pi = BxM

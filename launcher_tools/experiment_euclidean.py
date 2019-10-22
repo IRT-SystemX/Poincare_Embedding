@@ -18,7 +18,7 @@ from launcher_tools import logger
 from optim_tools import optimizer
 import random 
 import numpy as np
-
+from data_tools import config
 parser = argparse.ArgumentParser(description='Start an experiment')
 parser.add_argument('--init-lr', dest="init_lr", type=float, default=-1.0,
                     help="Learning rate for the first embedding step")
@@ -70,13 +70,19 @@ parser.add_argument("--batch-size", dest="batch_size", type=int, default=512,
 parser.add_argument("--seed", dest="seed", type=int, default=42,
                     help="the seed used for sampling random numbers in the experiment")     
 parser.add_argument('--force-rw', dest="force_rw", action="store_false", default=True,
-                    help="if set will automatically compute a new random walk for the experiment")                
+                    help="if set will automatically compute a new random walk for the experiment")   
+parser.add_argument('--loss-aggregation', dest="loss_aggregation", type=str, default="sum",
+                    help="The type of loss aggregation sum or mean")                
 args = parser.parse_args()
 
 # set the seed for random sampling
 torch.manual_seed(args.seed)
 np.random.seed(args.seed)
 random.seed(a=args.seed)
+
+
+global_config = config.ConfigurationFile("./data/config.conf")
+saving_folder = global_config["save_folder"]
 
 
 dataset_dict = { "karate": corpora.load_karate,
@@ -89,6 +95,7 @@ dataset_dict = { "karate": corpora.load_karate,
             "adjnoun": corpora.load_adjnoun
           }
 
+aggregation_dict = { "sum": torch.sum, "mean": torch.mean}
 optimizer_dict = {"sgd": optim.SGD}
 
 # if(args.save):
@@ -103,7 +110,10 @@ if(args.dataset not in dataset_dict):
     print("Dataset " + args.dataset + " does not exist, please select one of the following : ")
     print(list(dataset_dict.keys()))
     quit()
-
+if(args.loss_aggregation not in aggregation_dict):
+    print("Aggregation method " + args.dataset + " does not exist, please select one of the following : ")
+    print(list(aggregation_dict.keys()))
+    quit()
 if(args.embedding_optimizer not in optimizer_dict):
     print("Optimizer " + args.embedding_optimizer + " does not exist, please select one of the following : ")
     print(list(optimizer_dict.keys()))
@@ -126,7 +136,10 @@ dataset_index = corpora_tools.from_indexable(torch.arange(0,len(D),1).unsqueeze(
 print("Dataset Size -> ", len(D))
 
 
-
+if(args.save):
+    os.makedirs(os.path.join(saving_folder,args.id+"/"), exist_ok=True)
+    logger_object = logger.JSONLogger(os.path.join(saving_folder,args.id+"/log.json"))
+    logger_object.append(vars(args))
 D.set_path(False)
 
 # negative sampling distribution
@@ -166,10 +179,7 @@ else:
     d_rw.set_walk(args.walk_lenght, 1.0)
     d_rw.set_path(True)
     d_rw = corpora.ContextCorpus(d_rw, context_size=args.context_size, precompute=args.precompute_rw)   
-if(args.save):
-    os.makedirs("/local/gerald/AISTAT_RESULTS/"+args.id+"/", exist_ok=True)
-    logger_object = logger.JSONLogger("/local/gerald/AISTAT_RESULTS/"+args.id+"/log.json")
-    logger_object.append(vars(args))
+
 # neigbhor dataset
 d_v = D.light_copy()
 d_v.set_walk(1, 1.0)
@@ -209,8 +219,8 @@ if(args.size == 2):
 
 alpha, beta = args.init_alpha, args.init_beta
 embedding_alg = PEmbed(len(embedding_dataset), size=args.size, lr=args.init_lr, cuda=args.cuda, negative_distribution=frequency,
-                        optimizer_method=optimizer_dict[args.embedding_optimizer])
-em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=True)
+                        optimizer_method=optimizer_dict[args.embedding_optimizer], aggregation=aggregation_dict[args.loss_aggregation] )
+em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans", verbose=True)
 pi, mu, sigma = None, None, None
 pik = None
 epoch_embedding = args.epoch_embedding_init
@@ -241,7 +251,22 @@ logger_object.append({"accuracy_kmeans": total_accuracy})
 import matplotlib.pyplot as plt
 import matplotlib.colors as plt_colors
 import numpy as np
-torch.save(representation_d, "/local/gerald/AISTAT_RESULTS/"+args.id+"/embeddings.t7")
+torch.save(representation_d, os.path.join(saving_folder,args.id+"/embeddings.t7"))
+
+# we store colors here
+if(args.size == 2):
+    import matplotlib.pyplot as plt
+    import matplotlib.colors as plt_colors
+    import numpy as np
+    unique_label = np.unique(sum([ y for k, y in D.Y.items()],[]))
+    colors = []
+
+    for i in range(len(D.Y)):
+        colors.append(plt_colors.hsv_to_rgb([D.Y[i][0]/(len(unique_label)),0.5,0.8]))
+
+    plot_tools.euclidean_plot(representation_d[0], 
+                                                labels=None, colors=colors, 
+                                                save_path=os.path.join(saving_folder,args.id+"/fig.png"))
 # torch.save( {"pi": pi_d, "mu":mu_d, "sigma":sigma_d}, "RESULTS/"+args.id+"/pi_mu_sigma.t7")
 
 

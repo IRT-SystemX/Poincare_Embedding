@@ -44,8 +44,6 @@ def zeta(sigma, N ,binomial_coefficient=None):
     binomial_coefficient = binomial_coefficient.unsqueeze(-1).expand(N,M).float()
     range_ = torch.arange(N ,device=sigma.device).unsqueeze(-1).expand(N,M).float()
     ones_ = torch.ones(N ,device=sigma.device).unsqueeze(-1).expand(N,M).float()
-    
-    sig_ok =  ((N-1) - 2 * range_)**2 * sigma_u**2 * 0.5
 
     alternate_neg = (-ones_)**(range_)
     ins = (((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2)
@@ -53,20 +51,10 @@ def zeta(sigma, N ,binomial_coefficient=None):
     as_o = (1+erf_approx(ins)) * torch.exp(ins_squared)
     bs_o = binomial_coefficient * as_o
     r = alternate_neg * bs_o
-    nd = 0
-
-    ins = (((N-1) - 2 * range_)[:,nd]  * sigma_u[:,nd])/math.sqrt(2)
-    ins_s = ((((N-1) - 2 * range_)[:,nd]  * sigma_u[:,nd])/math.sqrt(2))**2
-
-    as_o = (1+erf_approx(ins)) * torch.exp(ins_s)
-
-    bs_o = binomial_coefficient[:, nd] * as_o
-
-    bso_o = bs_o * ((-ones_)**(range_))[:,nd]
-    #r = ((-ones_)**(range_) * binomial_coefficient * torch.exp(sig_ok) * (1 + erf_approx(sig_ok /math.sqrt(2))))
-    #* (1/(2**(N-1)))
 
     return ZETA_CST * sigma * r.sum(0) * (1/(2**(N-1)))
+
+
 def log_grad_zeta(x, N):
     sigma = nn.Parameter(x)
     (zeta(sigma, N).log()).sum().backward()
@@ -102,9 +90,9 @@ def euclidean_norm_factor(sigma, N):
     return 1/((2*math.pi)**(N/2) * torch.sqrt(sigma))
 
 def gaussianPDF(x, mu, sigma, distance=pf.distance, norm_func=zeta):
-    print(x.shape, mu.shape)
+    # print(x.shape, mu.shape)
     N, D, M = x.shape + (mu.shape[0],)
-    print("N, M, D ->", N, M, D)
+    # print("N, M, D ->", N, M, D)
     # x <- N x M x D
     # mu <- N x M x D
     # sigma <- N x M
@@ -112,12 +100,12 @@ def gaussianPDF(x, mu, sigma, distance=pf.distance, norm_func=zeta):
     mu_rd = mu.unsqueeze(0).expand(N, M, D)
     sigma_rd = sigma.unsqueeze(0).expand(N, M)
     # computing numerator
-    num = torch.exp((-(distance(x_rd, mu_rd)**2))/(2*(sigma**2)))
+    num = torch.exp((-(distance(x_rd, mu_rd)**2))/(2*(sigma_rd**2)))
 
     den = norm_func(sigma)
-    print("sigma",sigma)
-    print(num)
-    print("den ", den)
+    # print("sigma",sigma)
+    # print(num)
+    # print("den ", den)
     return num/den.unsqueeze(0).expand(N, M)
 
 ####################################### TESTING #####################################

@@ -1,6 +1,8 @@
 import torch
 from function_tools import distribution_function, poincare_function
 from function_tools import euclidean_function as ef
+
+from em_tools.poincare_kmeans import PoincareKMeans
 from collections import Counter
 import numpy as np
 import math
@@ -274,21 +276,58 @@ def accuracy_disc_kmeans(z, y, mu, verbose=False):
     # first getting the pdf for each disc distribution
     kmeans = PoincareKMeans(n_distrib)
     kmeans.fit(z)
-    associated_distrib =  kmeans.predict(z)
+    associated_distrib =  kmeans.predict(z.cuda()).cpu()
     # print("associated distribution size ->",associated_distrib.shape)
     # print("associated distribution ->",associated_distrib)
     # print("source labels ->", y)
     label = associated_distrib.numpy()
     label_source = y.numpy()
     sources_number = n_distrib
-    std =   kmeans.getStd(z)
+    std =   kmeans.getStd(z.cuda())
     if(n_distrib <= 6):
 
         return accuracy_small_disc_product(label, label_source, sources_number), std.max(), std.mean(), std
     else:
         return accuracy_huge_disc_product(label, label_source, sources_number),std.max(), std.mean(), std
 
+def poincare_unsupervised_kmeans(z, y, n_centroid, verbose=False):
+    n_example = len(z)
+    y = torch.LongTensor([y[i][0]-1 for i in range(len(y))])
 
+    # first getting the pdf for each disc distribution
+    kmeans = PoincareKMeans(n_centroid)
+    kmeans.fit(z)
+    associated_distrib =  kmeans.predict(z)
+
+    label = associated_distrib.numpy()
+    label_source = y.numpy()
+
+    std = kmeans.getStd(z)
+    if(n_centroid <= 6):
+        return accuracy_small_disc_product(label, label_source, n_centroid), std.max(), std.mean(), std
+    else:
+        return accuracy_huge_disc_product(label, label_source, n_centroid),std.max(), std.mean(), std
+
+
+
+
+def poincare_unsupervised_em(z, y, n_distrib, em=None, verbose=False):
+    y = torch.LongTensor([y[i][0]-1 for i in range(len(y))])
+    from em_tools.poincare_em import RiemannianEM
+    if(em is None):
+        em = RiemannianEM(z.size(-1), n_distrib, verbose=False)
+        em.fit(z, max_iter=1)
+
+    # print(em._mu)
+    associated_distrib = em.predict(z)
+
+    label = associated_distrib.numpy()
+    label_source = y.numpy()
+
+    if(n_distrib <= 6):
+        return accuracy_small_disc_product(label, label_source, n_distrib)
+    else:
+        return accuracy_huge_disc_product(label, label_source, n_distrib)
 
 
 def accuracy_euclidean_kmeans(z, y, mu, verbose=False):
@@ -298,7 +337,7 @@ def accuracy_euclidean_kmeans(z, y, mu, verbose=False):
     y = torch.LongTensor([y[i][0]-1 for i in range(len(y))])
     from sklearn.cluster import KMeans
     # first getting the pdf for each disc distribution
-    kmeans = KMeans(n_distrib, n_init=1)
+    kmeans = KMeans(n_distrib, n_init=1, init="random")
     kmeans.fit(z.numpy())
     associated_distrib =  kmeans.predict(z.numpy())
     # print("associated distribution size ->",associated_distrib.shape)

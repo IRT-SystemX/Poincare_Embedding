@@ -1,0 +1,3 @@
+CUDA_VISIBLE_DEVICES=3 python3.7 launcher_tools/experiment_poincare.py --dataset books  --n-gaussian 3 --walk-lenght 20 --precompute-rw 1 --epoch-embedding 20  --epoch-embedding-init 150 --beta 2.  --alpha 0.1 --gamma .1 --lr 1e-4   --negative-sampling  10  --context-size 5 --epoch 50  --cuda --embedding-optimizer exphsgd  --em-iter 4  --id polbooks-2D-EM-02 --size 2 --seed 178 
+
+CUDA_VISIBLE_DEVICES=3 python3.7 launcher_tools/experiment_poincare.py --dataset books  --n-gaussian 3 --walk-lenght 20 --precompute-rw 5 --epoch-embedding 20  --epoch-embedding-init 150 --beta 2.  --alpha 0.1 --gamma .1 --lr 1e-4   --negative-sampling  10  --context-size 5 --epoch 50  --cuda --embedding-optimizer exphsgd  --em-iter 4  --id polbooks-2D-EM-01 --size 2 --seed 179 

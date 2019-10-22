@@ -36,8 +36,8 @@ class PoincareDistance2(torch.autograd.Function):
     def forward(ctx, x, y):
         with torch.no_grad():
             # eps = torch.randu(x.shape[-1], device=x.device)
-            x_norm = torch.sum(x ** 2, dim=-1)
-            y_norm = torch.sum(y ** 2, dim=-1)
+            x_norm = torch.clamp(torch.sum(x ** 2, dim=-1), 0, 1-5e-4)
+            y_norm = torch.clamp(torch.sum(x ** 2, dim=-1), 0, 1-5e-4)
             d_norm = torch.sum((x-y) ** 2, dim=-1)
             cc = 1+2*d_norm/((1-x_norm)*(1-y_norm)) 
             dist = torch.log(cc + torch.sqrt(cc**2-1))
@@ -146,6 +146,11 @@ def exp(k, x):
     factor = torch.tanh(lambda_k * norm_x)
     res = add(k, direction*factor)
     if(0 != len((norm_x==0).nonzero())):
+        # print("exp zero")
+        # print((norm_x == 0).dim()
+        # print(res.size())
+        # print(res[norm_x == 0].size())
+        # print(k[norm_x == 0].size())
         res[norm_x == 0] = k[norm_x == 0]
     return res
 
