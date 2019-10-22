@@ -101,6 +101,9 @@ dataset_dict = { "karate": corpora.load_karate,
             "polblog": corpora.load_polblogs,
             "adjnoun": corpora.load_adjnoun
           }
+dataset_type = { "WeightedFlatCorpus": corpora.load_karate,
+            "FlatCorpus": corpora.load_football
+          }
 aggregation_dict = { "sum": torch.sum, "mean": torch.mean}
 
 optimizer_dict = {"addhsgd": optimizer.PoincareBallSGDAdd,
