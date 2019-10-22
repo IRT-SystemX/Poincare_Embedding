@@ -33,7 +33,7 @@
         \subsection{EM:  Machine precision}
             %Although that 
             What to do : never clamp unormalised wik 
-
+        \newpage
         \subsection{EM: Updating parameters}
             \paragraph{Updating $\mu$ : }
             Because of the gradient descent (or ascent) used for updating $\mu$,this step is subject to failure or taking more or less time to process.
@@ -43,6 +43,26 @@
                 \item[$\circ$]  $b_k = \frac{1}{\sum \limits_{j=1}^n w_{jk}}\sum \limits_{i=1}^n x_iw_{ik}$ 
             \end{itemize}
             Obviously the second initalisation will lead to make less iteration to reach the convergence.
+            \begin{figure}[!ht]
+                \centering
+                \begin{subfigure}[b]{0.60\linewidth}
+                    \centering
+                    \includegraphics[scale=0.15]{media/embedding_barycenter_search.png}
+                    \caption{Embeddings on which we performed the test}
+                \end{subfigure}
+
+
+                    \begin{tabular}{|c|c|}
+
+                        \hline
+                        Initialisation & Iterations to convergence \\
+                        \hline
+                        $\frac{1}{n}\sum \limits_{i=1}^n x_i$ & $428 \pm 6$  \\
+                        $\frac{1}{\sum \limits_{j=1}^n w_{jk}}\sum \limits_{i=1}^n x_iw_{ik}$  & $133 \pm 62$ \\
+                        \hline
+                    \end{tabular}
+
+            \end{figure}
 
     \section{Learning embeddings}
             \subsection{Batch, Mini-batch, sum or mean}

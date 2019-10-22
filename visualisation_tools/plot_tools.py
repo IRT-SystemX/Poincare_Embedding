@@ -196,3 +196,22 @@ def plot_embedding_distribution(W, pi, mu, sigma,  labels=None, N=100, colors=No
 
     plt.savefig(save_path, format="png")  
 
+
+
+### Not EM Plot ###
+def embedding_plot(z, gt_colors, save_path="embeddings.png"):
+    fig = plt.figure("Embedding-Distribution Ground truth", figsize=(20, 20))
+    fig.patch.set_visible(False)
+    plt.axis("off")
+    theta = np.linspace(0, 2*np.pi, 100)
+
+    r = np.sqrt(1.0)
+
+    x1 = r*np.cos(theta)
+    x2 = r*np.sin(theta)
+
+    plt.plot(x1, x2)
+    for q in range(len(z)):
+        plt.scatter(z[q][0].item(), z[q][1].item(), c=[gt_colors[q]], marker='.', s=2000.)            
+    plt.savefig(save_path, format="png")
+
