@@ -67,7 +67,7 @@ parser.add_argument("--em-iter", dest="em_iter", type=int, default=10,
                     help="Number of EM iterations")
 parser.add_argument("--size", dest="size", type=int, default=3,
                     help="dimenssion of the ball")
-parser.add_argument("--batch-size", dest="batch_size", type=int, default=10000,
+parser.add_argument("--batch-size", dest="batch_size", type=int, default=1000,
                     help="Batch number of elements")
 parser.add_argument("--seed", dest="seed", type=int, default=42,
                     help="the seed used for sampling random numbers in the experiment")  
