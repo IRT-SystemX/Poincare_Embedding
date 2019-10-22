@@ -33,7 +33,7 @@ class PoincareKMeansNInit(object):
         return self.kmean.getStd(X)
 
 class PoincareKMeans(object):
-    def __init__(self, n_clusters, min_cluster_size=5, verbose=False, init_method="random"):
+    def __init__(self, n_clusters, min_cluster_size=2, verbose=False, init_method="random"):
         self._n_c = n_clusters
         self._distance = pf.distance
         self.centroids = None

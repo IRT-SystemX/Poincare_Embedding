@@ -28,6 +28,15 @@ def barycenter(z, wik=None, lr=5e-3, tau=5e-3, max_iter=math.inf, distance=pf.di
         iteration+=1
         if(type(wik) != float):
             grad_tangent = 2 * pf.log(barycenter.expand_as(z), z) * wik 
+            if((barycenter == barycenter).float().mean() != 1):
+                print("\n\n At least one barycenter is Nan : ")
+                print(barycenter)
+                print(wik.sum(0))
+                print(wik.mean(0))
+                print(wik.sum(1))
+                print(wik.mean(1))
+                print(iteration)
+                exit()
         else:
             grad_tangent = 2 * pf.log(barycenter.expand_as(z), z)
         
@@ -39,7 +48,7 @@ def barycenter(z, wik=None, lr=5e-3, tau=5e-3, max_iter=math.inf, distance=pf.di
                 grad_tangent /= wik.sum(0, keepdim=True).expand_as(wik)
             else:
                 grad_tangent /= len(z)
-        cc_barycenter = pf.exp(barycenter, lr * grad_tangent.sum(0))
+        cc_barycenter = pf.exp(barycenter, lr * grad_tangent.sum(0, keepdim=True))
         cvg = distance(cc_barycenter, barycenter).max().item()
         # print(cvg)
         barycenter = cc_barycenter

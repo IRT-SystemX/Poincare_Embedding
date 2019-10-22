@@ -156,6 +156,44 @@ class FlatContextCorpus(Dataset):
     def __len__(self):
         return len(self.context)
 
+class WeightedFlatContextCorpus(Dataset):
+    def __init__(self, dataset, context_size=5, precompute=1):
+        self._dataset = dataset
+        self.c_s = context_size
+        self.precompute = precompute
+        if(precompute < 1):
+            print("Precompute is mandatory value "+str(precompute)+ " must be a positive integer instead")
+            precompute = 1
+        self.context = self._precompute()
+        self.n_sample = 5
+        print("LEANANN ", len(self))
+
+    def _precompute(self):
+        precompute = self.precompute
+        self.precompute = -1
+        context = [{} for i in range(len(self._dataset))]
+        for p in range(precompute):
+            for i in tqdm.trange(len(self._dataset)):
+                # get the random walk
+                path = self._dataset[i][0].squeeze()
+                for k in range(len(path)):
+                    for j in range(max(0, k - self.c_s), min(len(path), k + self.c_s)):
+                        if(k!=j):
+                            if(path[j].item() not in context[path[k].item()]):
+                                context[path[k].item()][path[j].item()] = 0
+                            context[path[k].item()][path[j].item()] += 1
+        flat_context = []
+        for i, v  in enumerate(context):
+            for item, value in v.items():
+                flat_context.append((torch.LongTensor([i]), torch.LongTensor([item]), torch.floatTensor([value])))
+        return flat_context
+
+    def __getitem__(self, index):
+        return self.context[index]
+
+    def __len__(self):
+        return len(self.context)
+
 
 def loading_matlab_corpus(mat_path, label_path):
 

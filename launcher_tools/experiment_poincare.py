@@ -67,14 +67,20 @@ parser.add_argument("--em-iter", dest="em_iter", type=int, default=10,
                     help="Number of EM iterations")
 parser.add_argument("--size", dest="size", type=int, default=3,
                     help="dimenssion of the ball")
-parser.add_argument("--batch-size", dest="batch_size", type=int, default=100000,
+parser.add_argument("--batch-size", dest="batch_size", type=int, default=10000,
                     help="Batch number of elements")
 parser.add_argument("--seed", dest="seed", type=int, default=42,
                     help="the seed used for sampling random numbers in the experiment")  
 parser.add_argument('--force-rw', dest="force_rw", action="store_false", default=True,
                     help="if set will automatically compute a new random walk for the experiment") 
 parser.add_argument('--loss-aggregation', dest="loss_aggregation", type=str, default="sum",
-                    help="The type of loss aggregation sum or mean")                                       
+                    help="The type of loss aggregation sum or mean")            
+parser.add_argument('--distance-coef', dest="distance_coef", type=float, default=1.,
+                    help="Factor applied to the distance in the loss")
+parser.add_argument('--reset-em', dest="reset_em", action="store_true", default=False,
+                    help="reset the em parameters at each iteration")         
+parser.add_argument('--dataset-type', dest="dataset_type", type=str, default="WeightedFlatCorpus",
+                    help="type of dataset")                          
 args = parser.parse_args()
 
 # set the seed for random sampling
@@ -133,8 +139,8 @@ D, X, Y = dataset_dict[args.dataset]()
 print("Creating dataset")
 # index of examples dataset
 dataset_index = corpora_tools.from_indexable(torch.arange(0,len(D),1).unsqueeze(-1))
-print("Dataset Size -> ", len(D))
-print(os.path.join(saving_folder,args.id+"/"))
+print("Dataset Size : ", len(D))
+print("log will be saved at : ",os.path.join(saving_folder,args.id+"/"))
 if(args.save):
     os.makedirs(os.path.join(saving_folder,args.id+"/"), exist_ok=True)
     logger_object = logger.JSONLogger(os.path.join(saving_folder,args.id+"/log.json"))
@@ -188,12 +194,12 @@ d_v.set_walk(1, 1.0)
 
 dataset_repeated = corpora_tools.zip_datasets(dataset_index, corpora_tools.select_from_index(d_v, element_index=0))
 dataset_repeated = corpora_tools.repeat_dataset(dataset_repeated, len(d_rw))
-print(d_rw[1][0].size())
+# print(d_rw[1][0].size())
 
 print("Merging dataset")
 embedding_dataset = corpora_tools.zip_datasets(dataset_repeated, d_rw)
-print(len(embedding_dataset[0]))
-print(embedding_dataset[29][-1][20:25])
+# print(len(embedding_dataset[0]))
+# print(embedding_dataset[29][-1][20:25])
 training_dataloader = DataLoader(embedding_dataset, 
                             batch_size=args.batch_size, 
                             shuffle=False,
@@ -222,28 +228,29 @@ if(args.size == 2):
 alpha, beta = args.init_alpha, args.init_beta
 embedding_alg = PEmbed(len(dataset_index), size=args.size, lr=args.init_lr, cuda=args.cuda, negative_distribution=frequency,
                         optimizer_method=optimizer_dict[args.embedding_optimizer], aggregation=aggregation_dict[args.loss_aggregation])
-em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=True)
+em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=False)
 pi, mu, sigma = None, None, None
 pik = None
 epoch_embedding = args.epoch_embedding_init
-for i in tqdm.trange(args.epoch):
+pb = tqdm.trange(args.epoch)
+for i in pb:
     if(i==1):
         embedding_alg.set_lr(args.lr)
         alpha, beta = args.alpha, args.beta
         epoch_embedding = args.epoch_embedding
 
     embedding_alg.fit(training_dataloader, alpha=alpha, beta=beta, gamma=args.gamma, max_iter=epoch_embedding,
-                        pi=pik, mu=mu, sigma=sigma, negative_sampling=args.negative_sampling)
+                        pi=pik, mu=mu, sigma=sigma, negative_sampling=args.negative_sampling, distance_coef=args.distance_coef)
 
     # em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=True)
+    if(args.reset_em):
+        em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=False)
     em_alg.fit(embedding_alg.get_PoincareEmbeddings().cpu(), max_iter=args.em_iter)
     pi, mu, sigma = em_alg.get_parameters()
     pik = em_alg.get_pik(embedding_alg.get_PoincareEmbeddings().cpu())
     total_accuracy = evaluation.poincare_unsupervised_em(embedding_alg.get_PoincareEmbeddings().cpu(), D.Y, args.n_gaussian, em=em_alg, verbose=False)
-    print("\nPerformances joined -> " ,
-        total_accuracy
-    )
     logger_object.append({"accuracy_iter_"+str(i): total_accuracy})
+    pb.set_postfix({"perfomance": total_accuracy})
     if(args.size == 2):
         plot_tools.plot_embedding_distribution_multi([embedding_alg.get_PoincareEmbeddings().cpu()], 
                                                         [pi], [mu],  [sigma], 

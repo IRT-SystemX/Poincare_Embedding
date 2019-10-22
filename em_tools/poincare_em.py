@@ -17,7 +17,7 @@ class RiemannianEM(object):
         self._distance = pf.distance
 
         self._mu = (torch.rand(n_gaussian, dim) - 0.5)/dim
-        self._sigma = torch.rand(n_gaussian)/10 +0.2
+        self._sigma = torch.rand(n_gaussian)/10 +0.1
         self._w = torch.ones(n_gaussian)/n_gaussian
 
         self._verbose = verbose
@@ -64,15 +64,15 @@ class RiemannianEM(object):
             print("EXPECTATION : pdf contain not a number elements")
             quit()
         p_pdf = pdf * self._w.unsqueeze(0).expand_as(pdf)
-        if(p_pdf.sum(-1).min() == 0):
+        if(p_pdf.sum(-1).min() <= 1e-10):
             print("EXPECTATION : pdf.sum(-1) contain zero")
-            p_pdf[p_pdf.sum(-1) == 0] = 1e-8
+            p_pdf[p_pdf.sum(-1) <= 1e-4] = 1e-4
             
         wik = p_pdf/p_pdf.sum(-1, keepdim=True).expand_as(pdf)
         if(wik.mean() != wik.mean()):
             print("EXPECTATION : wik contain not a number elements")
             quit()
-
+        # print(wik.mean(0))
         if(wik.sum(1).mean() <= 1-1e-4 and wik.sum(1).mean() >= 1+1e-4 ):
             print("EXPECTATION : wik don't sum to 1")
             print(wik.sum(1))
@@ -92,7 +92,8 @@ class RiemannianEM(object):
         if(self._sigma.mean() != self._sigma.mean()):
             print("UPDATE : sigma contain not a number elements")
             quit()  
-    def fit(self, z, max_iter=5, lr_mu=5e-3, tau_mu=5e-3):
+
+    def fit(self, z, max_iter=5, lr_mu=5e-3, tau_mu=1e-4):
         progress_bar = tqdm.trange(max_iter) if(self._verbose) else range(max_iter)
         # if it is the first time function fit is called
         if(not self._started):
@@ -109,10 +110,9 @@ class RiemannianEM(object):
             self._started = True
         for epoch in progress_bar:
             wik = self._expectation(z)
-            self._maximization(z, wik)
+            self._maximization(z, wik, lr_mu=lr_mu, tau_mu=1e-4)
 
     def get_parameters(self):
-
         return  self._w, self._mu, self._sigma
 
     def get_pik(self, z):

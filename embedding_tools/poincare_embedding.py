@@ -38,7 +38,7 @@ class PoincareEmbedding(nn.Module):
             g['lr'] = lr
     
     def fit(self, dataloader, alpha=1.0, beta=1.0, gamma=0.0, max_iter=100,
-            negative_sampling=5, pi=None, mu=None, sigma=None):
+            negative_sampling=5, pi=None, mu=None, sigma=None, distance_coef=1.):
         progress_bar = tqdm.trange(max_iter) if(self.verbose) else range(max_iter)
         for i in progress_bar:
             loss_value1, loss_value2, loss_value3 = 0,0,0
@@ -66,9 +66,9 @@ class PoincareEmbedding(nn.Module):
                 embed_negative = self.W(negative)
                 # print(index_source_rw.size(),embed_source.size(), embed_neigbhor.size(), embed_source_rw.size(), embed_context_rw.size(), embed_negative.size())
                 # computing O1 loss
-                loss_o1 = losses.SGDLoss.O1(embed_source, embed_neigbhor)
+                loss_o1 = losses.SGDLoss.O1(embed_source, embed_neigbhor, coef=distance_coef)
                 # computing O2 loss
-                loss_o2 = losses.SGDLoss.O2(embed_source_rw, embed_context_rw, embed_negative)
+                loss_o2 = losses.SGDLoss.O2(embed_source_rw, embed_context_rw, embed_negative, coef=distance_coef)
                 # computing total loss
                 loss = alpha * self.agg(loss_o1) + beta * self.agg(loss_o2)
                 # if we want to use the prior loss

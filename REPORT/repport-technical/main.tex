@@ -53,5 +53,56 @@
 
             \subsection{Going out of the ball border}
             
+    \section{Parameters}:
+        \begin{table}
+            \centering
+            \begin{tabular}{l|p{10cm}}
+                \hline
+                Parameter & Description \\
+                --init-lr & Initial learning rate for the first epoch, before applying $O_3$ loss \\
+                --lr & Learning rate applied on the gradient \\
+                --init-alpha & $O_1$ loss weight for the first epoch (if not given is set to alpha value) \\
+                --alpha & $O_1$ loss weitght \\
+                --init-beta & $O_2$ loss weight for the first epoch (if not given is set to beta value) \\
+                --beta & $O_2$ loss weight \\
+                \hline
+                \hline
+                --gamma & $O_3$ loss weight (this loss is firstly applied at the second iteration/epoch) \\
+                --n-gaussian & The number of gaussian in the gaussan mixture (mainly set to the number of community in the dataset) \\
+                \hline
+                --dataset & The dataset name in lowercase on which perform the experiment (see dataset section) \\
+                \hline
+                \hline
+                --walk-lenght & The size of the random walk usually set to 20 \\
+                --context-size & The size of the context, the window around each nodes in a path \\
+                --precompute-rw & The number of path to consider from each nodes \\
+                \hline
+                \hline
+                --negative-sampling & The number of negative examples for the $O_2$ loss (between 5 and 20) \\
+                \hline
+                \hline
+                --epoch-embedding-init & The number of epoch (see all the nodes, couple on the graph) for the first embedding learning iteration, if not given is set to --epoch-embedding. We recommend to set more epoch for the first iteration than for others \\
+                --epoch-embedding & The number of epoch for learning embedding\\
+                \hline
+                \hline
+                --loss-aggregation & The type of aggregation of the loss must be "sum" or "mean". This paramaeters has a huge influence on the selection of learning rate and batch size. If choosing sum the learning rate must be low (between 1e-2 and 1e-4). If choosing mean the learning rate value must be high (from 1 to 10). \\
+                --batch-size & the size of the batch (number of element to require grad without updating parameters). A small batch-size is recommended in order to have a small number of iteration, however large batch size will drastically lower the time of epoch. The default batch size is set to 10000 (on small dataset one batch allow to visit every examples). \\
+                \hline
 
+
+            \end{tabular}
+        \end{table}
+    \section{Dataset}
+    \begin{table}
+        \begin{tabular}{c|c|c|c}
+            Dataset & \#nodes & \#edges &\#community \\
+            karate & - & - & 2 \\
+            poolblogs & -  & - & 2\\
+            adjnoun & - & -& 2 \\
+            poolbooks & - & - & 3\\
+            football & - & - &  12 \\
+            dblp & - & - & 5 \\
+            
+        \end{tabular}
+    \end{table}
 \end{document}
