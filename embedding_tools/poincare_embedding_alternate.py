@@ -14,6 +14,7 @@ class PoincareEmbedding(nn.Module):
         super(PoincareEmbedding, self).__init__()
         self.cuda = cuda
         self.N = n_exemple
+        print("dim",n_exemple, size)
         self.W = poincare_module.PoincareEmbedding(n_exemple, size)
         if(self.cuda):
             self.W.cuda()

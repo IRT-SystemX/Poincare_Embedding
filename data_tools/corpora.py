@@ -163,13 +163,13 @@ class FlatContextCorpus(Dataset):
         flat_context = []
         for i, v  in enumerate(context):
             for item in v:
-                flat_context.append((torch.LongTensor([i]), torch.LongTensor([item])))
+                flat_context.append([i, item])
         
         return flat_context
 
     def __getitem__(self, index):
-        return self.context[index]
-
+        a, b = self.context[index][0], self.context[index][1]
+        return torch.LongTensor([a]), torch.LongTensor([b])
     def __len__(self):
         return len(self.context)
 

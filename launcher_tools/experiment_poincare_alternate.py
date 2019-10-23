@@ -67,7 +67,7 @@ parser.add_argument("--em-iter", dest="em_iter", type=int, default=10,
                     help="Number of EM iterations")
 parser.add_argument("--size", dest="size", type=int, default=3,
                     help="dimenssion of the ball")
-parser.add_argument("--batch-size", dest="batch_size", type=int, default=1000,
+parser.add_argument("--batch-size", dest="batch_size", type=int, default=2000,
                     help="Batch number of elements")
 parser.add_argument("--seed", dest="seed", type=int, default=42,
                     help="the seed used for sampling random numbers in the experiment")  
@@ -78,7 +78,7 @@ parser.add_argument('--loss-aggregation', dest="loss_aggregation", type=str, def
                     help="The type of loss aggregation sum or mean")            
 parser.add_argument('--distance-coef', dest="distance_coef", type=float, default=1.,
                     help="Factor applied to the distance in the loss")
-parser.add_argument('--reset-em', dest="reset_em", action="store_true", default=False,
+parser.add_argument('--reset-em', dest="reset_em", action="store_false", default=True,
                     help="reset the em parameters at each iteration")         
 parser.add_argument('--dataset-type', dest="dataset_type", type=str, default="FlatCorpus",
                     help="type of dataset")                          
@@ -256,6 +256,7 @@ pi, mu, sigma, normalisation_factor = None, None, None, None
 pik = None
 epoch_embedding = args.epoch_embedding_init
 pb = tqdm.trange(args.epoch)
+
 for i in pb:
     if(i==1):
         embedding_alg.set_lr(args.lr)
