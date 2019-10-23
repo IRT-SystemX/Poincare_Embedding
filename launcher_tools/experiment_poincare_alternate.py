@@ -71,7 +71,8 @@ parser.add_argument("--batch-size", dest="batch_size", type=int, default=1000,
                     help="Batch number of elements")
 parser.add_argument("--seed", dest="seed", type=int, default=42,
                     help="the seed used for sampling random numbers in the experiment")  
-parser.add_argument('--force-rw', dest="force_rw", action="store_false", default=True,
+#### I change the option due to memory issue when saving dataset (weird)
+parser.add_argument('--force-rw', dest="force_rw", action="store_true", default=False,
                     help="if set will automatically compute a new random walk for the experiment") 
 parser.add_argument('--loss-aggregation', dest="loss_aggregation", type=str, default="sum",
                     help="The type of loss aggregation sum or mean")            
@@ -175,6 +176,8 @@ if(args.force_rw):
             d_rw.set_walk(args.walk_lenght, 1.0)
             d_rw.set_path(True)
             d_rw = corpora.FlatContextCorpus(d_rw, context_size=args.context_size, precompute=args.precompute_rw)
+            print("Dataset Loaded")
+            print("Saving dataset at : ","/local/gerald/KMEANS_RESULTS/"+key+".t7" )
             torch.save(d_rw, "/local/gerald/KMEANS_RESULTS/"+key+".t7")
             rw_log[key] = {"file":"/local/gerald/KMEANS_RESULTS/"+key+".t7", 
                         "context_size":args.context_size, "walk_lenght": args.walk_lenght,
@@ -184,6 +187,8 @@ if(args.force_rw):
         d_rw.set_walk(args.walk_lenght, 1.0)
         d_rw.set_path(True)
         d_rw = corpora.FlatContextCorpus(d_rw, context_size=args.context_size, precompute=args.precompute_rw)
+        print("Dataset Loaded")
+        print("Saving dataset at : ","/local/gerald/KMEANS_RESULTS/"+key+".t7" )
         torch.save(d_rw, "/local/gerald/KMEANS_RESULTS/"+key+".t7")
         rw_log[key] = {"file":"/local/gerald/KMEANS_RESULTS/"+key+".t7", 
                        "context_size":args.context_size, "walk_lenght": args.walk_lenght,
@@ -191,13 +196,11 @@ if(args.force_rw):
 else:
     d_rw.set_walk(args.walk_lenght, 1.0)
     d_rw.set_path(True)
-    d_rw = corpora.ContextCorpus(d_rw, context_size=args.context_size, precompute=args.precompute_rw)   
+    d_rw = corpora.FlatContextCorpus(d_rw, context_size=args.context_size, precompute=args.precompute_rw)
 
-# neigbhor dataset
-d_v = D.light_copy()
-d_v.set_walk(1, 1.0)
-
+print("Loading Neighbor corpus")
 dataset_o1 = corpora.NeigbhorFlatCorpus(X, Y)
+print("Creating Dataset index")
 dataset_o3 = dataset_index
 # print(d_rw[1][0].size())
 # print(len(embedding_dataset[0]))
