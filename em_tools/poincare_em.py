@@ -11,7 +11,7 @@ from function_tools import poincare_function as pf
 from function_tools import poincare_alg as pa
 
 class RiemannianEM(object):
-    def __init__(self, dim, n_gaussian, init_mod="kmeans-hyperbolic", verbose=True):
+    def __init__(self, dim, n_gaussian, init_mod="kmeans-hyperbolic", verbose=False):
         self._n_g = n_gaussian
         self._d = dim
         self._distance = pf.distance
@@ -94,24 +94,33 @@ class RiemannianEM(object):
             print("UPDATE : sigma contain not a number elements")
             quit()  
 
-    def fit(self, z, max_iter=5, lr_mu=5e-3, tau_mu=1e-4):
-        progress_bar = tqdm.trange(max_iter) if(self._verbose) else range(max_iter)
-        # if it is the first time function fit is called
-        if(not self._started):
-            # using kmeans for initializing means
-            if(self._init_mod == "kmeans-hyperbolic"):
+    def fit(self, z, max_iter=5, lr_mu=5e-3, tau_mu=1e-4, Y=None):
+        if(Y is not None):
+            # we are in the supervised case
+            # the objective is in this case to find the gaussian for each
+            # community, thus wik is 1 for each classes
+            # in this case Y is tensor NxK 
+            wik = Y
+            # print(wik.size())
+            self._maximization(z, wik, lr_mu=lr_mu, tau_mu=1e-5)
+        else:
+            progress_bar = tqdm.trange(max_iter) if(self._verbose) else range(max_iter)
+            # if it is the first time function fit is called
+            if(not self._started):
+                # using kmeans for initializing means
+                if(self._init_mod == "kmeans-hyperbolic"):
+                    if(self._verbose):
+                        print("Initialize means using kmeans hyperbolic algorithm")
+                    km = kmh.PoincareKMeansNInit(self._n_g, n_init=20)
+                    km.fit(z)
+                    self._mu = km.cluster_centers_
                 if(self._verbose):
-                    print("Initialize means using kmeans hyperbolic algorithm")
-                km = kmh.PoincareKMeansNInit(self._n_g, n_init=20)
-                km.fit(z)
-                self._mu = km.cluster_centers_
-            if(self._verbose):
-                print("\t mu -> ", self._mu)
-                print("\t sigma -> ", self._sigma)
-            self._started = True
-        for epoch in progress_bar:
-            wik = self._expectation(z)
-            self._maximization(z, wik, lr_mu=lr_mu, tau_mu=1e-4)
+                    print("\t mu -> ", self._mu)
+                    print("\t sigma -> ", self._sigma)
+                self._started = True
+            for epoch in progress_bar:
+                wik = self._expectation(z)
+                self._maximization(z, wik, lr_mu=lr_mu, tau_mu=1e-4)
 
     def get_parameters(self):
         return  self._w, self._mu, self._sigma
