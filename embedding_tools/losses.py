@@ -23,20 +23,32 @@ class SGALoss(object):
     # mu = BxMxD
     # sigma = BxM
     @staticmethod
-    def O3(x, pi, mu, sigma, zeta_f=df.zeta, distance=None):
+    def O3(x, pi, mu, sigma, normalisation_factor, distance=None):
         if(distance is None):
             distance = pf.distance
         B, M, D = (x.shape[0],) +  mu.shape
+        # print("B,M, D", B, M, D)
         # computing normalisation factor
-        zeta_v = zeta_f(sigma)
+        # print(normalisation_factor.size())
+        zeta_v = normalisation_factor.unsqueeze(0).expand(B, M)
         # computing unormalised pdf
         x_r = x.unsqueeze(1).expand(B,M,D)
         mu_r = mu.unsqueeze(0).expand(B,M,D)
+        # print("mu_r size ", mu_r.size())
+        # print("x_r size ", x_r.size())
         sigma_r = sigma.unsqueeze(0).expand(B, M)
-        u_pdf = torch.exp(-(distance(x_r, mu_r)**2)/(2 * sigma_r**2))
+        u_pdf = torch.exp(-(distance(x_r, mu_r)**2)/(2 * sigma_r**2)).clamp(min=1e-10) 
         # normalize the pdf
-        n_pdf = pi * torch.log((u_pdf/zeta_v))
-
+        # print("u_pdf", (u_pdf / zeta_v).min(-1))
+        # print("pi_size ", pi.min())
+        # print("u_pdf size ", u_pdf.size())
+        # print("zeta_v.size ", zeta_v.size())
+        n_pdf = pi.squeeze() * torch.log((u_pdf/zeta_v))
+        # print("n_pdf min : ", n_pdf.min())
+        # print("n_pdf max : ", n_pdf.max())
+        # print("n_pdf size : ", n_pdf.size())
+        # print("n_pdf * pi min : ", (n_pdf * pi).min())
+        # print("u_pdf log", n_pdf.sum(-1))
         # return the sum over gaussian component 
         return n_pdf.sum(-1)
 
@@ -133,10 +145,10 @@ class SGDLoss(object):
     # mu = BxMxD
     # sigma = BxM
     @staticmethod
-    def O3(x, pi, mu, sigma, zeta_f=df.zeta, distance=None):
+    def O3(x, pi, mu, sigma, normalisation_factor, distance=None):
         if(distance is None):
             distance = pf.distance
-        return -SGALoss.O3(x, pi, mu, sigma, zeta_f=zeta_f, distance=distance)
+        return -SGALoss.O3(x, pi.detach(), mu.detach(), sigma.detach(), normalisation_factor.detach(), distance=distance)
 
 class SGDSoftmaxLoss(object):
     @staticmethod

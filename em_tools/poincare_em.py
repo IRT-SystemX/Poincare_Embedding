@@ -65,7 +65,8 @@ class RiemannianEM(object):
             quit()
         p_pdf = pdf * self._w.unsqueeze(0).expand_as(pdf)
         if(p_pdf.sum(-1).min() <= 1e-10):
-            print("EXPECTATION : pdf.sum(-1) contain zero")
+            if(self._verbose):
+                print("EXPECTATION : pdf.sum(-1) contain zero")
             p_pdf[p_pdf.sum(-1) <= 1e-4] = 1e-4
             
         wik = p_pdf/p_pdf.sum(-1, keepdim=True).expand_as(pdf)
@@ -126,6 +127,9 @@ class RiemannianEM(object):
         wik = p_pdf/p_pdf.sum(-1, keepdim=True).expand_as(pdf)
         return wik  
     
+    def get_normalisation_coef(self):
+        return self.zeta_phi.zeta(self._sigma)
+
     def predict(self, z):
         # print(self._mu)
         N, D, M = z.shape + (self._mu.shape[0],)

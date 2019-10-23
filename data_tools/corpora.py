@@ -50,6 +50,23 @@ class RandomWalkCorpus(Dataset):
     def __len__(self):
         return len(self.X)
 
+class NeigbhorFlatCorpus(Dataset):
+    def __init__(self, X, Y):
+        # the sparse torch dictionary
+        self.X = X
+        self.Y = Y
+
+        self.data = []
+        for ns, nln in X.items():
+            for nl in nln:
+                self.data.append([ns, nln])
+
+    def __getitem__(self, index):
+        return torch.LongTensor([self.data[index][0]]), torch.LongTensor(self.data[index][1])
+
+    def __len__(self):
+        return len(self.data)
+
 class ContextCorpus(Dataset):
     def __init__(self, dataset, context_size=5, precompute=-1):
         self._dataset = dataset

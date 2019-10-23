@@ -6,7 +6,7 @@ import pytorch_categorical
 from torch.utils.data import DataLoader
 import os
 from multiprocessing import Process, Manager
-from embedding_tools.poincare_embedding import PoincareEmbedding as PEmbed
+from embedding_tools.poincare_embedding_alternate import PoincareEmbedding as PEmbed
 from em_tools.poincare_em import RiemannianEM as PEM
 from data_tools import corpora_tools
 from data_tools import corpora
@@ -67,7 +67,7 @@ parser.add_argument("--em-iter", dest="em_iter", type=int, default=10,
                     help="Number of EM iterations")
 parser.add_argument("--size", dest="size", type=int, default=3,
                     help="dimenssion of the ball")
-parser.add_argument("--batch-size", dest="batch_size", type=int, default=10000,
+parser.add_argument("--batch-size", dest="batch_size", type=int, default=1000,
                     help="Batch number of elements")
 parser.add_argument("--seed", dest="seed", type=int, default=42,
                     help="the seed used for sampling random numbers in the experiment")  
@@ -79,7 +79,7 @@ parser.add_argument('--distance-coef', dest="distance_coef", type=float, default
                     help="Factor applied to the distance in the loss")
 parser.add_argument('--reset-em', dest="reset_em", action="store_true", default=False,
                     help="reset the em parameters at each iteration")         
-parser.add_argument('--dataset-type', dest="dataset_type", type=str, default="WeightedFlatCorpus",
+parser.add_argument('--dataset-type', dest="dataset_type", type=str, default="FlatCorpus",
                     help="type of dataset")                          
 args = parser.parse_args()
 
@@ -161,7 +161,9 @@ d_rw = D.light_copy()
 
 rw_log = logger.JSONLogger("ressources/random_walk.conf", mod="continue")
 if(args.force_rw):
-    key = args.dataset+"_"+str(args.context_size)+"_"+str(args.walk_lenght)+"_"+str(args.seed) 
+    key = (args.dataset+"_"+str(args.context_size)+"_"+str(args.walk_lenght)
+            +"_"+str(args.seed)+"_"+str(args.precompute_rw)
+            +'_'+str(args.dataset_type))
     if(key in rw_log):
 
         try:
@@ -195,21 +197,36 @@ else:
 d_v = D.light_copy()
 d_v.set_walk(1, 1.0)
 
-dataset_repeated = corpora_tools.zip_datasets(dataset_index, corpora_tools.select_from_index(d_v, element_index=0))
-dataset_repeated = corpora_tools.repeat_dataset(dataset_repeated, len(d_rw))
+dataset_o1 = corpora.NeigbhorFlatCorpus(X, Y)
+dataset_o3 = dataset_index
 # print(d_rw[1][0].size())
-
-print("Merging dataset")
-embedding_dataset = corpora_tools.zip_datasets(dataset_repeated, d_rw)
 # print(len(embedding_dataset[0]))
 # print(embedding_dataset[29][-1][20:25])
-training_dataloader = DataLoader(embedding_dataset, 
+training_dataloader_o1 = DataLoader(dataset_o1, 
                             batch_size=args.batch_size, 
-                            shuffle=False,
+                            shuffle=True,
                             num_workers=4,
                             collate_fn=data_tools.PadCollate(dim=0),
                             drop_last=False
                     )
+training_dataloader_o2 = DataLoader(d_rw, 
+                            batch_size=args.batch_size, 
+                            shuffle=True,
+                            num_workers=4,
+                            collate_fn=data_tools.PadCollate(dim=0),
+                            drop_last=False
+                    )
+training_dataloader_o3 = DataLoader(dataset_o3, 
+                            batch_size=args.batch_size, 
+                            shuffle=True,
+                            num_workers=4,
+                            collate_fn=data_tools.PadCollate(dim=0),
+                            drop_last=False
+                    )
+
+print("Dataset O1 size (number edges)   : ", len(dataset_o1))
+print("Dataset O2 size (number context) : ", len(d_rw))
+print("Dataset O3 size (number nodes)   : ", len(dataset_o3))
 
 representation_d = []
 pi_d = []
@@ -232,7 +249,7 @@ alpha, beta = args.init_alpha, args.init_beta
 embedding_alg = PEmbed(len(dataset_index), size=args.size, lr=args.init_lr, cuda=args.cuda, negative_distribution=frequency,
                         optimizer_method=optimizer_dict[args.embedding_optimizer], aggregation=aggregation_dict[args.loss_aggregation])
 em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=False)
-pi, mu, sigma = None, None, None
+pi, mu, sigma, normalisation_factor = None, None, None, None
 pik = None
 epoch_embedding = args.epoch_embedding_init
 pb = tqdm.trange(args.epoch)
@@ -242,8 +259,10 @@ for i in pb:
         alpha, beta = args.alpha, args.beta
         epoch_embedding = args.epoch_embedding
 
-    embedding_alg.fit(training_dataloader, alpha=alpha, beta=beta, gamma=args.gamma, max_iter=epoch_embedding,
-                        pi=pik, mu=mu, sigma=sigma, negative_sampling=args.negative_sampling, distance_coef=args.distance_coef)
+    embedding_alg.fit(training_dataloader_o1, training_dataloader_o2, training_dataloader_o3,
+                        alpha=alpha, beta=beta, gamma=args.gamma, max_iter=epoch_embedding,
+                        pi=pik, mu=mu, sigma=sigma, negative_sampling=args.negative_sampling,
+                        distance_coef=args.distance_coef, normalisation_coef=normalisation_factor)
 
     # em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=True)
     if(args.reset_em):
@@ -251,6 +270,7 @@ for i in pb:
     em_alg.fit(embedding_alg.get_PoincareEmbeddings().cpu(), max_iter=args.em_iter)
     pi, mu, sigma = em_alg.get_parameters()
     pik = em_alg.get_pik(embedding_alg.get_PoincareEmbeddings().cpu())
+    normalisation_factor = em_alg.get_normalisation_coef()
     total_accuracy = evaluation.poincare_unsupervised_em(embedding_alg.get_PoincareEmbeddings().cpu(), D.Y, args.n_gaussian, em=em_alg, verbose=False)
     logger_object.append({"accuracy_iter_"+str(i): total_accuracy})
     pb.set_postfix({"perfomance": total_accuracy})

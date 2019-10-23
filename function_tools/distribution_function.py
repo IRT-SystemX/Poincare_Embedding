@@ -31,30 +31,58 @@ def weighted_gmm_pdf(w, z, mu, sigma, distance, norm_func=None):
 def zeta(sigma, N ,binomial_coefficient=None):      
     # we set the binomial_coefficient in parameters to avoid 
     # to compute it each time function is called
-    M = sigma.shape[0]
-    sigma_u = sigma.unsqueeze(0).expand(N,M)
-    if(binomial_coefficient is None):
-        # we compute coeficient
-        v = torch.arange(N)
-        v[0] = 1
-        n_fact = v.prod()
-        k_fact = torch.cat([v[:i].prod().unsqueeze(0) for i in range(1, v.shape[0]+1)],0)
-        nmk_fact = k_fact.flip(0)
-        binomial_coefficient = n_fact/(k_fact * nmk_fact)  
-    binomial_coefficient = binomial_coefficient.unsqueeze(-1).expand(N,M).float()
-    range_ = torch.arange(N ,device=sigma.device).unsqueeze(-1).expand(N,M).float()
-    ones_ = torch.ones(N ,device=sigma.device).unsqueeze(-1).expand(N,M).float()
+    if(N>2):
+        M = sigma.shape[0]
+        sigma_u = sigma.unsqueeze(0).expand(N,M)
+        if(binomial_coefficient is None):
+            # we compute coeficient
+            v = torch.arange(N)
+            v[0] = 1
+            n_fact = v.prod()
+            k_fact = torch.cat([v[:i].prod().unsqueeze(0) for i in range(1, v.shape[0]+1)],0)
+            nmk_fact = k_fact.flip(0)
+            binomial_coefficient = n_fact/(k_fact * nmk_fact)  
+        binomial_coefficient = binomial_coefficient.unsqueeze(-1).expand(N,M).float()
+        range_ = torch.arange(N ,device=sigma.device).unsqueeze(-1).expand(N,M).float()
+        ones_ = torch.ones(N ,device=sigma.device).unsqueeze(-1).expand(N,M).float()
 
-    alternate_neg = (-ones_)**(range_)
-    ins = (((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2)
-    ins_squared = ((((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2))**2
-    as_o = (1+erf_approx(ins)) * torch.exp(ins_squared)
-    bs_o = binomial_coefficient * as_o
-    r = alternate_neg * bs_o
+        alternate_neg = (-ones_)**(range_)
+        ins = (((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2)
+        ins_squared = ((((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2))**2
+        as_o = (1+erf_approx(ins)) * torch.exp(ins_squared)
+        bs_o = binomial_coefficient * as_o
+        r = alternate_neg * bs_o
 
-    return ZETA_CST * sigma * r.sum(0) * (1/(2**(N-1)))
+        return ZETA_CST * sigma * r.sum(0) * (1/(2**(N-1)))
+    else:
 
+        M = sigma.shape[0]
+        sigma_u = sigma.unsqueeze(0).expand(N,M)
+        if(binomial_coefficient is None):
+            # we compute coeficient
+            v = torch.arange(N)
+            v[0] = 1
+            n_fact = v.prod()
+            k_fact = torch.cat([v[:i].prod().unsqueeze(0) for i in range(1, v.shape[0]+1)],0)
+            nmk_fact = k_fact.flip(0)
+            binomial_coefficient = n_fact/(k_fact * nmk_fact)  
+        binomial_coefficient = binomial_coefficient.unsqueeze(-1).expand(N,M).float()
+        range_ = torch.arange(N ,device=sigma.device).unsqueeze(-1).expand(N,M).float()
+        ones_ = torch.ones(N ,device=sigma.device).unsqueeze(-1).expand(N,M).float()
 
+        alternate_neg = (-ones_)**(range_)
+        ins = (((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2)
+        ins_squared = ((((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2))**2
+        as_o = (1+erf_approx(ins)) * torch.exp(ins_squared)
+        bs_o = binomial_coefficient * as_o
+        r = alternate_neg * bs_o
+
+        # print(">2D sigma", ZETA_CST * sigma * r.sum(0) * (1/(2**(N-1))))
+        
+        a = torch.exp((sigma**2)/2) * (1 + erf_approx((sigma)/math.sqrt(2)))
+        b = torch.exp((-(sigma**2))/2) *(1 + erf_approx((-sigma)/math.sqrt(2)))
+        # print("2D sigma", (a - b) * ZETA_CST * sigma * 0.5)
+        return (a - b) * ZETA_CST * sigma * 0.5
 def log_grad_zeta(x, N):
     sigma = nn.Parameter(x)
     (zeta(sigma, N).log()).sum().backward()
@@ -90,6 +118,7 @@ def euclidean_norm_factor(sigma, N):
     return 1/((2*math.pi)**(N/2) * torch.sqrt(sigma))
 
 def gaussianPDF(x, mu, sigma, distance=pf.distance, norm_func=zeta):
+    norm_func = zeta
     # print(x.shape, mu.shape)
     N, D, M = x.shape + (mu.shape[0],)
     # print("N, M, D ->", N, M, D)
@@ -100,12 +129,12 @@ def gaussianPDF(x, mu, sigma, distance=pf.distance, norm_func=zeta):
     mu_rd = mu.unsqueeze(0).expand(N, M, D)
     sigma_rd = sigma.unsqueeze(0).expand(N, M)
     # computing numerator
-    num = torch.exp((-(distance(x_rd, mu_rd)**2))/(2*(sigma_rd**2)))
+    num = torch.exp(-((distance(x_rd, mu_rd)**2))/(2*(sigma_rd**2)))
 
-    den = norm_func(sigma)
-    # print("sigma",sigma)
-    # print(num)
+    den = norm_func(sigma, D)
+    # print("sigma",num)
     # print("den ", den)
+    # print("pdf max ", (num/den.unsqueeze(0).expand(N, M)).max())
     return num/den.unsqueeze(0).expand(N, M)
 
 ####################################### TESTING #####################################
