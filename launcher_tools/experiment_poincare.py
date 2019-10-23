@@ -161,7 +161,9 @@ d_rw = D.light_copy()
 
 rw_log = logger.JSONLogger("ressources/random_walk.conf", mod="continue")
 if(args.force_rw):
-    key = args.dataset+"_"+str(args.context_size)+"_"+str(args.walk_lenght)+"_"+str(args.seed) 
+    key = (args.dataset+"_"+str(args.context_size)+"_"+str(args.walk_lenght)
+            +"_"+str(args.seed)+"_"+str(args.precompute_rw)
+            +'_'+str(args.dataset_type))
     if(key in rw_log):
 
         try:
