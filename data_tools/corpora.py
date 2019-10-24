@@ -3,11 +3,12 @@ import os
 import torch 
 import random
 import tqdm
-
+import time
 from torch.utils.data import Dataset
 from scipy import io as sio
-from data_tools import dataset_downloader
-
+from data_tools import  dataset_downloader
+from data_tools import data_tools
+from torch.utils.data import DataLoader
 class RandomWalkCorpus(Dataset):
     def __init__(self, X, Y, path=True):
         # the sparse torch dictionary
@@ -173,6 +174,7 @@ class FlatContextCorpus(Dataset):
     def __len__(self):
         return len(self.context)
 
+
 class WeightedFlatContextCorpus(Dataset):
     def __init__(self, dataset, context_size=5, precompute=1):
         self._dataset = dataset
@@ -263,27 +265,27 @@ def loading_social_computing_corpus(edges_path, groups_path, symetric=True):
     
     return RandomWalkCorpus(X, Y), X, Y    
 
-def loading_mat_txt(mat_path, label_path):
-    # Graph
-    X = {}
-    with io.open(mat_path, "r") as edges_file:
-        for i, line in enumerate(edges_file):
-            lsp = line.split()
-            X[i] = [k for k, value in enumerate(lsp) if(int(value) == 1)]
+# def loading_mat_txt(mat_path, label_path):
+#     # Graph
+#     X = {}
+#     with io.open(mat_path, "r") as edges_file:
+#         for i, line in enumerate(edges_file):
+#             lsp = line.split()
+#             X[i] = [k for k, value in enumerate(lsp) if(int(value) == 1)]
     
-    Y = {}
-    with io.open(label_path, "r") as label_file:
-        for i, line in enumerate(label_file):
+#     Y = {}
+#     with io.open(label_path, "r") as label_file:
+#         for i, line in enumerate(label_file):
             
-            Y[i] = []
-            Y[i].append(int(line))
+#             Y[i] = []
+#             Y[i].append(int(line))
 
-    return RandomWalkCorpus(X, Y), X, Y   
+#     return RandomWalkCorpus(X, Y), X, Y   
 
 def load_dblp():
-    os.makedirs("data/DBLP/", exist_ok=True)
-    dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/DBLP/Dblp.mat", "data/DBLP/Dblp.mat")
-    dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/DBLP/labels.txt", "data/DBLP/labels.txt")
+    # os.makedirs("data/DBLP/", exist_ok=True)
+    # dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/DBLP/Dblp.mat", "data/DBLP/Dblp.mat")
+    # dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/DBLP/labels.txt", "data/DBLP/labels.txt")
     mat_path = "data/DBLP/Dblp.mat"
     label_path = "data/DBLP/labels.txt"
     return loading_matlab_corpus(mat_path, label_path)
@@ -328,3 +330,29 @@ def load_polblogs():
     matrix_path = "Input/Polblogs.txt"
     label_path = "Input/R_Polblogs.txt"
     return loading_mat_txt(matrix_path, label_path)
+
+def test_flat_context_corpus():
+    dblp_dataset, X, Y = load_dblp()
+    dblp_dataset.set_walk(5, 1.0)
+    dblp_dataset.set_path(True)
+    fcc = FlatContextCorpus(dblp_dataset, context_size=5, precompute=5)
+    dataloader_slow = DataLoader(fcc, 
+                                batch_size=2000, 
+                                shuffle=True,
+                                num_workers=2,
+                                drop_last=False
+                        )
+    start_time = time.time()
+    for i, *items in zip(tqdm.trange(len(dataloader_slow)), dataloader_slow):
+        x = items[0]
+        print(x)
+    end_time = time.time()
+    print("time to iterate all dataset", end_time-start_time)
+    data_tools.RawDataloader(dataset, batch_size=2000)
+    start_time = time.time()
+    for i in tqdm.trange(len(fcc)//2000 +1):
+        x = fcc[i*2000:max((i+1)*2000, len(fcc))]
+        x += 1
+    end_time = time.time()
+    print("time to iterate all dataset", end_time-start_time)
+test_flat_context_corpus()  
