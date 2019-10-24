@@ -17,7 +17,7 @@ class RiemannianEM(object):
         self._distance = pf.distance
 
         self._mu = (torch.rand(n_gaussian, dim) - 0.5)/dim
-        self._sigma = torch.rand(n_gaussian)/10 +0.1
+        self._sigma = torch.rand(n_gaussian)/10 +0.3
         self._w = torch.ones(n_gaussian)/n_gaussian
 
         self._verbose = verbose
@@ -111,7 +111,7 @@ class RiemannianEM(object):
             self._started = True
         for epoch in progress_bar:
             wik = self._expectation(z)
-            self._maximization(z, wik, lr_mu=lr_mu, tau_mu=1e-4)
+            self._maximization(z, wik, lr_mu=lr_mu, tau_mu=1e-5)
 
     def get_parameters(self):
         return  self._w, self._mu, self._sigma

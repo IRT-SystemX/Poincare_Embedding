@@ -72,13 +72,13 @@ parser.add_argument("--batch-size", dest="batch_size", type=int, default=2000,
 parser.add_argument("--seed", dest="seed", type=int, default=42,
                     help="the seed used for sampling random numbers in the experiment")  
 #### I change the option due to memory issue when saving dataset (weird)
-parser.add_argument('--force-rw', dest="force_rw", action="store_true", default=False,
+parser.add_argument('--force-rw', dest="force_rw", action="store_false", default=True,
                     help="if set will automatically compute a new random walk for the experiment") 
 parser.add_argument('--loss-aggregation', dest="loss_aggregation", type=str, default="sum",
                     help="The type of loss aggregation sum or mean")            
 parser.add_argument('--distance-coef', dest="distance_coef", type=float, default=1.,
                     help="Factor applied to the distance in the loss")
-parser.add_argument('--reset-em', dest="reset_em", action="store_false", default=True,
+parser.add_argument('--reset-em', dest="reset_em", action="store_true", default=False,
                     help="reset the em parameters at each iteration")         
 parser.add_argument('--dataset-type', dest="dataset_type", type=str, default="FlatCorpus",
                     help="type of dataset")                          
@@ -208,21 +208,21 @@ dataset_o3 = dataset_index
 training_dataloader_o1 = DataLoader(dataset_o1, 
                             batch_size=args.batch_size, 
                             shuffle=True,
-                            num_workers=4,
+                            num_workers=10,
                             collate_fn=data_tools.PadCollate(dim=0),
                             drop_last=False
                     )
 training_dataloader_o2 = DataLoader(d_rw, 
                             batch_size=args.batch_size, 
                             shuffle=True,
-                            num_workers=4,
+                            num_workers=10,
                             collate_fn=data_tools.PadCollate(dim=0),
                             drop_last=False
                     )
 training_dataloader_o3 = DataLoader(dataset_o3, 
                             batch_size=args.batch_size, 
                             shuffle=True,
-                            num_workers=4,
+                            num_workers=10,
                             collate_fn=data_tools.PadCollate(dim=0),
                             drop_last=False
                     )
@@ -268,7 +268,7 @@ for i in pb:
                         pi=pik, mu=mu, sigma=sigma, negative_sampling=args.negative_sampling,
                         distance_coef=args.distance_coef, normalisation_coef=normalisation_factor)
 
-    # em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=True)
+    torch.save(embedding_alg.get_PoincareEmbeddings().cpu(), os.path.join(saving_folder,args.id+"/embeddings_init.t7"))
     if(args.reset_em):
         em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=False)
     em_alg.fit(embedding_alg.get_PoincareEmbeddings().cpu(), max_iter=args.em_iter)

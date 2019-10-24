@@ -81,7 +81,7 @@ class PoincareKMeans(object):
         self.centroids_index = torch.tensor(centroids_index, device=X.device).long()
         self.centroids = X[self.centroids_index]
 
-    def fit(self, X, Y=None, max_iter=500):
+    def fit(self, X, Y=None, max_iter=50):
         if(Y is None):
             with torch.no_grad():
                 if(self._mec < 0):

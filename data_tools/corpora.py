@@ -144,7 +144,7 @@ class FlatContextCorpus(Dataset):
         if(precompute < 1):
             print("Precompute is mandatory value "+str(precompute)+ " must be a positive integer instead")
             precompute = 1
-        self.context = self._precompute()
+        self.context = torch.LongTensor(self._precompute()).unsqueeze(-1)
         self.n_sample = 5
         # print("LEANANN ", len(self))
 
@@ -169,7 +169,7 @@ class FlatContextCorpus(Dataset):
 
     def __getitem__(self, index):
         a, b = self.context[index][0], self.context[index][1]
-        return torch.LongTensor([a]), torch.LongTensor([b])
+        return a, b
     def __len__(self):
         return len(self.context)
 
@@ -289,11 +289,11 @@ def load_dblp():
     return loading_matlab_corpus(mat_path, label_path)
 
 def load_flickr():
-    os.makedirs("data/FLICKR/", exist_ok=True)
-    dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/Flickr-dataset/edges.csv", "data/FLICKR/edges.csv")
-    dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/Flickr-dataset/group-edges.csv", "data/FLICKR/group-edges.csv")
-    edges_path = "data/FLICKR/edges.csv"
-    groups_path = "data/FLICKR/group-edges.csv"
+    # os.makedirs("data/FLICKR/", exist_ok=True)
+    # dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/Flickr-dataset/edges.csv", "data/FLICKR/edges.csv")
+    # dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/Flickr-dataset/group-edges.csv", "data/FLICKR/group-edges.csv")
+    edges_path = "/local/gerald/data/FLICKR/edges.csv"
+    groups_path = "/local/gerald/data/FLICKR/group-edges.csv"
     return loading_social_computing_corpus(edges_path, groups_path, symetric=True)
 
 def load_blogCatalog():
