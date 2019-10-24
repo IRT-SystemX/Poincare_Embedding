@@ -7,7 +7,7 @@ import time
 from torch.utils.data import Dataset
 from scipy import io as sio
 from data_tools import dataset_downloader
-from data_tools import data_tools
+from data_tools import data_tools as dts
 from torch.utils.data import DataLoader
 class RandomWalkCorpus(Dataset):
     def __init__(self, X, Y, path=True):
@@ -348,7 +348,7 @@ def test_flat_context_corpus():
         print(x)
     end_time = time.time()
     print("time to iterate all dataset", end_time-start_time)
-    data_tools.RawDataloader(dataset, batch_size=2000)
+    dts.RawDataloader(dataset, batch_size=2000)
     start_time = time.time()
     for i in tqdm.trange(len(fcc)//2000 +1):
         x = fcc[i*2000:max((i+1)*2000, len(fcc))]
