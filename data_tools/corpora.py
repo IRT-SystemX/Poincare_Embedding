@@ -7,7 +7,7 @@ import time
 from torch.utils.data import Dataset
 from scipy import io as sio
 from data_tools import dataset_downloader
-from data_tools import data_tools as dts
+from data_tools import data as dts
 from torch.utils.data import DataLoader
 class RandomWalkCorpus(Dataset):
     def __init__(self, X, Y, path=True):
