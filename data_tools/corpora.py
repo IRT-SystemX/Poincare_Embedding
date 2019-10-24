@@ -6,7 +6,7 @@ import tqdm
 import time
 from torch.utils.data import Dataset
 from scipy import io as sio
-from data_tools import  dataset_downloader
+from data_tools import dataset_downloader
 from data_tools import data_tools
 from torch.utils.data import DataLoader
 class RandomWalkCorpus(Dataset):
