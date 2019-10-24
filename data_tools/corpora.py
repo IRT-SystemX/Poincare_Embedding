@@ -345,14 +345,14 @@ def test_flat_context_corpus():
     start_time = time.time()
     for i, *items in zip(tqdm.trange(len(dataloader_slow)), dataloader_slow):
         x = items[0]
-        print(x)
+        g = x + 1
     end_time = time.time()
     print("time to iterate all dataset", end_time-start_time)
-    dts.RawDataloader(dataset, batch_size=2000)
+    dataloader_fast = dts.RawDataloader(dataset, batch_size=2000)
     start_time = time.time()
-    for i in tqdm.trange(len(fcc)//2000 +1):
-        x = fcc[i*2000:max((i+1)*2000, len(fcc))]
-        x += 1
+    for i, *items in zip(tqdm.trange(len(dataloader_fast)), dataloader_fast):
+        x = items[0]
+        g += x+1
     end_time = time.time()
     print("time to iterate all dataset", end_time-start_time)
 test_flat_context_corpus()  
