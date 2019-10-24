@@ -262,13 +262,13 @@ for i in pb:
         embedding_alg.set_lr(args.lr)
         alpha, beta = args.alpha, args.beta
         epoch_embedding = args.epoch_embedding
-
+        torch.save(embedding_alg.get_PoincareEmbeddings().cpu(), os.path.join(saving_folder,args.id+"/embeddings_init.t7"))
     embedding_alg.fit(training_dataloader_o1, training_dataloader_o2, training_dataloader_o3,
                         alpha=alpha, beta=beta, gamma=args.gamma, max_iter=epoch_embedding,
                         pi=pik, mu=mu, sigma=sigma, negative_sampling=args.negative_sampling,
                         distance_coef=args.distance_coef, normalisation_coef=normalisation_factor)
 
-    torch.save(embedding_alg.get_PoincareEmbeddings().cpu(), os.path.join(saving_folder,args.id+"/embeddings_init.t7"))
+
     if(args.reset_em):
         em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=False)
     em_alg.fit(embedding_alg.get_PoincareEmbeddings().cpu(), max_iter=args.em_iter)
