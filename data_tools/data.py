@@ -3,8 +3,8 @@ import io
 import math
 class RawDataloader(object):
     def __init__(self, dataset, batch_size=200):
-        self.dataset
-        self.batch_size
+        self.dataset = dataset
+        self.batch_size = batch_size
     def __iter__(self):
         self.ci = 0
         return self
@@ -12,7 +12,7 @@ class RawDataloader(object):
     def _next_index(self):
         value = dataset[i*batch_size: min((i+1)*batch_size, len(self.dataset)) ]
         self.ci += 1
-        return value
+        return (value,)
 
 class DeviceMapper(object):
     def __init__(self, device):
