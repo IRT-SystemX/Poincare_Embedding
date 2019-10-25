@@ -59,10 +59,10 @@ class NeigbhorFlatCorpus(Dataset):
         self.data = []
         for ns, nln in X.items():
             for nl in nln:
-                self.data.append([ns, nln])
+                self.data.append([ns, nl])
 
     def __getitem__(self, index):
-        return torch.LongTensor([self.data[index][0]]), torch.LongTensor(self.data[index][1])
+        return torch.LongTensor([self.data[index][0]]), torch.LongTensor([self.data[index][1]])
 
     def __len__(self):
         return len(self.data)
