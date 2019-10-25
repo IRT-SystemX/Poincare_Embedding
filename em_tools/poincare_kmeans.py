@@ -14,9 +14,10 @@ class PoincareKMeansNInit(object):
         self.verbose = verbose
         self.KMeans = [PoincareKMeans(n_clusters, min_cluster_size, verbose, init_method) for i in range(n_init)]
     
-    def fit(self, X, Y=None, max_iter=500):
+    def fit(self, X, Y=None, max_iter=10):
         pb = tqdm.trange(len(self.KMeans))
         stds = torch.zeros(len(self.KMeans))
+        print("X.device : ",X.device)
         for i, kmeans in zip(pb,self.KMeans):
             kmeans.fit(X, Y, max_iter)
             stds[i] = kmeans.getStd(X).mean()
@@ -81,7 +82,7 @@ class PoincareKMeans(object):
         self.centroids_index = torch.tensor(centroids_index, device=X.device).long()
         self.centroids = X[self.centroids_index]
 
-    def fit(self, X, Y=None, max_iter=50):
+    def fit(self, X, Y=None, max_iter=10):
         if(Y is None):
             with torch.no_grad():
                 if(self._mec < 0):

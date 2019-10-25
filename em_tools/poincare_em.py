@@ -17,7 +17,7 @@ class RiemannianEM(object):
         self._distance = pf.distance
 
         self._mu = (torch.rand(n_gaussian, dim) - 0.5)/dim
-        self._sigma = torch.rand(n_gaussian)/10 +0.3
+        self._sigma = torch.rand(n_gaussian)/10 +0.8
         self._w = torch.ones(n_gaussian)/n_gaussian
 
         self._verbose = verbose
@@ -64,10 +64,10 @@ class RiemannianEM(object):
             print("EXPECTATION : pdf contain not a number elements")
             quit()
         p_pdf = pdf * self._w.unsqueeze(0).expand_as(pdf)
-        if(p_pdf.sum(-1).min() <= 1e-10):
-            if(self._verbose):
-                print("EXPECTATION : pdf.sum(-1) contain zero")
-            p_pdf[p_pdf.sum(-1) <= 1e-4] = 1e-4
+        if(p_pdf.sum(-1).min() <= 1e-15):
+
+            print("EXPECTATION : pdf.sum(-1) contain zero for ", (p_pdf.sum(-1)<= 1e-15).sum().item(), "items")
+            p_pdf[p_pdf.sum(-1) <= 1e-15] = 1e-15
             
         wik = p_pdf/p_pdf.sum(-1, keepdim=True).expand_as(pdf)
         if(wik.mean() != wik.mean()):
@@ -109,6 +109,11 @@ class RiemannianEM(object):
                 print("\t mu -> ", self._mu)
                 print("\t sigma -> ", self._sigma)
             self._started = True
+        # set in the z device
+        self._mu = self._mu.to(z.device)
+        self._sigma = self._sigma.to(z.device)
+        self._w = self._w.to(z.device)
+        self.zeta_phi.to(z.device)
         for epoch in progress_bar:
             wik = self._expectation(z)
             self._maximization(z, wik, lr_mu=lr_mu, tau_mu=1e-5)

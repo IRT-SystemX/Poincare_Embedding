@@ -111,6 +111,11 @@ class ZetaPhiStorage(object):
         val = phi_val.unsqueeze(1).expand(N,P)
         values, index = torch.abs(ref - val).min(-1)
         return self.sigma[index]
+    
+    def to(self, device):
+        self.sigma = self.sigma.to(device)
+        self.m_zeta_var = self.m_zeta_var.to(device)
+        self.phi_inv_var = self.phi_inv_var.to(device)
 
 
 
@@ -118,7 +123,7 @@ def euclidean_norm_factor(sigma, N):
     return 1/((2*math.pi)**(N/2) * torch.sqrt(sigma))
 
 def gaussianPDF(x, mu, sigma, distance=pf.distance, norm_func=zeta):
-    norm_func = zeta
+    # norm_func = zeta
     # print(x.shape, mu.shape)
     N, D, M = x.shape + (mu.shape[0],)
     # print("N, M, D ->", N, M, D)
@@ -131,7 +136,7 @@ def gaussianPDF(x, mu, sigma, distance=pf.distance, norm_func=zeta):
     # computing numerator
     num = torch.exp(-((distance(x_rd, mu_rd)**2))/(2*(sigma_rd**2)))
 
-    den = norm_func(sigma, D)
+    den = norm_func(sigma)
     # print("sigma",num)
     # print("den ", den)
     # print("pdf max ", (num/den.unsqueeze(0).expand(N, M)).max())

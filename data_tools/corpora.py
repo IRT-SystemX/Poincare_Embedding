@@ -285,22 +285,22 @@ def loading_social_computing_corpus(edges_path, groups_path, symetric=True):
     
     return RandomWalkCorpus(X, Y), X, Y    
 
-# def loading_mat_txt(mat_path, label_path):
-#     # Graph
-#     X = {}
-#     with io.open(mat_path, "r") as edges_file:
-#         for i, line in enumerate(edges_file):
-#             lsp = line.split()
-#             X[i] = [k for k, value in enumerate(lsp) if(int(value) == 1)]
+def loading_mat_txt(mat_path, label_path):
+    # Graph
+    X = {}
+    with io.open(mat_path, "r") as edges_file:
+        for i, line in enumerate(edges_file):
+            lsp = line.split()
+            X[i] = [k for k, value in enumerate(lsp) if(int(value) == 1)]
     
-#     Y = {}
-#     with io.open(label_path, "r") as label_file:
-#         for i, line in enumerate(label_file):
+    Y = {}
+    with io.open(label_path, "r") as label_file:
+        for i, line in enumerate(label_file):
             
-#             Y[i] = []
-#             Y[i].append(int(line))
+            Y[i] = []
+            Y[i].append(int(line))
 
-#     return RandomWalkCorpus(X, Y), X, Y   
+    return RandomWalkCorpus(X, Y), X, Y   
 
 def load_dblp():
     # os.makedirs("data/DBLP/", exist_ok=True)
