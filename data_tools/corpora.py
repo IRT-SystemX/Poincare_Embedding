@@ -60,11 +60,21 @@ class NeigbhorFlatCorpus(Dataset):
         self.data = []
         for ns, nln in X.items():
             for nl in nln:
-                self.data.append([ns, nln])
+                self.data.append([ns, nl])
+        self.data = torch.LongTensor(self.data)
+
+    def cuda(self):
+        self.data = self.data.cuda()
+
+    def cpu(self):
+        self.data = self.data.cpu()
 
     def __getitem__(self, index):
-        return torch.LongTensor([self.data[index][0]]), torch.LongTensor(self.data[index][1])
-
+        if(type(index) == int):
+            a, b = self.data[index][0], self.data[index][1]
+        else:
+            a,b  = self.data[index][:,0], self.data[index][:,1]
+        return a, b
     def __len__(self):
         return len(self.data)
 
@@ -168,8 +178,18 @@ class FlatContextCorpus(Dataset):
         
         return flat_context
 
+    def cuda(self):
+        print("max index ", self.context.max())
+        self.context = self.context.cuda()
+
+    def cpu(self):
+        self.context = self.context.cpu()
+
     def __getitem__(self, index):
-        a, b = self.context[index][0], self.context[index][1]
+        if(type(index) == int):
+            a, b = self.context[index][0], self.context[index][1]
+        else:
+            a,b  = self.context[index][:,0], self.context[index][:,1]
         return a, b
     def __len__(self):
         return len(self.context)
@@ -331,9 +351,9 @@ def load_polblogs():
     label_path = "Input/R_Polblogs.txt"
     return loading_mat_txt(matrix_path, label_path)
 
-def test_flat_context_corpus():
+def test():
     dblp_dataset, X, Y = load_dblp()
-    dblp_dataset.set_walk(5, 1.0)
+    dblp_dataset.set_walk(3, 1.0)
     dblp_dataset.set_path(True)
     fcc = FlatContextCorpus(dblp_dataset, context_size=5, precompute=5)
     dataloader_slow = DataLoader(fcc, 
@@ -345,14 +365,19 @@ def test_flat_context_corpus():
     start_time = time.time()
     for i, *items in zip(tqdm.trange(len(dataloader_slow)), dataloader_slow):
         x = items[0]
+        # print(x[0].size())
         g = x[0] + 1
     end_time = time.time()
     print("time to iterate all dataset", end_time-start_time)
     dataloader_fast = dts.RawDataloader(fcc, batch_size=2000)
     start_time = time.time()
+    print(fcc[0:2000][0].size())
     for i, *items in zip(tqdm.trange(len(dataloader_fast)), dataloader_fast):
         x = items[0]
+
         g = x[0]+1
     end_time = time.time()
     print("time to iterate all dataset", end_time-start_time)
-test_flat_context_corpus()  
+
+if __name__ == '__main__':
+    test()

@@ -10,7 +10,7 @@ from embedding_tools.poincare_embedding import PoincareEmbedding as PEmbed
 from em_tools.poincare_em import RiemannianEM as PEM
 from data_tools import corpora_tools
 from data_tools import corpora
-from data_tools import data_tools
+from data_tools import data
 from evaluation_tools import evaluation
 from visualisation_tools import plot_tools
 
@@ -209,7 +209,6 @@ training_dataloader = DataLoader(embedding_dataset,
                             batch_size=args.batch_size, 
                             shuffle=False,
                             num_workers=4,
-                            collate_fn=data_tools.PadCollate(dim=0),
                             drop_last=False
                     )
 

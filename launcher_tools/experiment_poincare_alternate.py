@@ -10,7 +10,7 @@ from embedding_tools.poincare_embedding_alternate import PoincareEmbedding as PE
 from em_tools.poincare_em import RiemannianEM as PEM
 from data_tools import corpora_tools
 from data_tools import corpora
-from data_tools import data_tools
+from data_tools import data
 from evaluation_tools import evaluation
 from visualisation_tools import plot_tools
 
@@ -205,25 +205,25 @@ dataset_o3 = dataset_index
 # print(d_rw[1][0].size())
 # print(len(embedding_dataset[0]))
 # print(embedding_dataset[29][-1][20:25])
-training_dataloader_o1 = DataLoader(dataset_o1, 
+print(dataset_o1[0])
+print(dataset_o1.data[0])
+if(args.cuda):
+    dataset_o1.cuda()
+    d_rw.cuda()
+training_dataloader_o1 = data.RawDataloader(dataset_o1, 
                             batch_size=args.batch_size, 
-                            shuffle=True,
-                            num_workers=10,
-                            collate_fn=data_tools.PadCollate(dim=0),
-                            drop_last=False
+                            shuffle=True
                     )
-training_dataloader_o2 = DataLoader(d_rw, 
+
+
+training_dataloader_o2 = data.RawDataloader(d_rw, 
                             batch_size=args.batch_size, 
-                            shuffle=True,
-                            num_workers=10,
-                            collate_fn=data_tools.PadCollate(dim=0),
-                            drop_last=False
+                            shuffle=True
                     )
 training_dataloader_o3 = DataLoader(dataset_o3, 
                             batch_size=args.batch_size, 
                             shuffle=True,
                             num_workers=10,
-                            collate_fn=data_tools.PadCollate(dim=0),
                             drop_last=False
                     )
 

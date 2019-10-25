@@ -52,11 +52,11 @@ class PoincareEmbedding(nn.Module):
 
 
             # SGD on O_1
-            for example_index_a, example_index_b in dataloader_o2:
+            for example_index_a, example_index_b in dataloader_o1:
                 self.optimizer.zero_grad()
-                if(self.cuda):
-                    example_index_a = example_index_a.cuda()
-                    example_index_b = example_index_b.cuda()
+                # if(self.cuda):
+                #     example_index_a = example_index_a.cuda()
+                #     example_index_b = example_index_b.cuda()
                 example_embedding_a, example_embedding_b = self.W(example_index_a), self.W(example_index_b)
                 loss_o1 = losses.SGDLoss.O1(example_embedding_a, example_embedding_b, coef=distance_coef)
                 loss_value1 += loss_o1.detach().sum().item()
@@ -68,24 +68,30 @@ class PoincareEmbedding(nn.Module):
             #SGD on O_2
             for example_index_a, example_index_b in dataloader_o2:
                 self.optimizer.zero_grad()
+                # print(example_index_a)
                 # getting negative examples
                 negative = self.n_dist.sample(sample_shape=(example_index_a.size(0),  negative_sampling))
                 if(self.cuda):
-                    example_index_a = example_index_a.cuda()
-                    example_index_b = example_index_b.cuda()
+                    # example_index_a = example_index_a.cuda()
+                    # example_index_b = example_index_b.cuda()
                     negative = negative.cuda()
                 #getting embedding
-                example_embedding_a, example_embedding_b = (self.W(example_index_a).squeeze(), 
-                                                            self.W(example_index_b).squeeze())
-                negative_embedding = self.W(negative)
-                loss_o2 = losses.SGDLoss.O2(example_embedding_a, example_embedding_b,
-                                             negative_embedding, coef=distance_coef)
-                loss_value2 += loss_o2.detach().sum().item()
-                self.agg(beta * loss_o2).backward()
-                self.optimizer.step()
+                try:
+                    example_embedding_a, example_embedding_b = (self.W(example_index_a).squeeze(), 
+                                                                self.W(example_index_b).squeeze())
+                    negative_embedding = self.W(negative)
+                    loss_o2 = losses.SGDLoss.O2(example_embedding_a, example_embedding_b,
+                                                negative_embedding, coef=distance_coef)
+                    loss_value2 += loss_o2.detach().sum().item()
+                    self.agg(beta * loss_o2).backward()
+                    self.optimizer.step()
 
 
-
+                except:
+                    print("ERROR")
+                    print(example_index_a.max())
+                    print(example_embedding_a.max())
+                    quit()
             # sgd on O_3
             if(gamma > 0 and pi is not None):
                 for example_index, *others in dataloader_o3:
