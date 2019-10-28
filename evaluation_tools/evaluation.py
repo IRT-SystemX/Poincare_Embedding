@@ -3,6 +3,7 @@ from function_tools import distribution_function, poincare_function
 from function_tools import euclidean_function as ef
 
 from em_tools.poincare_kmeans import PoincareKMeans
+from em_tools.poincare_em import RiemannianEM
 from collections import Counter
 import numpy as np
 import math
@@ -115,6 +116,36 @@ def accuracy_cross_validation(Z, Y, pi,  mu, sigma, nb_set, verbose=True):
     return acc_total/(len(I_CV))
 
 
+def evaluate_em_supervised(Z, Y, n_gaussian, nb_set=5, verbose=False):
+    subset_index = torch.randperm(len(Z))
+    nb_value = len(Z)//nb_set
+    I_CV = [subset_index[nb_value *i:min(nb_value * (i+1), len(Z))] for i in range(nb_set)]
+    acc_total = 0.
+    for i, test_index in enumerate(I_CV):
+        # create train dataset
+        train_index = torch.cat([ subset for ci, subset in enumerate(I_CV) if(i!=ci)],0)
+        Z_train = Z[train_index]
+        Y_train = [Y[ic.item()] for ic in train_index]
+
+        #create test datase
+        Z_test = Z[test_index]
+        Y_test = [Y[ic.item()] for ic in test_index]        
+        
+        if(verbose):
+            print("Set "+str(i)+" :")
+            print("\t train size -> "+str(len(Z_train)))
+            print("\t test size -> "+str(len(Z_test)))
+            print("Associate to each gaussian a class")
+        
+        em_alg = RiemannianEM(Z.size(-1), n_gaussian)
+        g_mat = torch.Tensor([[ 1 if(y+1 in Y_train[i]) else 0 for y in range(n_gaussian)] for i in range(len(Z_train))])
+        em_alg.fit(Z_train, Y=g_mat)
+        # predict
+        prediction = em_alg.predict(Z_test)
+
+        acc = accuracy(prediction, torch.LongTensor([i[0]-1 for i in Y_test]))
+        acc_total += acc.item()
+    return acc_total/(len(I_CV))
 
 # in the following function we perform prediction using disc product
 # Z, Y, pi, mu, sigma are list of tensor with the size number of disc
