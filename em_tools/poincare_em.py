@@ -11,7 +11,7 @@ from function_tools import poincare_function as pf
 from function_tools import poincare_alg as pa
 
 class RiemannianEM(object):
-    def __init__(self, dim, n_gaussian, init_mod="kmeans-hyperbolic", verbose=True):
+    def __init__(self, dim, n_gaussian, init_mod="kmeans-hyperbolic", verbose=False):
         self._n_g = n_gaussian
         self._d = dim
         self._distance = pf.distance
@@ -59,15 +59,19 @@ class RiemannianEM(object):
     def _expectation(self, z):
         # computing wik 
         pdf = df.gaussianPDF(z, self._mu, self._sigma, norm_func=self.zeta_phi.zeta) 
-        # print("pdf.size()->", pdf.size())
         if(pdf.mean() != pdf.mean()):
             print("EXPECTATION : pdf contain not a number elements")
             quit()
         p_pdf = pdf * self._w.unsqueeze(0).expand_as(pdf)
+
+        # it can happens sometime to get (due to machine precision) a node with all pdf to zero
+        # in this case we must detect it. There is severall solution, in our case we affect it
+        # equally to each gaussian. Becarefull if the ratio size of dataset/ number of unafected 
+        # node is large then the algorithm can not works.
         if(p_pdf.sum(-1).min() <= 1e-15):
 
             print("EXPECTATION : pdf.sum(-1) contain zero for ", (p_pdf.sum(-1)<= 1e-15).sum().item(), "items")
-            p_pdf[p_pdf.sum(-1) <= 1e-15] = 1e-15
+            p_pdf[p_pdf.sum(-1) <= 1e-15] = 1
             
         wik = p_pdf/p_pdf.sum(-1, keepdim=True).expand_as(pdf)
         if(wik.mean() != wik.mean()):
@@ -94,12 +98,26 @@ class RiemannianEM(object):
             print("UPDATE : sigma contain not a number elements")
             quit()  
 
-    def fit(self, z, max_iter=5, lr_mu=5e-3, tau_mu=1e-4):
-        progress_bar = tqdm.trange(max_iter) if(self._verbose) else range(max_iter)
-        # if it is the first time function fit is called
-        if(not self._started):
-            # using kmeans for initializing means
-            if(self._init_mod == "kmeans-hyperbolic"):
+    def fit(self, z, max_iter=5, lr_mu=5e-3, tau_mu=1e-4, Y=None):
+        if(Y is not None):
+            # we are in the supervised case
+            # the objective is in this case to find the gaussian for each
+            # community, thus wik is 1 for each classes
+            # in this case Y is tensor NxK 
+            wik = Y
+            # print(wik.size())
+            self._maximization(z, wik, lr_mu=lr_mu, tau_mu=1e-5)
+        else:
+            progress_bar = tqdm.trange(max_iter) if(self._verbose) else range(max_iter)
+            # if it is the first time function fit is called
+            if(not self._started):
+                # using kmeans for initializing means
+                if(self._init_mod == "kmeans-hyperbolic"):
+                    if(self._verbose):
+                        print("Initialize means using kmeans hyperbolic algorithm")
+                    km = kmh.PoincareKMeansNInit(self._n_g, n_init=20)
+                    km.fit(z)
+                    self._mu = km.cluster_centers_
                 if(self._verbose):
                     print("Initialize means using kmeans hyperbolic algorithm")
                 km = kmh.PoincareKMeansNInit(self._n_g, n_init=20)

@@ -10,7 +10,7 @@ from embedding_tools.poincare_embedding_alternate import PoincareEmbedding as PE
 from em_tools.poincare_em import RiemannianEM as PEM
 from data_tools import corpora_tools
 from data_tools import corpora
-from data_tools import data_tools
+from data_tools import data
 from evaluation_tools import evaluation
 from visualisation_tools import plot_tools
 
@@ -67,11 +67,10 @@ parser.add_argument("--em-iter", dest="em_iter", type=int, default=10,
                     help="Number of EM iterations")
 parser.add_argument("--size", dest="size", type=int, default=3,
                     help="dimenssion of the ball")
-parser.add_argument("--batch-size", dest="batch_size", type=int, default=2000,
+parser.add_argument("--batch-size", dest="batch_size", type=int, default=10000,
                     help="Batch number of elements")
 parser.add_argument("--seed", dest="seed", type=int, default=42,
                     help="the seed used for sampling random numbers in the experiment")  
-#### I change the option due to memory issue when saving dataset (weird)
 parser.add_argument('--force-rw', dest="force_rw", action="store_false", default=True,
                     help="if set will automatically compute a new random walk for the experiment") 
 parser.add_argument('--loss-aggregation', dest="loss_aggregation", type=str, default="sum",
@@ -205,25 +204,25 @@ dataset_o3 = dataset_index
 # print(d_rw[1][0].size())
 # print(len(embedding_dataset[0]))
 # print(embedding_dataset[29][-1][20:25])
-training_dataloader_o1 = DataLoader(dataset_o1, 
+print(dataset_o1[0])
+print(dataset_o1.data[0])
+if(args.cuda):
+    dataset_o1.cuda()
+    d_rw.cuda()
+training_dataloader_o1 = data.RawDataloader(dataset_o1, 
                             batch_size=args.batch_size, 
-                            shuffle=True,
-                            num_workers=10,
-                            collate_fn=data_tools.PadCollate(dim=0),
-                            drop_last=False
+                            shuffle=True
                     )
-training_dataloader_o2 = DataLoader(d_rw, 
+
+
+training_dataloader_o2 = data.RawDataloader(d_rw, 
                             batch_size=args.batch_size, 
-                            shuffle=True,
-                            num_workers=10,
-                            collate_fn=data_tools.PadCollate(dim=0),
-                            drop_last=False
+                            shuffle=True
                     )
 training_dataloader_o3 = DataLoader(dataset_o3, 
                             batch_size=args.batch_size, 
                             shuffle=True,
                             num_workers=10,
-                            collate_fn=data_tools.PadCollate(dim=0),
                             drop_last=False
                     )
 

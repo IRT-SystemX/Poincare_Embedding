@@ -3,11 +3,12 @@ import os
 import torch 
 import random
 import tqdm
-
+import time
 from torch.utils.data import Dataset
 from scipy import io as sio
 from data_tools import dataset_downloader
-
+from data_tools import data as dts
+from torch.utils.data import DataLoader
 class RandomWalkCorpus(Dataset):
     def __init__(self, X, Y, path=True):
         # the sparse torch dictionary
@@ -60,10 +61,20 @@ class NeigbhorFlatCorpus(Dataset):
         for ns, nln in X.items():
             for nl in nln:
                 self.data.append([ns, nl])
+        self.data = torch.LongTensor(self.data)
+
+    def cuda(self):
+        self.data = self.data.cuda()
+
+    def cpu(self):
+        self.data = self.data.cpu()
 
     def __getitem__(self, index):
-        return torch.LongTensor([self.data[index][0]]), torch.LongTensor([self.data[index][1]])
-
+        if(type(index) == int):
+            a, b = self.data[index][0], self.data[index][1]
+        else:
+            a,b  = self.data[index][:,0], self.data[index][:,1]
+        return a, b
     def __len__(self):
         return len(self.data)
 
@@ -146,7 +157,6 @@ class FlatContextCorpus(Dataset):
             precompute = 1
         self.context = torch.LongTensor(self._precompute()).unsqueeze(-1)
         self.n_sample = 5
-        # print("LEANANN ", len(self))
 
     def _precompute(self):
         precompute = self.precompute
@@ -167,11 +177,22 @@ class FlatContextCorpus(Dataset):
         
         return flat_context
 
+    def cuda(self):
+        print("max index ", self.context.max())
+        self.context = self.context.cuda()
+
+    def cpu(self):
+        self.context = self.context.cpu()
+
     def __getitem__(self, index):
-        a, b = self.context[index][0], self.context[index][1]
+        if(type(index) == int):
+            a, b = self.context[index][0], self.context[index][1]
+        else:
+            a,b  = self.context[index][:,0], self.context[index][:,1]
         return a, b
     def __len__(self):
         return len(self.context)
+
 
 class WeightedFlatContextCorpus(Dataset):
     def __init__(self, dataset, context_size=5, precompute=1):
@@ -281,9 +302,9 @@ def loading_mat_txt(mat_path, label_path):
     return RandomWalkCorpus(X, Y), X, Y   
 
 def load_dblp():
-    os.makedirs("data/DBLP/", exist_ok=True)
-    dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/DBLP/Dblp.mat", "data/DBLP/Dblp.mat")
-    dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/DBLP/labels.txt", "data/DBLP/labels.txt")
+    # os.makedirs("data/DBLP/", exist_ok=True)
+    # dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/DBLP/Dblp.mat", "data/DBLP/Dblp.mat")
+    # dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/DBLP/labels.txt", "data/DBLP/labels.txt")
     mat_path = "data/DBLP/Dblp.mat"
     label_path = "data/DBLP/labels.txt"
     return loading_matlab_corpus(mat_path, label_path)
@@ -328,3 +349,34 @@ def load_polblogs():
     matrix_path = "Input/Polblogs.txt"
     label_path = "Input/R_Polblogs.txt"
     return loading_mat_txt(matrix_path, label_path)
+
+def test():
+    dblp_dataset, X, Y = load_dblp()
+    dblp_dataset.set_walk(3, 1.0)
+    dblp_dataset.set_path(True)
+    fcc = FlatContextCorpus(dblp_dataset, context_size=5, precompute=5)
+    dataloader_slow = DataLoader(fcc, 
+                                batch_size=2000, 
+                                shuffle=True,
+                                num_workers=2,
+                                drop_last=False
+                        )
+    start_time = time.time()
+    for i, *items in zip(tqdm.trange(len(dataloader_slow)), dataloader_slow):
+        x = items[0]
+        # print(x[0].size())
+        g = x[0] + 1
+    end_time = time.time()
+    print("time to iterate all dataset", end_time-start_time)
+    dataloader_fast = dts.RawDataloader(fcc, batch_size=2000)
+    start_time = time.time()
+    print(fcc[0:2000][0].size())
+    for i, *items in zip(tqdm.trange(len(dataloader_fast)), dataloader_fast):
+        x = items[0]
+
+        g = x[0]+1
+    end_time = time.time()
+    print("time to iterate all dataset", end_time-start_time)
+
+if __name__ == '__main__':
+    test()

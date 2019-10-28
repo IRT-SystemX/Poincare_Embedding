@@ -1,5 +1,31 @@
 import torch
 import io
+import math
+class RawDataloader(object):
+    def __init__(self, dataset, batch_size=200, shuffle=False):
+        self.dataset = dataset
+        self.batch_size = batch_size
+        self.shuffle = shuffle
+    def __iter__(self):
+        if(self.shuffle):
+            self.indexed = torch.randperm(len(self.dataset))
+        self.indexed = torch.arange(len(self.dataset))
+        self.ci = 0
+        return self
+
+    def __len__(self):
+        return len(self.dataset)//self.batch_size +  (0 if(len(self.dataset)%self.batch_size == 0) else 1)
+
+    def _next_index(self):
+        if(self.ci >= (len(self))):
+            raise StopIteration
+        value = self.dataset[self.indexed[self.ci*self.batch_size: min((self.ci+1)*self.batch_size, len(self.dataset)) ]]
+
+        self.ci += 1
+        return value
+    def __next__(self):
+        return self._next_index()
+
 class DeviceMapper(object):
     def __init__(self, device):
         self.device = device

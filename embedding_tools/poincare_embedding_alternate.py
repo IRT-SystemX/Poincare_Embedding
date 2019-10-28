@@ -1,6 +1,7 @@
 import tqdm
 import torch
 from torch import nn
+import random
 
 from function_tools import poincare_function, poincare_module, distribution_function
 from embedding_tools import losses
@@ -46,17 +47,15 @@ class PoincareEmbedding(nn.Module):
             mu = mu.cuda()
             sigma = sigma.cuda()
             normalisation_coef = normalisation_coef.cuda()
+        negative_all = None
         for i in progress_bar:
             loss_value1, loss_value2, loss_value3 = 0,0,0
 
 
 
             # SGD on O_1
-            for example_index_a, example_index_b in dataloader_o2:
+            for example_index_a, example_index_b in dataloader_o1:
                 self.optimizer.zero_grad()
-                if(self.cuda):
-                    example_index_a = example_index_a.cuda()
-                    example_index_b = example_index_b.cuda()
                 example_embedding_a, example_embedding_b = self.W(example_index_a), self.W(example_index_b)
                 loss_o1 = losses.SGDLoss.O1(example_embedding_a, example_embedding_b, coef=distance_coef)
                 loss_value1 += loss_o1.detach().sum().item()
@@ -66,25 +65,26 @@ class PoincareEmbedding(nn.Module):
 
 
             #SGD on O_2
+            
             for example_index_a, example_index_b in dataloader_o2:
                 self.optimizer.zero_grad()
                 # getting negative examples
-                negative = self.n_dist.sample(sample_shape=(example_index_a.size(0),  negative_sampling))
-                if(self.cuda):
-                    example_index_a = example_index_a.cuda()
-                    example_index_b = example_index_b.cuda()
-                    negative = negative.cuda()
+                if(negative_all is None):
+                    negative_all = self.n_dist.sample( sample_shape=(len(dataloader_o2),example_index_a.size(0),  negative_sampling))
+                    if(self.cuda):
+                        negative_all = negative_all.cuda()
+                negative = negative_all[random.randint(0, len(dataloader_o2)-1)][:example_index_a.size(0)]
+
                 #getting embedding
+
                 example_embedding_a, example_embedding_b = (self.W(example_index_a).squeeze(), 
                                                             self.W(example_index_b).squeeze())
                 negative_embedding = self.W(negative)
                 loss_o2 = losses.SGDLoss.O2(example_embedding_a, example_embedding_b,
-                                             negative_embedding, coef=distance_coef)
+                                            negative_embedding, coef=distance_coef)
                 loss_value2 += loss_o2.detach().sum().item()
                 self.agg(beta * loss_o2).backward()
                 self.optimizer.step()
-
-
 
             # sgd on O_3
             if(gamma > 0 and pi is not None):

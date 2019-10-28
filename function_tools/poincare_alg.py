@@ -14,6 +14,7 @@ def barycenter(z, wik=None, lr=5e-3, tau=5e-3, max_iter=math.inf, distance=pf.di
 
         wik = wik.unsqueeze(-1).expand_as(z)
         if(init_method == "global_mean"):
+            print("Bad init selected")
             barycenter = z.mean(0, keepdim=True)            
         else:
             barycenter = (z*wik).sum(0, keepdim=True)/wik.sum(0)

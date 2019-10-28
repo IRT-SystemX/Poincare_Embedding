@@ -6,14 +6,13 @@ import pytorch_categorical
 from torch.utils.data import DataLoader
 import os
 from multiprocessing import Process, Manager
-from embedding_tools.poincare_embeddings_graph_multi import RiemannianEmbedding as PEmbed
-from em_tools.poincare_em_multi import RiemannianEM as PEM
+from em_tools.poincare_em import RiemannianEM as EM
 from data_tools import corpora_tools
 from data_tools import corpora
 from data_tools import data_tools
 from evaluation_tools import evaluation
 from visualisation_tools import plot_tools
-from launcher_tools import logger
+from data_tools import logger
 from optim_tools import optimizer
 
 parser = argparse.ArgumentParser(description='Load embeddings and perform kmeans on it')
@@ -36,34 +35,18 @@ log_in = logger.JSONLogger(os.path.join(args.file,"log.json"), mod="continue")
 dataset_name = log_in["dataset"]
 print(dataset_name)
 n_gaussian = log_in["n_gaussian"]
+size = log_in["size"]
 if(dataset_name not in dataset_dict):
     print("Dataset " + dataset_name + " does not exist, please select one of the following : ")
     print(list(dataset_dict.keys()))
     quit()
 
-results = []
-std_kmeans = []
-representations = torch.load(os.path.join(args.file,"embeddings.t7"))[0]
-
-for i in tqdm.trange(args.n):
-    total_accuracy, stdmx, stdmn, std = evaluation.accuracy_disc_kmeans(representations, D.Y, torch.zeros(n_gaussian),  verbose=False)
-    results.append(total_accuracy)
-    std_kmeans.append(std.tolist())
 print("Loading Corpus ")
-
-R = torch.Tensor(results)
-S = torch.Tensor(std_kmeans)
-
-print("MEANS -> ", R.mean())
-print("MAX -> ", R.max())
-print("MIN -> ", R.min())
-
 D, X, Y = dataset_dict[dataset_name]()
 
 results = []
 std_kmeans = []
 representations = torch.load(os.path.join(args.file,"embeddings.t7"))[0]
-
-total_accuracy = evaluation.accuracy_supervised(representations, D.Y, torch.zeros(n_gaussian),  verbose=True)
-print(total_accuracy)
-log_in.append({"supervised_evaluation":total_accuracy})
+total_acc = evaluation.evaluate_em_supervised(representations, Y, n_gaussian, nb_set=5, verbose=False)
+print(total_acc)
+# log_in.append({"supervised_evaluation":total_accuracy})

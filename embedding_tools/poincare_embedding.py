@@ -64,7 +64,6 @@ class PoincareEmbedding(nn.Module):
                 embed_source, embed_neigbhor = self.W(example), self.W(neigbhors)
                 embed_source_rw, embed_context_rw  = self.W(index_source_rw), self.W(index_context_rw)
                 embed_negative = self.W(negative)
-                # print(index_source_rw.size(),embed_source.size(), embed_neigbhor.size(), embed_source_rw.size(), embed_context_rw.size(), embed_negative.size())
                 # computing O1 loss
                 loss_o1 = losses.SGDLoss.O1(embed_source, embed_neigbhor, coef=distance_coef)
                 # computing O2 loss
