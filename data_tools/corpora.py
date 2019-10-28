@@ -157,7 +157,6 @@ class FlatContextCorpus(Dataset):
             precompute = 1
         self.context = torch.LongTensor(self._precompute()).unsqueeze(-1)
         self.n_sample = 5
-        # print("LEANANN ", len(self))
 
     def _precompute(self):
         precompute = self.precompute

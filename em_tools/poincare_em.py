@@ -59,15 +59,19 @@ class RiemannianEM(object):
     def _expectation(self, z):
         # computing wik 
         pdf = df.gaussianPDF(z, self._mu, self._sigma, norm_func=self.zeta_phi.zeta) 
-        # print("pdf.size()->", pdf.size())
         if(pdf.mean() != pdf.mean()):
             print("EXPECTATION : pdf contain not a number elements")
             quit()
         p_pdf = pdf * self._w.unsqueeze(0).expand_as(pdf)
+
+        # it can happens sometime to get (due to machine precision) a node with all pdf to zero
+        # in this case we must detect it. There is severall solution, in our case we affect it
+        # equally to each gaussian. Becarefull if the ratio size of dataset/ number of unafected 
+        # node is large then the algorithm can not works.
         if(p_pdf.sum(-1).min() <= 1e-15):
 
             print("EXPECTATION : pdf.sum(-1) contain zero for ", (p_pdf.sum(-1)<= 1e-15).sum().item(), "items")
-            p_pdf[p_pdf.sum(-1) <= 1e-15] = 1e-15
+            p_pdf[p_pdf.sum(-1) <= 1e-15] = 1
             
         wik = p_pdf/p_pdf.sum(-1, keepdim=True).expand_as(pdf)
         if(wik.mean() != wik.mean()):
@@ -115,7 +119,6 @@ class RiemannianEM(object):
                     km.fit(z)
                     self._mu = km.cluster_centers_
                 if(self._verbose):
-<<<<<<< HEAD
                     print("Initialize means using kmeans hyperbolic algorithm")
                 km = kmh.PoincareKMeansNInit(self._n_g, n_init=20)
                 km.fit(z)
@@ -132,14 +135,6 @@ class RiemannianEM(object):
         for epoch in progress_bar:
             wik = self._expectation(z)
             self._maximization(z, wik, lr_mu=lr_mu, tau_mu=1e-5)
-=======
-                    print("\t mu -> ", self._mu)
-                    print("\t sigma -> ", self._sigma)
-                self._started = True
-            for epoch in progress_bar:
-                wik = self._expectation(z)
-                self._maximization(z, wik, lr_mu=lr_mu, tau_mu=1e-4)
->>>>>>> origin/evaluation_supervised_em
 
     def get_parameters(self):
         return  self._w, self._mu, self._sigma
