@@ -8,9 +8,6 @@ pi_2_3 = pow((2*math.pi),2/3)
 a_for_erf = 8.0/(3.0*np.pi)*(np.pi-3.0)/(4.0-np.pi)
 ZETA_CST = math.sqrt(math.pi/2)
 
-def erf_approx(x):
-    return torch.sign(x)*torch.sqrt(1-torch.exp(-x*x*(4/np.pi+a_for_erf*x*x)/(1+a_for_erf*x*x)))
-
 
 def weighted_gmm_pdf(w, z, mu, sigma, distance, norm_func=None):
     #print(w.size())
@@ -49,7 +46,7 @@ def zeta(sigma, N ,binomial_coefficient=None):
         alternate_neg = (-ones_)**(range_)
         ins = (((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2)
         ins_squared = ((((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2))**2
-        as_o = (1+erf_approx(ins)) * torch.exp(ins_squared)
+        as_o = (1+torch.erf(ins)) * torch.exp(ins_squared)
         bs_o = binomial_coefficient * as_o
         r = alternate_neg * bs_o
 
@@ -73,20 +70,50 @@ def zeta(sigma, N ,binomial_coefficient=None):
         alternate_neg = (-ones_)**(range_)
         ins = (((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2)
         ins_squared = ((((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2))**2
-        as_o = (1+erf_approx(ins)) * torch.exp(ins_squared)
+        as_o = (1+torch.erf(ins)) * torch.exp(ins_squared)
         bs_o = binomial_coefficient * as_o
         r = alternate_neg * bs_o
 
         # print(">2D sigma", ZETA_CST * sigma * r.sum(0) * (1/(2**(N-1))))
         
-        a = torch.exp((sigma**2)/2) * (1 + erf_approx((sigma)/math.sqrt(2)))
-        b = torch.exp((-(sigma**2))/2) *(1 + erf_approx((-sigma)/math.sqrt(2)))
+        a = torch.exp((sigma**2)/2) * (1 + torch.erf((sigma)/math.sqrt(2)))
+        b = torch.exp((-(sigma**2))/2) *(1 + torch.erf((-sigma)/math.sqrt(2)))
         # print("2D sigma", (a - b) * ZETA_CST * sigma * 0.5)
         return (a - b) * ZETA_CST * sigma * 0.5
 def log_grad_zeta(x, N):
     sigma = nn.Parameter(x)
-    (zeta(sigma, N).log()).sum().backward()
+    print(sigma.grad)
+    binomial_coefficient=None
+    M = sigma.shape[0]
+    sigma_u = sigma.unsqueeze(0).expand(N,M)
+    if(binomial_coefficient is None):
+        # we compute coeficient
+        v = torch.arange(N)
+        v[0] = 1
+        n_fact = v.prod()
+        k_fact = torch.cat([v[:i].prod().unsqueeze(0) for i in range(1, v.shape[0]+1)],0)
+        nmk_fact = k_fact.flip(0)
+        binomial_coefficient = n_fact/(k_fact * nmk_fact)  
+    binomial_coefficient = binomial_coefficient.unsqueeze(-1).expand(N,M).float()
+    range_ = torch.arange(N ,device=sigma.device).unsqueeze(-1).expand(N,M).float()
+    ones_ = torch.ones(N ,device=sigma.device).unsqueeze(-1).expand(N,M).float()
+
+    alternate_neg = (-ones_)**(range_)
+    ins = (((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2)
+    ins_squared = ((((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2))**2
+    as_o = (1+torch.erf(ins)) * torch.exp(ins_squared)
+    bs_o = binomial_coefficient * as_o
+    r = alternate_neg * bs_o    
+    print("bs_o.size ", ins.size())
+    print("sigma.size", sigma.size())
+    print("erf ", torch.erf(ins))
+    logv = torch.log(ZETA_CST * sigma * r.sum(0) * (1/(2**(N-1))))
+    print("zeta log ",logv )
+    logv.sum().backward()
     log_grad = sigma.grad
+    print("logv.grad ", sigma.grad)
+    print("ins.grad ", ins.grad)
+    print("log_grad ",log_grad)
     return sigma.grad.data
 
 class ZetaPhiStorage(object):
@@ -96,19 +123,21 @@ class ZetaPhiStorage(object):
         self.sigma = sigma
         self.m_zeta_var = (zeta(sigma, N)).detach()
         self.phi_inv_var = (self.sigma**3 * log_grad_zeta(self.sigma, N)).detach()
-
-
+        print(self.m_zeta_var)
+        print(self.phi_inv_var)
     def zeta(self, sigma):
         N, P = sigma.shape[0], self.sigma.shape[0]
         ref = self.sigma.unsqueeze(0).expand(N, P)
         val = sigma.unsqueeze(1).expand(N,P)
         values, index = torch.abs(ref - val).min(-1)
+        
         return self.m_zeta_var[index]
 
     def phi(self, phi_val):
         N, P = phi_val.shape[0], self.sigma.shape[0]
         ref = self.phi_inv_var.unsqueeze(0).expand(N, P)
         val = phi_val.unsqueeze(1).expand(N,P)
+        print("val ", val)
         values, index = torch.abs(ref - val).min(-1)
         return self.sigma[index]
     
