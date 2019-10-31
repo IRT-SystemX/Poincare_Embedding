@@ -269,7 +269,7 @@ for i in pb:
 
 
     if(args.reset_em):
-        em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=False)
+        em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=True)
     em_alg.fit(embedding_alg.get_PoincareEmbeddings().cpu(), max_iter=args.em_iter)
     pi, mu, sigma = em_alg.get_parameters()
     pik = em_alg.get_pik(embedding_alg.get_PoincareEmbeddings().cpu())
@@ -290,7 +290,9 @@ sigma_d.append(sigma)
 
 
 #evaluate performances on all disc
-total_accuracy = evaluation.accuracy_disc_product(representation_d, D.Y, pi_d, mu_d, sigma_d, verbose=False)
+total_accuracy = evaluation.poincare_unsupervised_em(embedding_alg.get_PoincareEmbeddings().cpu(), D.Y,
+                                                     args.n_gaussian, em=em_alg, verbose=False)
+
 print("\nPerformances joined -> " ,
     total_accuracy
 )
