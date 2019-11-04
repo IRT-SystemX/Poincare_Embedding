@@ -82,7 +82,7 @@ def zeta(sigma, N ,binomial_coefficient=None):
         return (a - b) * ZETA_CST * sigma * 0.5
 def log_grad_zeta(x, N):
     sigma = nn.Parameter(x)
-    print(sigma.grad)
+    # print(sigma.grad)
     binomial_coefficient=None
     M = sigma.shape[0]
     sigma_u = sigma.unsqueeze(0).expand(N,M)
@@ -104,16 +104,16 @@ def log_grad_zeta(x, N):
     as_o = (1+torch.erf(ins)) * torch.exp(ins_squared)
     bs_o = binomial_coefficient * as_o
     r = alternate_neg * bs_o    
-    print("bs_o.size ", ins.size())
-    print("sigma.size", sigma.size())
-    print("erf ", torch.erf(ins))
+    # print("bs_o.size ", ins.size())
+    # print("sigma.size", sigma.size())
+    # print("erf ", torch.erf(ins))
     logv = torch.log(ZETA_CST * sigma * r.sum(0) * (1/(2**(N-1))))
-    print("zeta log ",logv )
+    # print("zeta log ",logv )
     logv.sum().backward()
     log_grad = sigma.grad
-    print("logv.grad ", sigma.grad)
-    print("ins.grad ", ins.grad)
-    print("log_grad ",log_grad)
+    # print("logv.grad ", sigma.grad)
+    # print("ins.grad ", ins.grad)
+    # print("log_grad ",log_grad)
     return sigma.grad.data
 
 class ZetaPhiStorage(object):
@@ -123,8 +123,8 @@ class ZetaPhiStorage(object):
         self.sigma = sigma
         self.m_zeta_var = (zeta(sigma, N)).detach()
         self.phi_inv_var = (self.sigma**3 * log_grad_zeta(self.sigma, N)).detach()
-        print(self.m_zeta_var)
-        print(self.phi_inv_var)
+        # print(self.m_zeta_var)
+        # print(self.phi_inv_var)
     def zeta(self, sigma):
         N, P = sigma.shape[0], self.sigma.shape[0]
         ref = self.sigma.unsqueeze(0).expand(N, P)
@@ -137,7 +137,7 @@ class ZetaPhiStorage(object):
         N, P = phi_val.shape[0], self.sigma.shape[0]
         ref = self.phi_inv_var.unsqueeze(0).expand(N, P)
         val = phi_val.unsqueeze(1).expand(N,P)
-        print("val ", val)
+        # print("val ", val)
         values, index = torch.abs(ref - val).min(-1)
         return self.sigma[index]
     

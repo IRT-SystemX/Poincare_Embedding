@@ -1,15 +1,15 @@
 import torch
-# from function_tools import distribution_function, poincare_function
-# from function_tools import euclidean_function as ef
+from function_tools import distribution_function, poincare_function
+from function_tools import euclidean_function as ef
 
-# from em_tools.poincare_kmeans import PoincareKMeans
-# from em_tools.poincare_em import RiemannianEM
+from em_tools.poincare_kmeans import PoincareKMeans
+from em_tools.poincare_em import RiemannianEM
 from collections import Counter
 import numpy as np
 import math
 import itertools
 
-
+# verified 
 class EvaluationMetrics(object):
     # both must be matrix 
     def __init__(self, prediction, ground_truth, nb_classes):
@@ -32,10 +32,6 @@ class EvaluationMetrics(object):
             fn = negative_gt.sum() - tn
             self.TN.append(tn)
             self.FN.append(fn)            
-        print(self.TP)
-        print(self.FP)
-        print(self.TN)
-        print(self.FN)
     def micro_precision(self):
         return sum(self.TP, 0)/(sum(self.TP, 0) + sum(self.FP,0))
 
@@ -56,15 +52,97 @@ class EvaluationMetrics(object):
 
     def macro_F(self):
         m_p, m_r  = self.macro_precision(), self.macro_recall()
-        print(m_p, m_r)
         return (2 * m_p * m_r) /(m_p + m_r)
 
+    def score(self):
+        return self.micro_F(), self.macro_F()
+
+def precision_at(prediction, ground_truth, at=5):
+    prediction_value, prediction_index = (-prediction).sort(-1)
+    # print(prediction_value[:,0])
+    # print(prediction_index)
+    # print(ground_truth)
+    # print(prediction_index[:,:at].size())
+    # print(ground_truth[prediction_index[:,:at]])
+    trange = torch.arange(len(prediction)).unsqueeze(-1).expand(len(prediction), at).flatten()
+    indexes = prediction_index[:,:at].flatten()
+    # print('gt size = ', ground_truth[trange, indexes])
+    score = ((ground_truth[trange, indexes]).float().view(len(prediction), at)).sum(-1)/at
+    return score.mean().item()
+
+
+class PrecisionScore(object):
+    def __init__(self, at=5):
+        self.at = at
+
+    def __call__(self, x, y):
+        return precision_at(x, y, at=self.at)
+
+
+
+
+class CrossValEvaluation(object):
+    def __init__(self, embeddings, ground_truth, nb_set=5, algs_object=RiemannianEM):
+        self.algs_object = algs_object
+        self.z = embeddings
+        self.gt = ground_truth
+        self.nb_set = nb_set
+        # split set
+        subset_index = torch.randperm(len(self.z))
+        nb_value = len(self.z)//nb_set
+        self.subset_indexer = [subset_index[nb_value *i:min(nb_value * (i+1), len(self.z))] for i in range(nb_set)]
+
+    def get_score(self, scoring_function):
+        scores = []
+        for i, test_index in enumerate(self.subset_indexer):
+            # create train dataset being concatenation of not current test set
+            train_index = torch.cat([ subset for ci, subset in enumerate(self.subset_indexer) if(i!=ci)], 0)
+            
+            # get embeddings sets
+            train_embeddings = self.z[train_index]
+            test_embeddings  = self.z[test_index]
+
+            # get ground truth sets
+            train_labels = self.gt[train_index]
+            test_labels  =  self.gt[test_index]
+
+
+            algs = self.algs_object(self.gt.size(-1))
+            algs.fit(train_embeddings, Y=train_labels)
+            # must give the matrix of scores
+            prediction = algs.probs(test_embeddings)
+            # print("Pred size ", prediction.size())
+            # print("Test size ", test_labels.size())
+            set_score = scoring_function(prediction, test_labels)
+            scores.append(set_score)
+        return scores
 
 def test():
-    X = torch.rand(10,5).round()
-    Y = torch.rand(10,5).round()
-    evalutation = EvaluationMetrics(X, Y, 5)
-    print(evalutation.macro_F())
+    from data_tools import corpora
+    import os
+    filepath =  "/local/gerald/POINCARE-EM/DT/dblp-2D-EM-TEST-13"
+    dataset_dict = { "karate": corpora.load_karate,
+            "football": corpora.load_football,
+            "flickr": corpora.load_flickr,
+            "dblp": corpora.load_dblp,
+            "books": corpora.load_books,
+            "blogCatalog": corpora.load_blogCatalog,
+            "polblog": corpora.load_polblogs,
+            "adjnoun": corpora.load_adjnoun
+          }
+    D, X, Y = dataset_dict["dblp"]()
+    # transform labels tor torch zeros-ones tensor
+    ground_truth = torch.LongTensor([[ 1 if(y+1 in Y[i]) else 0 for y in range(5)] for i in range(len(X))])
+    print(ground_truth[:,0].sum())
+    embeddings   = torch.load(os.path.join(filepath,"embeddings_init.t7"))
+    scoring_function = PrecisionScore(at=1)
+    CVE = CrossValEvaluation(embeddings, ground_truth, nb_set=5, algs_object=RiemannianEM)
+    scores = CVE.get_score(scoring_function)
+    print("scores -> ", scores)
+    print("mean score -> ", sum(scores,0)/5)
+
+
+
 def accuracy(prediction, labels):
     return (prediction == labels).float().mean()
 
@@ -124,6 +202,8 @@ def accuracy_cross_validation_multi_disc(Z, Y, pi, mu, sigma, nb_set, verbose=Tr
         acc = accuracy(prediction, torch.LongTensor([i[0]-1 for i in Y_test]))
         acc_total += acc.item()
     return acc_total/(len(I_CV))
+
+
 def accuracy_cross_validation(Z, Y, pi,  mu, sigma, nb_set, verbose=True):
     subset_index = torch.randperm(len(Z))
     nb_value = len(Z)//nb_set

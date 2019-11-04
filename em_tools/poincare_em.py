@@ -11,24 +11,15 @@ from function_tools import poincare_function as pf
 from function_tools import poincare_alg as pa
 
 class RiemannianEM(object):
-    def __init__(self, dim, n_gaussian, init_mod="kmeans-hyperbolic", verbose=False):
+    def __init__(self, n_gaussian, init_mod="kmeans-hyperbolic", verbose=False):
         self._n_g = n_gaussian
-        self._d = dim
         self._distance = pf.distance
-
-        self._mu = (torch.rand(n_gaussian, dim) - 0.5)/dim
-        self._sigma = torch.rand(n_gaussian)/10 +0.8
-        self._w = torch.ones(n_gaussian)/n_gaussian
 
         self._verbose = verbose
         self._init_mod = init_mod
         self._started = False
-        if(self._verbose):
-            print("Initial values : ")
-            print("\t mu -> ", self._mu)
-            print("\t sigma -> ", self._sigma)
-            print("\t weight -> ", self._w)
-        self.zeta_phi = df.ZetaPhiStorage(torch.arange(5e-2, 1.5, 0.05), dim)
+
+
 
     def update_w(self, z, wik, g_index=-1):
         # get omega mu
@@ -99,14 +90,22 @@ class RiemannianEM(object):
             quit()  
 
     def fit(self, z, max_iter=5, lr_mu=5e-3, tau_mu=1e-4, Y=None):
+        # if first time fit is called init all parameters
+        if(not self._started):
+            self._d = z.size(-1)
+            self._mu = (torch.rand(self._n_g,self._d ) - 0.5)/self._d 
+            self._sigma = torch.rand(self._n_g)/10 +0.8
+            self._w = torch.ones(self._n_g)/self._n_g
+            self.zeta_phi = df.ZetaPhiStorage(torch.arange(5e-2, 1.5, 0.05), self._d)
         if(Y is not None):
             # we are in the supervised case
             # the objective is in this case to find the gaussian for each
             # community, thus wik is 1 for each classes
             # in this case Y is tensor NxK 
-            wik = Y
+            wik = Y.float()
             # print(wik.size())
             self._maximization(z, wik, lr_mu=lr_mu, tau_mu=1e-5)
+            return
         else:
             progress_bar = tqdm.trange(max_iter) if(self._verbose) else range(max_iter)
             # if it is the first time function fit is called
@@ -118,11 +117,11 @@ class RiemannianEM(object):
                     km = kmh.PoincareKMeansNInit(self._n_g, n_init=20)
                     km.fit(z)
                     self._mu = km.cluster_centers_
-                if(self._verbose):
-                    print("Initialize means using kmeans hyperbolic algorithm")
-                km = kmh.PoincareKMeansNInit(self._n_g, n_init=20)
-                km.fit(z)
-                self._mu = km.cluster_centers_
+                # if(self._verbose):
+                #     print("Initialize means using kmeans hyperbolic algorithm")
+                # # km = kmh.PoincareKMeansNInit(self._n_g, n_init=20)
+                # # km.fit(z)
+                # # self._mu = km.cluster_centers_
             if(self._verbose):
                 print("\t mu -> ", self._mu)
                 print("\t sigma -> ", self._sigma)
@@ -159,3 +158,6 @@ class RiemannianEM(object):
         pdf = df.gaussianPDF(z, self._mu, self._sigma, norm_func=self.zeta_phi.zeta) 
         p_pdf = pdf * self._w.unsqueeze(0).expand_as(pdf)
         return p_pdf.max(-1)[1]
+
+    def probs(self, z):
+        return self.get_pik(z)
