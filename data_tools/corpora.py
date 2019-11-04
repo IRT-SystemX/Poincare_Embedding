@@ -51,6 +51,35 @@ class RandomWalkCorpus(Dataset):
     def __len__(self):
         return len(self.X)
 
+class FixedRandomWalkCorpus(RandomWalkCorpus):
+    def __init__(self, X, Y, path=True, precompute=1):
+        super(PoincareEmbedding, self).__init__(X, Y, path=path)
+        self.precompute=precompute
+        self.paths = self._precompute()
+
+    def _precompute(self):
+        precompute = self.precompute
+        self.precompute = -1
+        paths = []
+        for i in range(precompute):
+            for index in tqdm.trange(len(self)):
+                paths.append(torch.LongTensor(self._walk(index)).unsqueeze(0))
+        self.precompute = precompute
+        return torch.cat(paths,0)
+
+
+    def cuda(self):
+        self.paths = self.paths.cuda()
+
+    def cpu(self):
+        self.paths = self.paths.cpu()
+
+    def __getitem__(self, index):
+        return self.paths[index]
+        
+    def __len__(self):
+        return len(self.paths)
+
 class NeigbhorFlatCorpus(Dataset):
     def __init__(self, X, Y):
         # the sparse torch dictionary

@@ -1,14 +1,70 @@
 import torch
-from function_tools import distribution_function, poincare_function
-from function_tools import euclidean_function as ef
+# from function_tools import distribution_function, poincare_function
+# from function_tools import euclidean_function as ef
 
-from em_tools.poincare_kmeans import PoincareKMeans
-from em_tools.poincare_em import RiemannianEM
+# from em_tools.poincare_kmeans import PoincareKMeans
+# from em_tools.poincare_em import RiemannianEM
 from collections import Counter
 import numpy as np
 import math
 import itertools
 
+
+class EvaluationMetrics(object):
+    # both must be matrix 
+    def __init__(self, prediction, ground_truth, nb_classes):
+        self.TP = []
+        self.FP = []
+        self.TN = []
+        self.FN = []
+
+        for i in range(nb_classes):
+            positive_gt = (ground_truth[:,i] == 1).float()
+            positive_pr = (prediction[:,i] == 1).float()
+            tp = (positive_gt * positive_pr).sum()
+            fp = positive_gt.sum() - tp
+            self.TP.append(tp)
+            self.FP.append(fp)
+
+            negative_gt = (ground_truth[:,i] == 0).float()
+            negative_pr = (prediction[:,i] == 0).float()
+            tn = (negative_gt * negative_pr).sum()
+            fn = negative_gt.sum() - tn
+            self.TN.append(tn)
+            self.FN.append(fn)            
+        print(self.TP)
+        print(self.FP)
+        print(self.TN)
+        print(self.FN)
+    def micro_precision(self):
+        return sum(self.TP, 0)/(sum(self.TP, 0) + sum(self.FP,0))
+
+    def micro_recall(self):
+        return sum(self.TP, 0)/(sum(self.TP, 0) + sum(self.FN,0))
+    
+    def micro_F(self):
+        m_p, m_r  = self.micro_precision(), self.micro_recall()
+        return (2 * m_p * m_r) /(m_p + m_r)
+
+    def macro_precision(self):
+        precision_by_label = [tp/(tp+fp) for tp, fp in zip(self.TP, self.FP)]
+        return sum(precision_by_label, 0)/(len(precision_by_label))
+
+    def macro_recall(self):
+        recall_by_label = [tp/(tp+fn) for tp, fn in zip(self.TP, self.FN)]
+        return sum(recall_by_label, 0)/(len(recall_by_label))
+
+    def macro_F(self):
+        m_p, m_r  = self.macro_precision(), self.macro_recall()
+        print(m_p, m_r)
+        return (2 * m_p * m_r) /(m_p + m_r)
+
+
+def test():
+    X = torch.rand(10,5).round()
+    Y = torch.rand(10,5).round()
+    evalutation = EvaluationMetrics(X, Y, 5)
+    print(evalutation.macro_F())
 def accuracy(prediction, labels):
     return (prediction == labels).float().mean()
 
@@ -569,3 +625,7 @@ def accuracy_huge_disc_product(label, label_source, sources_number):
     # print('Numerotations', numerotations)
 
     return max_result
+
+if __name__ == "__main__":
+    # execute only if run as a script
+    test()

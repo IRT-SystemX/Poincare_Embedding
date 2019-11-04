@@ -206,9 +206,9 @@ dataset_o3 = dataset_index
 # print(embedding_dataset[29][-1][20:25])
 print(dataset_o1[0])
 print(dataset_o1.data[0])
-if(args.cuda):
-    dataset_o1.cuda()
-    d_rw.cuda()
+# if(args.cuda):
+#     dataset_o1.cuda()
+#     d_rw.cuda()
 training_dataloader_o1 = data.RawDataloader(dataset_o1, 
                             batch_size=args.batch_size, 
                             shuffle=True
