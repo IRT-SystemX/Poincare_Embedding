@@ -134,12 +134,12 @@ def test():
     # transform labels tor torch zeros-ones tensor
     ground_truth = torch.LongTensor([[ 1 if(y+1 in Y[i]) else 0 for y in range(5)] for i in range(len(X))])
     print(ground_truth[:,0].sum())
-    embeddings   = torch.load(os.path.join(filepath,"embeddings_init.t7"))
+    embeddings   = torch.load(os.path.join(filepath,"embeddings.t7"))[0]
     scoring_function = PrecisionScore(at=1)
-    CVE = CrossValEvaluation(embeddings, ground_truth, nb_set=5, algs_object=RiemannianEM)
+    CVE = CrossValEvaluation(embeddings, ground_truth, nb_set=2, algs_object=RiemannianEM)
     scores = CVE.get_score(scoring_function)
     print("scores -> ", scores)
-    print("mean score -> ", sum(scores,0)/5)
+    print("mean score -> ", sum(scores,0)/2)
 
 
 
