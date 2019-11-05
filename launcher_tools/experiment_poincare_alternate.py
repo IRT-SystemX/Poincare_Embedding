@@ -250,7 +250,7 @@ if(args.size == 2):
 alpha, beta = args.init_alpha, args.init_beta
 embedding_alg = PEmbed(len(dataset_index), size=args.size, lr=args.init_lr, cuda=args.cuda, negative_distribution=frequency,
                         optimizer_method=optimizer_dict[args.embedding_optimizer], aggregation=aggregation_dict[args.loss_aggregation])
-em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=False)
+em_alg = PEM( args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=False)
 pi, mu, sigma, normalisation_factor = None, None, None, None
 pik = None
 epoch_embedding = args.epoch_embedding_init
@@ -269,7 +269,7 @@ for i in pb:
 
 
     if(args.reset_em):
-        em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=True)
+        em_alg = PEM(args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=True)
     em_alg.fit(embedding_alg.get_PoincareEmbeddings().cpu(), max_iter=args.em_iter)
     pi, mu, sigma = em_alg.get_parameters()
     pik = em_alg.get_pik(embedding_alg.get_PoincareEmbeddings().cpu())

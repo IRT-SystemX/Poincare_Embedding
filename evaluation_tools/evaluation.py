@@ -110,7 +110,9 @@ class CrossValEvaluation(object):
             algs = self.algs_object(self.gt.size(-1))
             algs.fit(train_embeddings, Y=train_labels)
             # must give the matrix of scores
+            # print(algs._w)
             prediction = algs.probs(test_embeddings)
+            print(prediction.mean())
             # print("Pred size ", prediction.size())
             # print("Test size ", test_labels.size())
             set_score = scoring_function(prediction, test_labels)
@@ -482,7 +484,7 @@ def poincare_unsupervised_em(z, y, n_distrib, em=None, verbose=False):
     y = torch.LongTensor([y[i][0]-1 for i in range(len(y))])
     from em_tools.poincare_em import RiemannianEM
     if(em is None):
-        em = RiemannianEM(z.size(-1), n_distrib, verbose=False)
+        em = RiemannianEM( n_distrib, verbose=False)
         em.fit(z, max_iter=1)
 
     # print(em._mu)

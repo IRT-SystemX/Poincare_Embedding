@@ -15,7 +15,6 @@ class PoincareEmbedding(nn.Module):
         super(PoincareEmbedding, self).__init__()
         self.cuda = cuda
         self.N = n_exemple
-        print("dim",n_exemple, size)
         self.W = poincare_module.PoincareEmbedding(n_exemple, size)
         if(self.cuda):
             self.W.cuda()
@@ -73,12 +72,12 @@ class PoincareEmbedding(nn.Module):
                 self.optimizer.zero_grad()
                 # getting negative examples
                 if(negative_all is None):
-                    negative_all = self.n_dist.sample( sample_shape=(len(dataloader_o2),example_index_a.size(0),  negative_sampling))
-                    if(self.cuda):
-                        negative_all = negative_all.cuda()
-                        example_index_a = example_index_a.cuda()
-                        example_index_b = example_index_b.cuda()
-                negative = negative_all[random.randint(0, len(dataloader_o2)-1)][:example_index_a.size(0)]
+                    negative_all = self.n_dist.sample( sample_shape=(len(dataloader_o1) *5,example_index_a.size(0),  negative_sampling))
+                if(self.cuda):
+                    negative_all = negative_all.cuda()
+                    example_index_a = example_index_a.cuda()
+                    example_index_b = example_index_b.cuda()
+                negative = negative_all[random.randint(0, len(dataloader_o1)*5-1)][:example_index_a.size(0)]
 
                 #getting embedding
 
