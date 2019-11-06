@@ -5,7 +5,6 @@ import os
 
 from torch.utils.data import DataLoader
 from em_tools.poincare_em import RiemannianEM as EM
-from em_tools.poincare_kmeans import PoincareKMeans as KM
 from data_tools import corpora_tools, corpora, data, logger
 from evaluation_tools import evaluation
 from community_tools import poincare_classifier as pc
@@ -13,7 +12,7 @@ from community_tools import poincare_classifier as pc
 
 parser = argparse.ArgumentParser(description='Load embeddings and perform kmeans on it')
 
-parser.add_argument('--file', dest="file", type=str, default="/local/gerald/POINCARE-EM/DT/dblp-2D-EM-TEST-13",
+parser.add_argument('--file', dest="file", type=str, default="/local/gerald/POINCARE-EM/dblp-10D-EM-TEST-18",
                     help="embeddings location file") 
 parser.add_argument('--init', dest="init", action="store_true") 
 args = parser.parse_args()
@@ -48,17 +47,11 @@ else:
   representations = torch.load(os.path.join(args.file,"embeddings.t7"))[0]
 print("rep -> ", representations.size())
 ground_truth = torch.LongTensor([[ 1 if(y+1 in Y[i]) else 0 for y in range(n_gaussian)] for i in range(len(X))])
-
-CVE = evaluation.CrossValEvaluation(representations, ground_truth, nb_set=5, algs_object=EM)
+print(ground_truth.size())
+CVE = evaluation.CrossValEvaluation(representations, ground_truth, nb_set=5, algs_object=pc.PoincareClassifier)
 scores = CVE.get_score(evaluation.PrecisionScore(at=1))
 
-print("Mean score on the dataset em -> ",sum(scores,0)/5)
+print("Mean score on the dataset -> ",sum(scores,0)/5)
 
-log_in.append({"supervised_evaluation_em":scores})
-
-CVE = evaluation.CrossValEvaluation(representations, ground_truth, nb_set=5, algs_object=KM)
-scores = CVE.get_score(evaluation.PrecisionScore(at=1))
-
-print("Mean score on the dataset kmean -> ",sum(scores,0)/5)
-
-log_in.append({"supervised_evaluation_em":scores})
+log_in.append({"supervised_evaluation_kmeans":scores})
+# log_in.append({"supervised_evaluation":total_accuracy})

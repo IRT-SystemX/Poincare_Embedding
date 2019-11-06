@@ -112,7 +112,7 @@ class CrossValEvaluation(object):
             # must give the matrix of scores
             # print(algs._w)
             prediction = algs.probs(test_embeddings)
-            print(prediction.mean())
+            print(prediction.mean(0))
             # print("Pred size ", prediction.size())
             # print("Test size ", test_labels.size())
             set_score = scoring_function(prediction, test_labels)

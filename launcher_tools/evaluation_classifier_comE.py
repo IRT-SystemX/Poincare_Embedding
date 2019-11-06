@@ -67,4 +67,10 @@ scores = CVE.get_score(evaluation.PrecisionScore(at=1))
 
 print("Mean score on the dataset -> ",sum(scores,0)/5)
 
-log_in.append({"supervised_evaluation_sklearn":scores})
+log_in.append({"supervised_evaluation_SKLearnSVM":scores})
+
+CVE = evaluation.CrossValEvaluation(representations, ground_truth, nb_set=5, algs_object=EuclideanClassifier)
+scores = CVE.get_score(evaluation.PrecisionScore(at=1))
+
+print("Mean score on the dataset -> ",sum(scores,0)/5)
+log_in.append({"supervised_evaluation_EuclideanClassifier":scores})

@@ -105,10 +105,12 @@ class PoincareKMeans(object):
                 self.cluster_centers_  =  self.centroids
                 return self.centroids
         else:
-            self.indexes = Y
+            self.indexes = Y.max(-1)[1]
             self.centroids = self._maximisation(X, self.indexes)
             self.cluster_centers_  =  self.centroids
+            # print(self.centroids)
             return self.centroids
+
     def predict(self, X):
         return self._expectation(self.centroids, X)
 
@@ -123,7 +125,12 @@ class PoincareKMeans(object):
             stds.append(value[indexes==i].sum())
         stds = torch.Tensor(stds)
         return stds
-
+    def probs(self, X):
+        predicted = self._expectation(self.centroids, X).squeeze().tolist()
+        res = torch.zeros(len(X), self._n_c)
+        for i, l in enumerate(predicted):
+            res[i][l] = 1
+        return res
 # def test():
 #     import torch
 #     import matplotlib.pyplot as plt

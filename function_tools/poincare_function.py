@@ -146,15 +146,17 @@ def exp(k, x):
     factor = torch.tanh(lambda_k * norm_x)
     res = add(k, direction*factor)
     if(0 != len((norm_x==0).nonzero())):
-        # print("exp zero")
-        # print((norm_x == 0).dim()
-        # print(res.size())
-        # print(res[norm_x == 0].size())
-        # print(k[norm_x == 0].size())
         res[norm_x == 0] = k[norm_x == 0]
     return res
 
+def exp_0(x):
+    norm_x = x.norm(2,-1, keepdim=True).expand_as(x)
+    direction = x/norm_x
+    factor = torch.tanh(norm_x)
+    return factor * direction
 
+def lambda_k(k):
+    return 2/(1-torch.sum(k ** 2, dim=-1, keepdim=True))
 
 def test():
     import numpy as np

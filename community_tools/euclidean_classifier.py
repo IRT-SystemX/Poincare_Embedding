@@ -9,7 +9,7 @@ class EuclideanClassifier(object):
     def fit(self, X, Y=None, iteration=5000):
         self.model = nn.Linear(X.size(-1), self._n_c)
         self.model = self.model.to(X.device)
-        optimizer  = optim.Adam(self.model.parameters(), lr=1e-3)
+        optimizer  = optim.Adam(self.model.parameters(), lr=1e-2)
         criterion = torch.nn.BCEWithLogitsLoss()
         pb = tqdm.trange(iteration)
         for i in pb:

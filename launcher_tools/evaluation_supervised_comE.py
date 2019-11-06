@@ -70,11 +70,11 @@ scores = CVE.get_score(evaluation.PrecisionScore(at=1))
 
 print("Mean score on the dataset -> ",sum(scores,0)/5)
 
-log_in.append({"supervised_evaluation_sklearn_em":scores})
+log_in.append({"supervised_evaluation_em":scores})
 
 CVE = evaluation.CrossValEvaluation(representations, ground_truth, nb_set=5, algs_object=KMeans)
 scores = CVE.get_score(evaluation.PrecisionScore(at=1))
 
 print("Mean score on the dataset -> ",sum(scores,0)/5)
 
-log_in.append({"supervised_evaluation_sklearn_em":scores})
+log_in.append({"supervised_evaluation_kmeans":scores})
