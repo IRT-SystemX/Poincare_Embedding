@@ -304,7 +304,7 @@ def saving_matlab_corpus(X, Y, filepath_mat, filepath_label):
     with io.open(filepath_label, "w") as label_file:
         for index, labels in Y.items():
             for label in labels:
-                label_file.write(str(int(index+1))+" "+str(int(label))+"\n")
+                label_file.write(str(int(index+1))+"\t"+str(int(label))+"\n")
 
 def loading_social_computing_corpus(edges_path, groups_path, symetric=True):
     # Graph
