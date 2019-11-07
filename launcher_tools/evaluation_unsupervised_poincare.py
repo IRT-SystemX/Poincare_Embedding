@@ -6,10 +6,10 @@ import pytorch_categorical
 from torch.utils.data import DataLoader
 import os
 from multiprocessing import Process, Manager
-from em_tools.poincare_em import RiemannianEM as PEM
+from em_tools.poincare_em import RiemannianEM 
 from data_tools import corpora_tools
 from data_tools import corpora
-from data_tools import data_tools
+from data_tools import data
 from evaluation_tools import evaluation
 from visualisation_tools import plot_tools
 from data_tools import logger
@@ -20,7 +20,9 @@ parser = argparse.ArgumentParser(description='Load embeddings and perform kmeans
 parser.add_argument('--file', dest="file", type=str, default="RESULTS/football-5D-KMEANS-1/",
                     help="embeddings location file")
 parser.add_argument('--n', dest="n", type=int, default=1,
-                    help="number of times to perform kmeans")              
+                    help="number of times to perform kmeans")          
+parser.add_argument('--init', dest="init", action="store_true") 
+
 args = parser.parse_args()
 
 
@@ -49,11 +51,39 @@ D, X, Y = dataset_dict[dataset_name]()
 
 results = []
 
-representations = torch.load(os.path.join(args.file,"embeddings.t7"))[0]
+if(args.init):
+  print("init embedding")
+  representations = torch.load(os.path.join(args.file,"embeddings_init.t7"))
+else:
+  representations = torch.load(os.path.join(args.file,"embeddings.t7"))[0]
+
 for i in tqdm.trange(args.n):
     total_accuracy = evaluation.poincare_unsupervised_em(representations, D.Y, n_gaussian,  verbose=False)
     results.append(total_accuracy)
+
 R = torch.Tensor(results)
 print("Maximum performances -> ", R.max().item())
 print("Mean performances -> ", R.mean().item())
 log_in.append({"evaluation_unsupervised_poincare": {"unsupervised_performances":R.tolist()}})
+
+
+
+
+
+
+
+# print(prediction_mat.sum(0))
+
+conductences = []
+adjency_matrix = X
+for i in tqdm.trange(args.n):
+    algs = RiemannianEM(5)
+    algs.fit(representations)
+    prediction = algs.predict(representations)
+    prediction_mat = torch.LongTensor([[ 1 if(y == prediction[i]) else 0 for y in range(5)] for i in range(len(X))])
+    conductences.append(evaluation.mean_conductance(prediction_mat, adjency_matrix))
+
+C = torch.Tensor(conductences)
+print("Maximum conductence -> ", C.max().item())
+print("Mean conductence -> ", C.mean().item())
+log_in.append({"evaluation_unsupervised_poincare": {"unsupervised_conductence":C.tolist()}})

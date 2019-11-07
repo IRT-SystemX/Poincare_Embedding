@@ -14,7 +14,10 @@ class GaussianMixtureSKLearn(skm.GaussianMixture):
         super(GaussianMixtureSKLearn, self).__init__(n_components=n_gaussian)  
 
     def fit(self, X, Y=None):
-        super(GaussianMixtureSKLearn, self).fit(X.numpy(), Y.numpy())
+        if(Y is not None):
+            super(GaussianMixtureSKLearn, self).fit(X.numpy(), Y.numpy())
+        else:
+            super(GaussianMixtureSKLearn, self).fit(X.numpy())
         self._w = torch.Tensor(self.weights_)
         self._mu = torch.Tensor(self.means_)
         self._sigma = torch.Tensor(self.covariances_)
@@ -22,6 +25,9 @@ class GaussianMixtureSKLearn(skm.GaussianMixture):
     def probs(self, z):
         y = self.predict_proba(z.numpy())
         return torch.Tensor(y)
+
+    def predict(self, z):
+        return torch.Tensor(super(GaussianMixtureSKLearn, self).predict(z.numpy()))
 
 class EuclideanEM(object):
     def norm_ff(self, sigma):

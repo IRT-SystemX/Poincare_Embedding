@@ -79,6 +79,39 @@ def mean_conductance(prediction, adjency_matrix):
         nc_nodes = I - c_nodes
         cut_score_a = 0
         for i in c_nodes:
+            cut_score_a += len(set(adjency_matrix[i]) - c_nodes)
+            # for j in nc_nodes:
+            #     if(j in adjency_matrix[i]):
+            #         cut_score_a += 1
+        cut_score_b = 0
+        for i in c_nodes:
+            cut_score_b += len(adjency_matrix[i])
+
+        cut_score_c = 0
+        for i in nc_nodes:
+            cut_score_c += len(adjency_matrix[i])
+        if(cut_score_b==0 or cut_score_c ==0):
+            score += 0 
+        else:
+            score += cut_score_a/(min(cut_score_b, cut_score_c))
+    
+    return score/K
+
+
+def nmi(prediction, adjency_matrix):
+    N = prediction.size(0)
+    # the number of clusters
+    K = prediction.size(-1)
+    print(K)
+    I = {i for i in range(len(prediction))}
+
+    score = 0
+    for c in range(K):
+        print(prediction[:, c].nonzero().flatten())
+        c_nodes = set(prediction[:, c].nonzero().flatten().tolist())
+        nc_nodes = I - c_nodes
+        cut_score_a = 0
+        for i in c_nodes:
             for j in nc_nodes:
                 if(j in adjency_matrix[i]):
                     cut_score_a += 1
@@ -95,7 +128,6 @@ def mean_conductance(prediction, adjency_matrix):
             score += cut_score_a/(min(cut_score_b, cut_score_c))
     
     return score/K
-
 
 class PrecisionScore(object):
     def __init__(self, at=5):
@@ -489,7 +521,7 @@ def poincare_unsupervised_em(z, y, n_distrib, em=None, verbose=False):
     from em_tools.poincare_em import RiemannianEM
     if(em is None):
         em = RiemannianEM( n_distrib, verbose=False)
-        em.fit(z, max_iter=1)
+        em.fit(z, max_iter=5)
 
     # print(em._mu)
     associated_distrib = em.predict(z)
@@ -503,6 +535,23 @@ def poincare_unsupervised_em(z, y, n_distrib, em=None, verbose=False):
         return accuracy_huge_disc_product(label, label_source, n_distrib)
 
 
+def euclidean_unsupervised_em(z, y, n_distrib, em=None, verbose=False):
+    y = torch.LongTensor([y[i][0]-1 for i in range(len(y))])
+    from em_tools.euclidean_em import GaussianMixtureSKLearn
+    if(em is None):
+        em = GaussianMixtureSKLearn( n_distrib)
+        em.fit(z)
+
+    # print(em._mu)
+    associated_distrib = em.predict(z)
+
+    label = associated_distrib.numpy()
+    label_source = y.numpy()
+
+    if(n_distrib <= 6):
+        return accuracy_small_disc_product(label, label_source, n_distrib)
+    else:
+        return accuracy_huge_disc_product(label, label_source, n_distrib)
 def accuracy_euclidean_kmeans(z, y, mu, verbose=False):
     n_disc = len(z)
     n_example = len(z)
