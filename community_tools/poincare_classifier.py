@@ -8,7 +8,7 @@ from function_tools import poincare_module as pm
 class PoincareClassifier(object):
     def __init__(self, n_classes):
         self._n_c = n_classes
-    def fit(self, X, Y=None, iteration=5000):
+    def fit(self, X, Y=None, iteration=500):
         Y = Y.float()
         self.model = pm.PoincareMLR(X.size(-1), Y.size(-1))
         print(X.size())

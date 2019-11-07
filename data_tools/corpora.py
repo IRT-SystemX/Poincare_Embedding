@@ -286,6 +286,25 @@ def loading_matlab_corpus(mat_path, label_path):
 
     return RandomWalkCorpus(X, Y), X, Y
 
+def saving_matlab_corpus(X, Y, filepath_mat, filepath_label):
+    from scipy.sparse import csr_matrix
+    from scipy.io import savemat
+    
+    row = []
+    col = []
+    val = []
+    for x, neigbhor_x in X.items():
+        for n in neigbhor_x:
+            row.append(x)
+            col.append(n)
+            val.append(1)
+
+    sm = csr_matrix((val, (row,col)), shape=(len(X), len(X)))  
+    savemat(filepath_mat, {"network":sm})
+    with io.open(filepath_label, "w") as label_file:
+        for index, labels in Y.items():
+            for label in labels:
+                label_file.write(str(int(index+1))+" "+str(int(label))+"\n")
 
 def loading_social_computing_corpus(edges_path, groups_path, symetric=True):
     # Graph
@@ -327,8 +346,12 @@ def loading_mat_txt(mat_path, label_path):
             
             Y[i] = []
             Y[i].append(int(line))
+            print(int(line))
 
     return RandomWalkCorpus(X, Y), X, Y   
+
+
+
 
 def load_dblp():
     # os.makedirs("data/DBLP/", exist_ok=True)

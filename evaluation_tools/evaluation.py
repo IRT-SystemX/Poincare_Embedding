@@ -59,16 +59,42 @@ class EvaluationMetrics(object):
 
 def precision_at(prediction, ground_truth, at=5):
     prediction_value, prediction_index = (-prediction).sort(-1)
-    # print(prediction_value[:,0])
-    # print(prediction_index)
-    # print(ground_truth)
-    # print(prediction_index[:,:at].size())
-    # print(ground_truth[prediction_index[:,:at]])
     trange = torch.arange(len(prediction)).unsqueeze(-1).expand(len(prediction), at).flatten()
     indexes = prediction_index[:,:at].flatten()
-    # print('gt size = ', ground_truth[trange, indexes])
     score = ((ground_truth[trange, indexes]).float().view(len(prediction), at)).sum(-1)/at
     return score.mean().item()
+
+
+def mean_conductance(prediction, adjency_matrix):
+    N = prediction.size(0)
+    # the number of clusters
+    K = prediction.size(-1)
+    print(K)
+    I = {i for i in range(len(prediction))}
+
+    score = 0
+    for c in range(K):
+        print(prediction[:, c].nonzero().flatten())
+        c_nodes = set(prediction[:, c].nonzero().flatten().tolist())
+        nc_nodes = I - c_nodes
+        cut_score_a = 0
+        for i in c_nodes:
+            for j in nc_nodes:
+                if(j in adjency_matrix[i]):
+                    cut_score_a += 1
+        cut_score_b = 0
+        for i in c_nodes:
+            cut_score_b += len(adjency_matrix[i])
+
+        cut_score_c = 0
+        for i in nc_nodes:
+            cut_score_c += len(adjency_matrix[i])
+        if(cut_score_b==0 or cut_score_c ==0):
+            score += 0 
+        else:
+            score += cut_score_a/(min(cut_score_b, cut_score_c))
+    
+    return score/K
 
 
 class PrecisionScore(object):
@@ -119,35 +145,13 @@ class CrossValEvaluation(object):
             scores.append(set_score)
         return scores
 
-def test():
-    from data_tools import corpora
-    import os
-    filepath =  "/local/gerald/POINCARE-EM/DT/dblp-2D-EM-TEST-13"
-    dataset_dict = { "karate": corpora.load_karate,
-            "football": corpora.load_football,
-            "flickr": corpora.load_flickr,
-            "dblp": corpora.load_dblp,
-            "books": corpora.load_books,
-            "blogCatalog": corpora.load_blogCatalog,
-            "polblog": corpora.load_polblogs,
-            "adjnoun": corpora.load_adjnoun
-          }
-    D, X, Y = dataset_dict["dblp"]()
-    # transform labels tor torch zeros-ones tensor
-    ground_truth = torch.LongTensor([[ 1 if(y+1 in Y[i]) else 0 for y in range(5)] for i in range(len(X))])
-    print(ground_truth[:,0].sum())
-    embeddings   = torch.load(os.path.join(filepath,"embeddings.t7"))[0]
-    scoring_function = PrecisionScore(at=1)
-    CVE = CrossValEvaluation(embeddings, ground_truth, nb_set=2, algs_object=RiemannianEM)
-    scores = CVE.get_score(scoring_function)
-    print("scores -> ", scores)
-    print("mean score -> ", sum(scores,0)/2)
 
 
 
 def accuracy(prediction, labels):
     return (prediction == labels).float().mean()
 
+########################################### TO CLEAN ##############################################
 def predict(Z_train, Z_test, Y_train, Y_test, pi, mu, sigma):
     
     G_train = distribution_function.weighted_gmm_pdf(pi, Z_train, mu, sigma, poincare_function.distance)
@@ -708,6 +712,83 @@ def accuracy_huge_disc_product(label, label_source, sources_number):
 
     return max_result
 
+########################################### TEST ##############################################
+
+def test_cross_val():
+    from data_tools import corpora
+    import os
+    filepath =  "/local/gerald/POINCARE-EM/DT/dblp-2D-EM-TEST-13"
+    dataset_dict = { "karate": corpora.load_karate,
+            "football": corpora.load_football,
+            "flickr": corpora.load_flickr,
+            "dblp": corpora.load_dblp,
+            "books": corpora.load_books,
+            "blogCatalog": corpora.load_blogCatalog,
+            "polblog": corpora.load_polblogs,
+            "adjnoun": corpora.load_adjnoun
+          }
+    D, X, Y = dataset_dict["dblp"]()
+    # transform labels tor torch zeros-ones tensor
+    ground_truth = torch.LongTensor([[ 1 if(y+1 in Y[i]) else 0 for y in range(5)] for i in range(len(X))])
+    print(ground_truth[:,0].sum())
+    embeddings   = torch.load(os.path.join(filepath,"embeddings.t7"))[0]
+    scoring_function = PrecisionScore(at=1)
+    CVE = CrossValEvaluation(embeddings, ground_truth, nb_set=2, algs_object=RiemannianEM)
+    scores = CVE.get_score(scoring_function)
+    print("scores -> ", scores)
+    print("mean score -> ", sum(scores,0)/2)
+
+def test_mean_conductance():
+    from data_tools import corpora
+    import os
+
+    print("Testing on a fake examples (Testing execution)")
+    graph = {0:[4,5,7], 
+            1:[2,5,3], 
+            2:[7,5,7], 
+            3:[4,5,0],
+            4:[1,5,7,2],
+            5:[4,5,6,7], 
+            6:[0,1,7],
+            7:[6,3,1]}
+    prediction = torch.rand(8, 5)
+    prediction[torch.arange(8),prediction.max(-1)[1]] = 1
+    prediction[prediction<1] = 0
+
+    score = mean_conductance(prediction, graph)
+
+    print("score (conductance on fake data) -> "+str(score))
+
+    filepath =  "/local/gerald/POINCARE-EM/DT/dblp-2D-EM-TEST-13"
+    dataset_dict = { "karate": corpora.load_karate,
+            "football": corpora.load_football,
+            "flickr": corpora.load_flickr,
+            "dblp": corpora.load_dblp,
+            "books": corpora.load_books,
+            "blogCatalog": corpora.load_blogCatalog,
+            "polblog": corpora.load_polblogs,
+            "adjnoun": corpora.load_adjnoun
+          }
+    D, X, Y = dataset_dict["dblp"]()
+    # transform labels tor torch zeros-ones tensor
+    # ground_truth = torch.LongTensor([[ 1 if(y+1 in Y[i]) else 0 for y in range(5)] for i in range(len(X))])
+    # print(ground_truth[:,0].sum())
+    embeddings  = torch.load(os.path.join(filepath,"embeddings.t7"))[0]
+    algs = RiemannianEM(5)
+    algs.fit(embeddings)
+    prediction = algs.predict(embeddings)
+    print(prediction)
+
+    prediction_mat = torch.LongTensor([[ 1 if(y == prediction[i]) else 0 for y in range(5)] for i in range(len(X))])
+    adjency_matrix = X
+    # print(prediction_mat.sum(0))
+    score = mean_conductance(prediction_mat, adjency_matrix)
+    print("scores -> ", score)
+   
+
+###############################################
+
 if __name__ == "__main__":
     # execute only if run as a script
-    test()
+    #test_cross_val()
+    test_mean_conductance()
