@@ -60,8 +60,8 @@ class RiemannianEM(object):
         # equally to each gaussian. Becarefull if the ratio size of dataset/ number of unafected 
         # node is large then the algorithm can not works.
         if(p_pdf.sum(-1).min() <= 1e-15):
-
-            print("EXPECTATION : pdf.sum(-1) contain zero for ", (p_pdf.sum(-1)<= 1e-15).sum().item(), "items")
+            if(self._verbose):    
+                print("EXPECTATION : pdf.sum(-1) contain zero for ", (p_pdf.sum(-1)<= 1e-15).sum().item(), "items")
             p_pdf[p_pdf.sum(-1) <= 1e-15] = 1
             
         wik = p_pdf/p_pdf.sum(-1, keepdim=True).expand_as(pdf)

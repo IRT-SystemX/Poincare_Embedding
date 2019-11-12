@@ -9,6 +9,7 @@ from scipy import io as sio
 from data_tools import dataset_downloader
 from data_tools import data as dts
 from torch.utils.data import DataLoader
+
 class RandomWalkCorpus(Dataset):
     def __init__(self, X, Y, path=True):
         # the sparse torch dictionary
@@ -354,25 +355,25 @@ def loading_mat_txt(mat_path, label_path):
 
 
 def load_dblp():
-    # os.makedirs("data/DBLP/", exist_ok=True)
-    # dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/DBLP/Dblp.mat", "data/DBLP/Dblp.mat")
-    # dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/DBLP/labels.txt", "data/DBLP/labels.txt")
+
     mat_path = "data/DBLP/Dblp.mat"
     label_path = "data/DBLP/labels.txt"
     return loading_matlab_corpus(mat_path, label_path)
 
+def load_wikipedia():
+    mat_path  = "data/wikipedia/wikipedia.mat"
+    label_path = "data/wikipedia/wikipedia.labels"
+    return loading_matlab_corpus(mat_path, label_path)
+
+
 def load_flickr():
-    # os.makedirs("data/FLICKR/", exist_ok=True)
-    # dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/Flickr-dataset/edges.csv", "data/FLICKR/edges.csv")
-    # dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/Flickr-dataset/group-edges.csv", "data/FLICKR/group-edges.csv")
-    edges_path = "/local/gerald/data/FLICKR/edges.csv"
-    groups_path = "/local/gerald/data/FLICKR/group-edges.csv"
+
+    edges_path = "/local/gerald/data/Flickr/edges.csv"
+    groups_path = "/local/gerald/data/Flickr/group-edges.csv"
     return loading_social_computing_corpus(edges_path, groups_path, symetric=True)
 
 def load_blogCatalog():
-    # os.makedirs("data/BlogCatalog-dataset/", exist_ok=True)
-    # dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/BlogCatalog-dataset/edges.csv", "data/BlogCatalog-dataset/edges.csv")
-    # dataset_downloader.download("http://webia.lip6.fr/~gerald/data/graph/BlogCatalog-dataset/group-edges.csv", "data/BlogCatalog-dataset/group-edges.csv")
+
     edges_path = "data/BlogCatalog-dataset/edges.csv"
     groups_path = "data/BlogCatalog-dataset/group-edges.csv"
     return loading_social_computing_corpus(edges_path, groups_path, symetric=True)

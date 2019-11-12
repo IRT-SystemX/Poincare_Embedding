@@ -17,7 +17,7 @@ class PoincareKMeansNInit(object):
     def fit(self, X, Y=None, max_iter=10):
         pb = tqdm.trange(len(self.KMeans))
         stds = torch.zeros(len(self.KMeans))
-        print("X.device : ",X.device)
+        # print("X.device : ",X.device)
         for i, kmeans in zip(pb,self.KMeans):
             kmeans.fit(X, Y, max_iter)
             stds[i] = kmeans.getStd(X).mean()

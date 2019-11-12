@@ -64,7 +64,8 @@ for i in tqdm.trange(args.n):
 R = torch.Tensor(results)
 print("Maximum performances -> ", R.max().item())
 print("Mean performances -> ", R.mean().item())
-log_in.append({"evaluation_unsupervised_poincare": {"unsupervised_performances":R.tolist()}})
+print("STD performances -> ", R.std().item())
+log_in.append({"evaluation_unsupervised_poincare_precision": {"unsupervised_performances":R.tolist()}})
 
 
 
@@ -86,4 +87,20 @@ for i in tqdm.trange(args.n):
 C = torch.Tensor(conductences)
 print("Maximum conductence -> ", C.max().item())
 print("Mean conductence -> ", C.mean().item())
-log_in.append({"evaluation_unsupervised_poincare": {"unsupervised_conductence":C.tolist()}})
+print("Mean conductence -> ", C.std().item())
+log_in.append({"evaluation_unsupervised_poincare_conductance": {"unsupervised_conductence":C.tolist()}})
+
+nmi = []
+ground_truth = torch.LongTensor([[ 1 if(y in Y[i]) else 0 for y in range(5)] for i in range(len(X))])
+for i in tqdm.trange(args.n):
+    algs = RiemannianEM(5)
+    algs.fit(representations)
+    prediction = algs.predict(representations)
+    prediction_mat = torch.LongTensor([[ 1 if(y == prediction[i]) else 0 for y in range(5)] for i in range(len(X))])
+    nmi.append(evaluation.nmi(prediction_mat, ground_truth))
+
+C = torch.Tensor(nmi)
+print("Maximum nmi -> ", C.max().item())
+print("Mean nmi -> ", C.mean().item())
+print("Mean nmi -> ", C.std().item())
+log_in.append({"evaluation_unsupervised_poincare_nmi": {"unsupervised_nmi":C.tolist()}})

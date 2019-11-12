@@ -11,7 +11,7 @@ from function_tools import euclidean_function as ef
 class KMeans(object):
     def __init__(self, n_clusters, min_cluster_size=2, verbose=False, init_method="random"):
         self._n_c = n_clusters
-        self._distance = ef.invprod
+        self._distance = ef.distance
         self.centroids = None
         self._mec = min_cluster_size
         self._init_method = init_method
@@ -22,7 +22,7 @@ class KMeans(object):
             lx = x[indexes == i]
             if(lx.shape[0] <= self._mec):
                 lx = x[random.randint(0,len(x)-1)].unsqueeze(0)
-            centroids[i] = lx.mean()
+            centroids[i] = lx.mean(0)
         return centroids
     
     def _expectation(self, centroids, x):
@@ -57,7 +57,7 @@ class KMeans(object):
         self.centroids_index = torch.tensor(centroids_index, device=X.device).long()
         self.centroids = X[self.centroids_index]
 
-    def fit(self, X, Y=None, max_iter=10):
+    def fit(self, X, Y=None, max_iter=100):
         if(Y is None):
             with torch.no_grad():
                 if(self._mec < 0):
@@ -80,6 +80,8 @@ class KMeans(object):
                 self.cluster_centers_  =  self.centroids
                 return self.centroids
         else:
+            print("lalalaalalalal")
+            print(Y.size())
             self.indexes = Y.max(-1)[1]
             self.centroids = self._maximisation(X, self.indexes)
             self.cluster_centers_  =  self.centroids

@@ -98,6 +98,7 @@ dataset_dict = { "karate": corpora.load_karate,
             "dblp": corpora.load_dblp,
             "books": corpora.load_books,
             "blogCatalog": corpora.load_blogCatalog,
+            "wikipedia": corpora.load_wikipedia,
             "polblog": corpora.load_polblogs,
             "adjnoun": corpora.load_adjnoun
           }

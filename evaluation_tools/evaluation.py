@@ -69,12 +69,12 @@ def mean_conductance(prediction, adjency_matrix):
     N = prediction.size(0)
     # the number of clusters
     K = prediction.size(-1)
-    print(K)
+    # print(K)
     I = {i for i in range(len(prediction))}
 
     score = 0
     for c in range(K):
-        print(prediction[:, c].nonzero().flatten())
+        # print(prediction[:, c].nonzero().flatten())
         c_nodes = set(prediction[:, c].nonzero().flatten().tolist())
         nc_nodes = I - c_nodes
         cut_score_a = 0
@@ -98,36 +98,31 @@ def mean_conductance(prediction, adjency_matrix):
     return score/K
 
 
-def nmi(prediction, adjency_matrix):
+def nmi(prediction, ground_truth):
     N = prediction.size(0)
     # the number of clusters
     K = prediction.size(-1)
-    print(K)
+
     I = {i for i in range(len(prediction))}
 
-    score = 0
-    for c in range(K):
-        print(prediction[:, c].nonzero().flatten())
-        c_nodes = set(prediction[:, c].nonzero().flatten().tolist())
-        nc_nodes = I - c_nodes
-        cut_score_a = 0
-        for i in c_nodes:
-            for j in nc_nodes:
-                if(j in adjency_matrix[i]):
-                    cut_score_a += 1
-        cut_score_b = 0
-        for i in c_nodes:
-            cut_score_b += len(adjency_matrix[i])
-
-        cut_score_c = 0
-        for i in nc_nodes:
-            cut_score_c += len(adjency_matrix[i])
-        if(cut_score_b==0 or cut_score_c ==0):
-            score += 0 
-        else:
-            score += cut_score_a/(min(cut_score_b, cut_score_c))
+    PN = []
+    GN = []
+    den = 0
+    for i in range(K):
+        PN.append(set(prediction[:, i].nonzero().flatten().tolist()))
+        GN.append(set(ground_truth[:, i].nonzero().flatten().tolist()))
+        if(len(PN[-1]) != 0):
+            den += len(PN[-1]) * math.log(len(PN[-1])/N)
+        if(len(GN[-1]) != 0):
+            den += len(GN[-1]) * math.log(len(GN[-1])/N)
+    num = 0
+    for a in PN:
+        for b in GN:
+            N_ij = len(a.intersection(b))
+            if(N_ij != 0):
+                num += N_ij * math.log((N_ij * N)/(len(a) *len(b) ))
     
-    return score/K
+    return -2 * (num/den)
 
 class PrecisionScore(object):
     def __init__(self, at=5):
@@ -790,7 +785,7 @@ def test_cross_val():
 def test_mean_conductance():
     from data_tools import corpora
     import os
-
+    print("------------------------MConductance------------------------")
     print("Testing on a fake examples (Testing execution)")
     graph = {0:[4,5,7], 
             1:[2,5,3], 
@@ -833,11 +828,57 @@ def test_mean_conductance():
     # print(prediction_mat.sum(0))
     score = mean_conductance(prediction_mat, adjency_matrix)
     print("scores -> ", score)
-   
+
+def test_nmi():
+    from data_tools import corpora
+    import os
+    print("------------------------NMI------------------------")
+    print("Testing on a fake examples (Testing execution)")
+    graph = {0:[4,5,7], 
+            1:[2,5,3], 
+            2:[7,5,7], 
+            3:[4,5,0],
+            4:[1,5,7,2],
+            5:[4,5,6,7], 
+            6:[0,1,7],
+            7:[6,3,1]}
+    ground_truth = torch.LongTensor([[ 1 if(y in graph[i]) else 0 for y in range(5)] for i in range(len(graph))])
+    prediction = torch.rand(8, 5)
+    prediction[torch.arange(8),prediction.max(-1)[1]] = 1
+    prediction[prediction<1] = 0
+
+    score = nmi(prediction, ground_truth)
+
+    print("score (nmi on fake data) -> "+str(score))
+
+    filepath =  "/local/gerald/POINCARE-EM/DT/dblp-2D-EM-TEST-13"
+    dataset_dict = { "karate": corpora.load_karate,
+            "football": corpora.load_football,
+            "flickr": corpora.load_flickr,
+            "dblp": corpora.load_dblp,
+            "books": corpora.load_books,
+            "blogCatalog": corpora.load_blogCatalog,
+            "polblog": corpora.load_polblogs,
+            "adjnoun": corpora.load_adjnoun
+          }
+    D, X, Y = dataset_dict["dblp"]()
+    # transform labels tor torch zeros-ones tensor
+    ground_truth = torch.LongTensor([[ 1 if(y+1 in Y[i]) else 0 for y in range(5)] for i in range(len(X))])
+    # print(ground_truth[:,0].sum())
+    embeddings  = torch.load(os.path.join(filepath,"embeddings.t7"))[0]
+    algs = RiemannianEM(5)
+    algs.fit(embeddings)
+    prediction = algs.predict(embeddings)
+    prediction_mat = torch.LongTensor([[ 1 if(y == prediction[i]) else 0 for y in range(5)] for i in range(len(X))])
+    adjency_matrix = X
+    # print(prediction_mat.sum(0))
+    score = nmi(prediction_mat, ground_truth)
+    print("scores -> ", score)   
 
 ###############################################
 
 if __name__ == "__main__":
     # execute only if run as a script
-    #test_cross_val()
-    test_mean_conductance()
+    # test_cross_val()
+    # test_mean_conductance()
+    test_nmi()
