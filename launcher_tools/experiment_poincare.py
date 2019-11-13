@@ -2,7 +2,7 @@ import argparse
 import tqdm
 
 import torch
-import pytorch_categorical
+from function_tools import pytorch_categorical
 from torch.utils.data import DataLoader
 import os
 from multiprocessing import Process, Manager

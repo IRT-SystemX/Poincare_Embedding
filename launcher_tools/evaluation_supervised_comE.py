@@ -6,7 +6,7 @@ import io
 import os
 
 
-from em_tools.euclidean_em import GMM, GaussianMixtureSKLearn
+from em_tools.euclidean_em import GMM, GaussianMixtureSKLearn, GMMSpherical
 from em_tools.euclidean_kmeans import KMeans
 from data_tools import corpora_tools, corpora, data, logger
 from evaluation_tools import evaluation
@@ -64,11 +64,36 @@ print(ground_truth.sum(0))
 print("\n##############GMM euclidean full##############:\n")
 
 CVE = evaluation.CrossValEvaluation(representations, ground_truth, nb_set=5, algs_object=GMM)
-scores = CVE.get_score(evaluation.PrecisionScore(at=1))
+print("la")
+p1 = CVE.get_score(evaluation.PrecisionScore(at=1))
 
-print("\n\t score ->  ",sum(scores,0)/5, "\n\n")
+
+p3 = CVE.get_score(evaluation.PrecisionScore(at=3))
+
+
+p5 = CVE.get_score(evaluation.PrecisionScore(at=5))
+scores = {"P1":p1, "P3":p3, "P5":p5}
+
+print("\n\t score ->  ",{"P1":sum(p1,0)/5, "P3":sum(p3,0)/5, "P5":sum(p5,0)/5}, "\n\n")
 
 log_in.append({"supervised_evaluation_em":scores})
+
+print("\n##############GMM euclidean spherical##############:\n")
+
+CVE = evaluation.CrossValEvaluation(representations, ground_truth, nb_set=5, algs_object=GMMSpherical)
+
+p1 = CVE.get_score(evaluation.PrecisionScore(at=1))
+
+
+p3 = CVE.get_score(evaluation.PrecisionScore(at=3))
+
+
+p5 = CVE.get_score(evaluation.PrecisionScore(at=5))
+scores = {"P1":p1, "P3":p3, "P5":p5}
+
+print("\n\t score ->  ",{"P1":sum(p1,0)/5, "P3":sum(p3,0)/5, "P5":sum(p5,0)/5}, "\n\n")
+
+log_in.append({"supervised_evaluation_em_spherical":scores})
 print("\n##############KMean euclidean##############: \n")
 CVE = evaluation.CrossValEvaluation(representations, ground_truth, nb_set=5, algs_object=KMeans)
 scores = CVE.get_score(evaluation.PrecisionScore(at=1))

@@ -6,10 +6,11 @@ import tqdm
 class EuclideanClassifier(object):
     def __init__(self, n_classes):
         self._n_c = n_classes
-    def fit(self, X, Y=None, iteration=5000):
+    def fit(self, X, Y=None, iteration=500):
+        print(self._n_c)
         self.model = nn.Linear(X.size(-1), self._n_c)
         self.model = self.model.to(X.device)
-        optimizer  = optim.Adam(self.model.parameters(), lr=1e-2)
+        optimizer  = optim.Adam(self.model.parameters(), lr=1e-1)
         criterion = torch.nn.BCEWithLogitsLoss()
         pb = tqdm.trange(iteration)
         for i in pb:

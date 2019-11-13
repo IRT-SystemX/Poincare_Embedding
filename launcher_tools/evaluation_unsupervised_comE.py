@@ -64,6 +64,7 @@ with io.open(os.path.join(args.file, "embeddings.txt")) as embedding_file:
 representations = torch.Tensor(V)
 
 print(representations.size())
+print(len(Y))
 results = []
 
 for i in tqdm.trange(args.n):

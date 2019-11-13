@@ -2,7 +2,7 @@ import argparse
 import tqdm
 
 import torch
-import pytorch_categorical
+from function_tools import pytorch_categorical
 from torch.utils.data import DataLoader
 import os
 from multiprocessing import Process, Manager
@@ -156,7 +156,7 @@ D.set_path(False)
 # negative sampling distribution
 frequency = D.getFrequency()**(3/4)
 frequency[:,1] /= frequency[:,1].sum()
-frequency = pytorch_categorical.Categorical(frequency[:,1])
+frequency =  pytorch_categorical.Categorical(frequency[:,1])
 # random walk dataset
 d_rw = D.light_copy()
 

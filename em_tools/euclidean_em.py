@@ -13,7 +13,7 @@ class GaussianMixtureSKLearn(skm.GaussianMixture):
     def __init__(self, n_gaussian, init_mod="rand", verbose=True):
         self.n_gaussian = n_gaussian
         self._distance = ef.distance
-        super(GaussianMixtureSKLearn, self).__init__(n_components=n_gaussian, covariance_type="spherical")  
+        super(GaussianMixtureSKLearn, self).__init__(n_components=n_gaussian)  
 
     def norm_ff(self, sigma):
         return df.euclidean_norm_factor(sigma)
@@ -40,59 +40,19 @@ class GaussianMixtureSKLearn(skm.GaussianMixture):
             super(GaussianMixtureSKLearn, self).fit(X.numpy())
         else:
             super(GaussianMixtureSKLearn, self).fit(X.numpy())
-        self._w = torch.Tensor(self.weights_)
-        self._mu = torch.Tensor(self.means_2)
-        self._sigma = torch.Tensor(self.covariances_)
+        # self._w = torch.Tensor(self.weights_)
+        # self._mu = torch.Tensor(self.means_2)
+        # self._sigma = torch.Tensor(self.covariances_)
         # self._sigma = self.covariances_2/X.size(-1)
         # print("sigma ", self._sigma)
         # print("w ", self._w)
         # print("mean[0] ", self.means_[:,0])
 
     def get_pik(self, z):
-        # print('sigma  ->  ', self._sigma)
-        # print('sigma sqrt ->  ', torch.sqrt(self._sigma))
-        
-        # N, D, M = z.shape + (self._mu.shape[0],)
-        # pdf = df.gaussianPDF(z, self._mu, torch.sqrt(self._sigma), norm_func=self.norm_ff, distance=self._distance) 
-
-        # print("pdf mean", pdf[20])
-        # p_pdf = pdf * self._w.unsqueeze(0).expand_as(pdf)
-        # print("ppd",p_pdf.size())
-        # if(p_pdf.sum(-1).min() == 0):
-        #     print("EXPECTATION : pdf.sum(-1) contain zero -> ",(p_pdf.sum(-1) == 0).sum().item())
-        #     #same if we set = 1
-        #     p_pdf[p_pdf.sum(-1) == 0] = 1e-8
-        # wik = p_pdf/p_pdf.sum(-1, keepdim=True).expand_as(pdf)
-        # print("wik 1", wik.mean(1))
-        # print("wik 2", wik.mean(0))
-        # wik[torch.arange(len(wik)), wik.max(1)[1]] = 1
-        # wik = wik.long().float()
-        # print("wik 2", wik.mean(0))
-        # print(torch.Tensor(super(GaussianMixtureSKLearn, self).predict_proba(z.numpy()))[0])
-        # return torch.Tensor(super(GaussianMixtureSKLearn, self).predict_proba(z.numpy()))
-        # by default log probs since probs can be easily untracktable
-        N, M, D = z.size(0), self._mu.size(0), z.size(-1)
-
-        z = z.unsqueeze(1).expand(N, M, D)
-        mu = self._mu.unsqueeze(0).expand(N,M,D)
-
-        ZmM = ((mu - z)**2).sum(-1)
-        ZmMmS = -(1/2)  * ZmM * 1/self._sigma.unsqueeze(0).expand(N,M)
-        
-
-
-        nor = -(z.size(-1)/2) * (math.log(2 * math.pi) + torch.log(self._sigma))
-        nor = nor.unsqueeze(0).expand(N,M)
-
-        log_pdf = nor + ZmMmS
-
-        log_prob = torch.log(self._w.unsqueeze(0).expand(N,M)) + log_pdf 
-        # print("log prob ", log_prob[0])
-        return log_prob
-
+        return torch.Tensor(super(GaussianMixtureSKLearn, self).predict_proba(z.numpy()))
 
     def probs(self, z):
-        return self.get_pik(z)
+        return torch.Tensor(super(GaussianMixtureSKLearn, self).predict_proba(z.numpy()))
     def predict(self, z):
         return torch.Tensor(super(GaussianMixtureSKLearn, self).predict(z.numpy()))
 
@@ -128,7 +88,6 @@ class GMM(object):
 
     def update_sigma(self, z, wik, g_index=-1):
         N, D, M = z.shape + (self._mu.shape[0],)
-
         N_k = wik.sum(0)
         if(g_index>0):
             self._sigma[:, g_index] =  ((self._distance(z, self._mu[:,g_index].expand(N))**2) * wik[:, g_index]).sum()/wik[:, g_index].sum()
@@ -143,27 +102,12 @@ class GMM(object):
                     wik_k = wik[:, i].unsqueeze(-1).unsqueeze(-1).expand(N, D, D).double()
                     ZmMU_k_dot = (ZmMU_k.transpose(-1,1).bmm(ZmMU_k) * wik_k).sum(0)
                     sigma.append((ZmMU_k_dot/(wik[:, i].sum().double())).unsqueeze(0))
-                    if(i == 38):
-                        # print(torch.symeig(ZmMU_k.transpose(-1,1).bmm(ZmMU_k).sum(0))[0])
-                        index = [wik[:, i].nonzero()]
-                        t = ZmMU_k[index].squeeze(1)
-                        a = z[index] - self._mu[i].unsqueeze(0).expand(len(index),D)
-                        a = a.squeeze()
-                        # print(a.size())
-                        a = a.unsqueeze(1).bmm(a.unsqueeze(-1))
-                        cov = t.transpose(-1,1).bmm(t).sum(0)
-                        # print('cov eig', torch.symeig(cov)[0])
-                        # print("la")
-                        # print(t.transpose(-1,1).bmm(t).sum(0))
-                        # print(torch.symeig(t.transpose(-1,1).bmm(t).sum(0))[0])
-                        # print(wik[:, i][wik[:, i].nonzero()])
-                        # print(torch.symeig((ZmMU_k.transpose(-1,1).bmm(ZmMU_k) * wik_k).sum(0))[0])
                 self._sigma = torch.cat(sigma, 0)
             elif(self.mod=="diag"):
                 g = (ZmMU**2 * wik.unsqueeze(-1).expand(N,M,D)).sum(0)/wik.unsqueeze(-1).expand(N,M,D).sum(0)
                 self._sigma = g.unsqueeze(-1).expand(M,D,D) * torch.eye(D).unsqueeze(0).expand(M,D,D)
             elif(self.mod=="spherical"):
-                g = ((ZmMU**2).sum(-1) * wik.unsqueeze(-1).expand(N,M)).sum(0)/wik.unsqueeze(-1).expand(N,M).sum(0)
+                g = ((ZmMU**2).sum(-1) * wik.expand(N,M)).sum(0)/wik.expand(N,M).sum(0)
                 self._sigma = g.unsqueeze(-1).unsqueeze(-1).expand(M,D,D) * torch.eye(D).unsqueeze(0).expand(M,D,D)
             
             # print(torch.symeig(self._sigma)[0])
@@ -323,13 +267,13 @@ class GMM(object):
         # we must compute the         
 
 def GMMFull(n_g):
-    return GMM(n_gaussian,  mod="full")
+    return GMM(n_g,  mod="full")
 
 def GMMDiag(n_g):
-    return GMM(n_gaussian,  mod="diag")
+    return GMM(n_g,  mod="diag")
 
 def GMMSpherical(n_g):
-    return GMM(n_gaussian,  mod="spherical")
+    return GMM(n_g,  mod="spherical")
 
 def test():
     # we take thre clusters sampled from normal

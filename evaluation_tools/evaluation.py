@@ -535,6 +535,7 @@ def poincare_unsupervised_em(z, y, n_distrib, em=None, verbose=False):
 def euclidean_unsupervised_em(z, y, n_distrib, em=None, verbose=False):
     y = torch.LongTensor([y[i][0]-1 for i in range(len(y))])
     from em_tools.euclidean_em import GaussianMixtureSKLearn
+    print(n_distrib)
     if(em is None):
         em = GaussianMixtureSKLearn( n_distrib)
         em.fit(z)
@@ -549,6 +550,7 @@ def euclidean_unsupervised_em(z, y, n_distrib, em=None, verbose=False):
         return accuracy_small_disc_product(label, label_source, n_distrib)
     else:
         return accuracy_huge_disc_product(label, label_source, n_distrib)
+        
 def accuracy_euclidean_kmeans(z, y, mu, verbose=False):
     n_disc = len(z)
     n_example = len(z)
