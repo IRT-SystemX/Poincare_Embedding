@@ -80,8 +80,8 @@ class KMeans(object):
                 self.cluster_centers_  =  self.centroids
                 return self.centroids
         else:
-            print("lalalaalalalal")
-            print(Y.size())
+            # print("lalalaalalalal")
+            # print(Y.size())
             self.indexes = Y.max(-1)[1]
             self.centroids = self._maximisation(X, self.indexes)
             self.cluster_centers_  =  self.centroids

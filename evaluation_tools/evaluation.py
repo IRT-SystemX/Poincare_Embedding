@@ -7,6 +7,7 @@ from em_tools.poincare_em import RiemannianEM
 from collections import Counter
 import numpy as np
 import math
+import tqdm
 import itertools
 
 # verified 
@@ -147,7 +148,8 @@ class CrossValEvaluation(object):
 
     def get_score(self, scoring_function):
         scores = []
-        for i, test_index in enumerate(self.subset_indexer):
+        pb = tqdm.trange(len(self.subset_indexer))
+        for i, test_index in zip(pb, self.subset_indexer):
             # create train dataset being concatenation of not current test set
             train_index = torch.cat([ subset for ci, subset in enumerate(self.subset_indexer) if(i!=ci)], 0)
             
@@ -165,7 +167,7 @@ class CrossValEvaluation(object):
             # must give the matrix of scores
             # print(algs._w)
             prediction = algs.probs(test_embeddings)
-            print(prediction.mean(0))
+            # print(prediction.mean(0))
             # print("Pred size ", prediction.size())
             # print("Test size ", test_labels.size())
             set_score = scoring_function(prediction, test_labels)

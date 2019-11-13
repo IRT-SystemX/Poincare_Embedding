@@ -368,8 +368,8 @@ def load_wikipedia():
 
 def load_flickr():
 
-    edges_path = "/local/gerald/data/Flickr/edges.csv"
-    groups_path = "/local/gerald/data/Flickr/group-edges.csv"
+    edges_path = "data/Flickr/edges.csv"
+    groups_path = "data/Flickr/group-edges.csv"
     return loading_social_computing_corpus(edges_path, groups_path, symetric=True)
 
 def load_blogCatalog():

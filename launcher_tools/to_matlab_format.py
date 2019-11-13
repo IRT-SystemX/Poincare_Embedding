@@ -23,7 +23,8 @@ dataset_dict = { "karate": corpora.load_karate,
             "books": corpora.load_books,
             "blogCatalog": corpora.load_blogCatalog,
             "polblog": corpora.load_polblogs,
-            "adjnoun": corpora.load_adjnoun
+            "adjnoun": corpora.load_adjnoun,
+            "wikipedia": corpora.load_wikipedia
           }
 print("Loading the dataset")
 D, X, Y = dataset_dict[args.dataset]()
