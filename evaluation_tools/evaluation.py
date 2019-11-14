@@ -145,10 +145,9 @@ class CrossValEvaluation(object):
         subset_index = torch.randperm(len(self.z))
         nb_value = len(self.z)//nb_set
         self.subset_indexer = [subset_index[nb_value *i:min(nb_value * (i+1), len(self.z))] for i in range(nb_set)]
-
-    def get_score(self, scoring_function):
-        scores = []
+        self.all_algs = []
         pb = tqdm.trange(len(self.subset_indexer))
+
         for i, test_index in zip(pb, self.subset_indexer):
             # create train dataset being concatenation of not current test set
             train_index = torch.cat([ subset for ci, subset in enumerate(self.subset_indexer) if(i!=ci)], 0)
@@ -164,9 +163,26 @@ class CrossValEvaluation(object):
 
             algs = self.algs_object(self.gt.size(-1))
             algs.fit(train_embeddings, Y=train_labels)
+            self.all_algs.append(algs)
+        
+    def get_score(self, scoring_function):
+        scores = []
+        pb = tqdm.trange(len(self.subset_indexer))
+        for i, test_index in zip(pb, self.subset_indexer):
+            # create train dataset being concatenation of not current test set
+            train_index = torch.cat([ subset for ci, subset in enumerate(self.subset_indexer) if(i!=ci)], 0)
+            
+            # get embeddings sets
+            train_embeddings = self.z[train_index]
+            test_embeddings  = self.z[test_index]
+
+            # get ground truth sets
+            train_labels = self.gt[train_index]
+            test_labels  =  self.gt[test_index]
+
             # must give the matrix of scores
             # print(algs._w)
-            prediction = algs.probs(test_embeddings)
+            prediction = self.all_algs[i].probs(test_embeddings)
             # print(prediction.mean(0))
             # print("Pred size ", prediction.size())
             # print("Test size ", test_labels.size())
