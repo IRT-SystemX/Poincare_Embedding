@@ -62,12 +62,12 @@ ground_truth = torch.LongTensor([[ 1 if(y+1 in Y[i]) else 0 for y in range(n_gau
 from torch import nn
 
 
-CVE = evaluation.CrossValEvaluation(representations, ground_truth, nb_set=5, algs_object=SKLearnSVM)
-scores = CVE.get_score(evaluation.PrecisionScore(at=1))
+# CVE = evaluation.CrossValEvaluation(representations, ground_truth, nb_set=5, algs_object=SKLearnSVM)
+# scores = CVE.get_score(evaluation.PrecisionScore(at=1))
 
-print("Mean score on the dataset -> ",sum(scores,0)/5)
+# print("Mean score on the dataset -> ",sum(scores,0)/5)
 
-log_in.append({"supervised_evaluation_SKLearnSVM":scores})
+# log_in.append({"supervised_evaluation_SKLearnSVM":scores})
 
 CVE = evaluation.CrossValEvaluation(representations, ground_truth, nb_set=5, algs_object=EuclideanClassifier)
 p1 = CVE.get_score(evaluation.PrecisionScore(at=1))

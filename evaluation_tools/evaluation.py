@@ -159,8 +159,6 @@ class CrossValEvaluation(object):
             # get ground truth sets
             train_labels = self.gt[train_index]
             test_labels  =  self.gt[test_index]
-
-
             algs = self.algs_object(self.gt.size(-1))
             algs.fit(train_embeddings, Y=train_labels)
             self.all_algs.append(algs)

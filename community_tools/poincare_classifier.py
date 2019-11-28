@@ -12,8 +12,8 @@ class PoincareClassifier(object):
         Y = Y.float()
         self.model = pm.PoincareMLR(X.size(-1), Y.size(-1))
         print(X.size())
-        optimizer_euclidean = optim.Adam(self.model.euclidean_parameters(), lr=1e-2)
-        optimizer_hyperbolic = ph.PoincareBallSGDExp(self.model.poincare_parameters(), lr=1e-3)
+        optimizer_euclidean = optim.Adam(self.model.euclidean_parameters(), lr=1e-1)
+        optimizer_hyperbolic = ph.PoincareBallSGDExp(self.model.poincare_parameters(), lr=1e-2)
 
         criterion = torch.nn.BCEWithLogitsLoss()
 

@@ -95,11 +95,18 @@ class GMM(object):
             dtm = self._distance(z.unsqueeze(1).expand(N,M,D), self._mu.unsqueeze(0).expand(N,M,D))
             ZmMU = z.unsqueeze(1).expand(N,M,D) - self._mu.unsqueeze(0).expand(N,M,D)
             sigma = []
-
+            # print("M size", self._mu.shape)
             if(self.mod=="full"):
                 for i in range(M):
-                    ZmMU_k = ZmMU[:,i,:].unsqueeze(1).double()
-                    wik_k = wik[:, i].unsqueeze(-1).unsqueeze(-1).expand(N, D, D).double()
+                    ZmMU_k = ZmMU[:,i,:]
+                    wik_k = wik[:, i]
+                    #.unsqueeze(-1).unsqueeze(-1).expand(N, D, D).double()
+                    # .unsqueeze(1).double()
+                    index_nz = wik_k>0
+                    n_nz = index_nz.sum().item()
+                    wik_k = wik_k[index_nz].unsqueeze(-1).unsqueeze(-1).expand(n_nz, D, D).double()
+                    ZmMU_k = ZmMU_k[index_nz].unsqueeze(1).double()
+                    # print(ZmMU_k.size())
                     ZmMU_k_dot = (ZmMU_k.transpose(-1,1).bmm(ZmMU_k) * wik_k).sum(0)
                     sigma.append((ZmMU_k_dot/(wik[:, i].sum().double())).unsqueeze(0))
                 self._sigma = torch.cat(sigma, 0)
@@ -226,13 +233,15 @@ class GMM(object):
             try:
                 cholesky_root = torch.cholesky(self._sigma[i])
             except:
-                print("There is negative eigen value for cov mat "+str(38))
+                print("There is negative eigen value for cov mat "+str(i))
                 eigen_value, eigen_vector = torch.symeig(self._sigma[i], eigenvectors=True)
                 print("Rule if min(eig) > -1e-5 replacing by 0")
                 if(eigen_value.min()>-1e-5):
                     print("Negative minimum eigen value is ", eigen_value.min().item(), " replace by 0")
-                    eigen_value[eigen_value<0] = 1e-10
+                    eigen_value[eigen_value<1e-15] = 1e-10
                     self._sigma[i] = eigen_vector.mm(torch.diag(eigen_value).mm(eigen_vector.t()))
+                    eigen_value, eigen_vector = torch.symeig(self._sigma[i], eigenvectors=True)
+                    cholesky_root = torch.cholesky(self._sigma[i])
                 else:
                     print("Negative minimum eigen value is ", eigen_value.min().item(), " exiting ")
                     quit()
