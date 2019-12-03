@@ -172,25 +172,25 @@ if(args.force_rw):
             d_rw = torch.load(rw_log[key]["file"])
             print('Loaded')
         except:
-            os.makedirs("/local/gerald/KMEANS_RESULTS/", exist_ok=True)
+            os.makedirs("./KMEANS_RESULTS/", exist_ok=True)
             d_rw.set_walk(args.walk_lenght, 1.0)
             d_rw.set_path(True)
             d_rw = corpora.FlatContextCorpus(d_rw, context_size=args.context_size, precompute=args.precompute_rw)
             print("Dataset Loaded")
-            print("Saving dataset at : ","/local/gerald/KMEANS_RESULTS/"+key+".t7" )
-            torch.save(d_rw, "/local/gerald/KMEANS_RESULTS/"+key+".t7")
-            rw_log[key] = {"file":"/local/gerald/KMEANS_RESULTS/"+key+".t7",
+            print("Saving dataset at : ","./KMEANS_RESULTS/"+key+".t7" )
+            torch.save(d_rw, "./KMEANS_RESULTS/"+key+".t7")
+            rw_log[key] = {"file":"./KMEANS_RESULTS/"+key+".t7",
                         "context_size":args.context_size, "walk_lenght": args.walk_lenght,
                         "precompute_rw": args.precompute_rw}
     else:
-        os.makedirs("/local/gerald/KMEANS_RESULTS/", exist_ok=True)
+        os.makedirs("./KMEANS_RESULTS/", exist_ok=True)
         d_rw.set_walk(args.walk_lenght, 1.0)
         d_rw.set_path(True)
         d_rw = corpora.FlatContextCorpus(d_rw, context_size=args.context_size, precompute=args.precompute_rw)
         print("Dataset Loaded")
-        print("Saving dataset at : ","/local/gerald/KMEANS_RESULTS/"+key+".t7" )
-        torch.save(d_rw, "/local/gerald/KMEANS_RESULTS/"+key+".t7")
-        rw_log[key] = {"file":"/local/gerald/KMEANS_RESULTS/"+key+".t7",
+        print("Saving dataset at : ","./KMEANS_RESULTS/"+key+".t7" )
+        torch.save(d_rw, "./KMEANS_RESULTS/"+key+".t7")
+        rw_log[key] = {"file":"./KMEANS_RESULTS/"+key+".t7",
                        "context_size":args.context_size, "walk_lenght": args.walk_lenght,
                        "precompute_rw": args.precompute_rw}
 else:
