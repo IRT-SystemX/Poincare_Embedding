@@ -19,8 +19,6 @@ class PoincareEM(object):
         self._init_mod = init_mod
         self._started = False
 
-
-
     def update_w(self, z, wik, g_index=-1):
         # get omega mu
 
@@ -76,30 +74,32 @@ class PoincareEM(object):
             quit()
         return wik
 
-    def _maximization(self, z, wik, lr_mu=5e-3, tau_mu=1e-4, max_iter_bar=math.inf):
+    def _maximization(self, z, wik, lr_mu=1e-3, tau_mu=1e-6, max_iter_bar=math.inf):
         self.update_w(z, wik)
         if(self._w.mean() != self._w.mean()):
             print("UPDATE : w contain not a number elements")
             quit()            
         # print("w", self._w)
         self.update_mu(z, wik, lr_mu=lr_mu, tau_mu=tau_mu, max_iter=max_iter_bar)
+        print(self._mu)
         if(self._mu.mean() != self._mu.mean()):
             print("UPDATE : mu contain not a number elements")
-            quit()      
+            quit()     
+        print("sigma b", self._sigma) 
         self.update_sigma(z, wik)
-        # print("sigma ", self._sigma)
+        print("sigma ", self._sigma)
         if(self._sigma.mean() != self._sigma.mean()):
             print("UPDATE : sigma contain not a number elements")
             quit()  
 
-    def fit(self, z, max_iter=5, lr_mu=5e-3, tau_mu=1e-4, Y=None):
+    def fit(self, z, max_iter=5, lr_mu=5e-2, tau_mu=1e-4, Y=None):
         # if first time fit is called init all parameters
         if(not self._started):
             self._d = z.size(-1)
             self._mu = (torch.rand(self._n_g,self._d ) - 0.5)/self._d 
             self._sigma = torch.rand(self._n_g)/10 +0.8
             self._w = torch.ones(self._n_g)/self._n_g
-            self.zeta_phi = df.ZetaPhiStorage(torch.arange(5e-2, 1.5, 0.05), self._d)
+            self.zeta_phi = df.ZetaPhiStorage(torch.arange(5e-2, -0.0722 * z.size(-1) + 2.14 , 0.01), self._d)
         if(Y is not None):
             # we are in the supervised case
             # the objective is in this case to find the gaussian for each
@@ -146,7 +146,7 @@ class PoincareEM(object):
         pdf = df.gaussianPDF(z, self._mu, self._sigma, norm_func=self.zeta_phi.zeta) 
         p_pdf = pdf * self._w.unsqueeze(0).expand_as(pdf)
         if(p_pdf.sum(-1).min() == 0):
-            print("EXPECTATION : pdf.sum(-1) contain zero")
+            print("EXPECTATION (function get_pik) : pdf.sum(-1) contain zero for ", (p_pdf.sum(-1)<= 1e-15).sum().item(), "items" )
             #same if we set = 1
             p_pdf[p_pdf.sum(-1) == 0] = 1e-8
         wik = p_pdf/p_pdf.sum(-1, keepdim=True).expand_as(pdf)

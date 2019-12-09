@@ -86,8 +86,8 @@ class PoincareEmbedding(nn.Module):
                                             negative_embedding, coef=distance_coef)
                 loss_value2 += loss_o2.detach().sum().item()
                 o_lval += loss_o2.detach().mean().item()
-                if(pb_i%100 == 0):
-                    pb_O2.set_postfix({"LO2":o_lval/100 })
+                if(pb_i%1000 == 0):
+                    pb_O2.set_postfix({"LO2":o_lval/1000 })
                     o_lval = 0
                 self.agg(beta * loss_o2).backward()
                 self.optimizer.step()

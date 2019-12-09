@@ -123,8 +123,7 @@ class ZetaPhiStorage(object):
         self.sigma = sigma
         self.m_zeta_var = (zeta(sigma, N)).detach()
         self.phi_inv_var = (self.sigma**3 * log_grad_zeta(self.sigma, N)).detach()
-        # print(self.m_zeta_var)
-        # print(self.phi_inv_var)
+        
     def zeta(self, sigma):
         N, P = sigma.shape[0], self.sigma.shape[0]
         ref = self.sigma.unsqueeze(0).expand(N, P)
