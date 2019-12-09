@@ -7,7 +7,10 @@ from torch.utils.data import DataLoader
 import os
 from multiprocessing import Process, Manager
 from embedding_tools.poincare_embedding_alternate import PoincareEmbedding as PEmbed
-from em_tools.poincare_em import RiemannianEM as PEM
+from clustering_tools.poincare_em import PoincareEM as PEM
+
+from callback_tools.callback import log_callback_em_conductance, log_callback_kmeans_conductance
+from callback_tools import tools as callback_tools
 from data_tools import corpora_tools
 from data_tools import corpora
 from data_tools import data
@@ -252,23 +255,31 @@ alpha, beta = args.init_alpha, args.init_beta
 embedding_alg = PEmbed(len(dataset_index), size=args.size, lr=args.init_lr, cuda=args.cuda, negative_distribution=frequency,
                         optimizer_method=optimizer_dict[args.embedding_optimizer], aggregation=aggregation_dict[args.loss_aggregation])
 em_alg = PEM( args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=False)
+
+# create a callback function to log the conductence
+callback_function = callback_tools.generic_callback({"embeddings": embedding_alg.get_PoincareEmbeddings}, 
+                                {"adjancy_matrix":X, "n_centroid": args.n_gaussian},
+                                log_callback_kmeans_conductance)
+
 pi, mu, sigma, normalisation_factor = None, None, None, None
 pik = None
 epoch_embedding = args.epoch_embedding_init
 pb = tqdm.trange(args.epoch)
 
 for i in pb:
-    if(i==1):
+
+    embedding_alg.fit(training_dataloader_o1, training_dataloader_o2, training_dataloader_o3,
+                        alpha=alpha, beta=beta, gamma=args.gamma, max_iter=epoch_embedding,
+                        pi=pik, mu=mu, sigma=sigma, negative_sampling=args.negative_sampling,
+                        distance_coef=args.distance_coef, normalisation_coef=normalisation_factor,
+                        log_callback=callback_function, logger=logger_object)
+
+    if(i==0):
         embedding_alg.set_lr(args.lr)
         alpha, beta = args.alpha, args.beta
         epoch_embedding = args.epoch_embedding
         torch.save(embedding_alg.get_PoincareEmbeddings().cpu(), os.path.join(saving_folder,args.id+"/embeddings_init.t7"))
-    embedding_alg.fit(training_dataloader_o1, training_dataloader_o2, training_dataloader_o3,
-                        alpha=alpha, beta=beta, gamma=args.gamma, max_iter=epoch_embedding,
-                        pi=pik, mu=mu, sigma=sigma, negative_sampling=args.negative_sampling,
-                        distance_coef=args.distance_coef, normalisation_coef=normalisation_factor)
-
-
+        
     if(args.reset_em):
         em_alg = PEM(args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=True)
     em_alg.fit(embedding_alg.get_PoincareEmbeddings().cpu(), max_iter=args.em_iter)

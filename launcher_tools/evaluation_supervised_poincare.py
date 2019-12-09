@@ -4,8 +4,8 @@ import torch
 import os
 
 from torch.utils.data import DataLoader
-from em_tools.poincare_em import RiemannianEM as EM
-from em_tools.poincare_kmeans import PoincareKMeans as KM
+from clustering_tools.poincare_em import PoincareEM as EM
+from clustering_tools.poincare_kmeans import PoincareKMeans as KM
 from data_tools import corpora_tools, corpora, data, logger
 from evaluation_tools import evaluation
 from community_tools import poincare_classifier as pc
@@ -26,7 +26,8 @@ dataset_dict = { "karate": corpora.load_karate,
             "books": corpora.load_books,
             "blogCatalog": corpora.load_blogCatalog,
             "polblog": corpora.load_polblogs,
-            "adjnoun": corpora.load_adjnoun
+            "adjnoun": corpora.load_adjnoun,
+            "wikipedia": corpora.load_wikipedia
           }
 log_in = logger.JSONLogger(os.path.join(args.file,"log.json"), mod="continue")
 dataset_name = log_in["dataset"]
@@ -49,6 +50,8 @@ else:
 print("rep -> ", representations.size())
 ground_truth = torch.LongTensor([[ 1 if(y+1 in Y[i]) else 0 for y in range(n_gaussian)] for i in range(len(X))])
 print("Ground truth size ", ground_truth.size())
+print(ground_truth.sum(0))
+
 print("##########################GMM Hyperbolic###############################")
 CVE = evaluation.CrossValEvaluation(representations, ground_truth, nb_set=5, algs_object=EM)
 p1 = CVE.get_score(evaluation.PrecisionScore(at=1))

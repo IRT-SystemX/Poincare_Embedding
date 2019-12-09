@@ -2,8 +2,8 @@ import torch
 from function_tools import distribution_function, poincare_function
 from function_tools import euclidean_function as ef
 
-from em_tools.poincare_kmeans import PoincareKMeans
-from em_tools.poincare_em import RiemannianEM
+from clustering_tools.poincare_kmeans import PoincareKMeans
+from clustering_tools.poincare_em import PoincareEM
 from collections import Counter
 import numpy as np
 import math
@@ -136,7 +136,7 @@ class PrecisionScore(object):
 
 
 class CrossValEvaluation(object):
-    def __init__(self, embeddings, ground_truth, nb_set=5, algs_object=RiemannianEM):
+    def __init__(self, embeddings, ground_truth, nb_set=5, algs_object=PoincareEM):
         self.algs_object = algs_object
         self.z = embeddings
         self.gt = ground_truth
@@ -525,13 +525,27 @@ def poincare_unsupervised_kmeans(z, y, n_centroid, verbose=False):
         return accuracy_huge_disc_product(label, label_source, n_centroid),std.max(), std.mean(), std
 
 
+def unsupervised_evaluation(z, y, n_centroid, classifier, verbose=False):
+    n_example = len(z)
+    y = torch.LongTensor([y[i][0]-1 for i in range(len(y))])  
+    # first getting the pdf for each disc distribution
+    classifier = classifier(n_centroid)
+    classifier.fit(z)
+    associated_distrib =  classifier.predict(z)
 
+    label = associated_distrib.numpy()
+    label_source = y.numpy()
+
+    if(n_centroid <= 6):
+        return accuracy_small_disc_product(label, label_source, n_centroid)
+    else:
+        return accuracy_huge_disc_product(label, label_source, n_centroid)
 
 def poincare_unsupervised_em(z, y, n_distrib, em=None, verbose=False):
     y = torch.LongTensor([y[i][0]-1 for i in range(len(y))])
-    from em_tools.poincare_em import RiemannianEM
+    from clustering_tools.poincare_em import PoincareEM
     if(em is None):
-        em = RiemannianEM( n_distrib, verbose=False)
+        em = PoincareEM( n_distrib, verbose=False)
         em.fit(z, max_iter=5)
 
     # print(em._mu)
@@ -548,7 +562,7 @@ def poincare_unsupervised_em(z, y, n_distrib, em=None, verbose=False):
 
 def euclidean_unsupervised_em(z, y, n_distrib, em=None, verbose=False):
     y = torch.LongTensor([y[i][0]-1 for i in range(len(y))])
-    from em_tools.euclidean_em import GaussianMixtureSKLearn
+    from clustering_tools.euclidean_em import GaussianMixtureSKLearn
     print(n_distrib)
     if(em is None):
         em = GaussianMixtureSKLearn( n_distrib)

@@ -6,7 +6,7 @@ import pytorch_categorical
 from torch.utils.data import DataLoader
 import os
 from multiprocessing import Process, Manager
-from em_tools.poincare_em import RiemannianEM as PEM
+from clustering_tools.poincare_em import PoincareEM as PEM
 from data_tools import corpora_tools
 from data_tools import corpora
 from data_tools import data
@@ -31,7 +31,8 @@ dataset_dict = { "karate": corpora.load_karate,
             "books": corpora.load_books,
             "blogCatalog": corpora.load_blogCatalog,
             "polblog": corpora.load_polblogs,
-            "adjnoun": corpora.load_adjnoun
+            "adjnoun": corpora.load_adjnoun,
+            "wikipedia": corpora.load_wikipedia
           }
 log_in = logger.JSONLogger(os.path.join(args.file,"log.json"), mod="continue")
 dataset_name = log_in["dataset"]
@@ -57,10 +58,10 @@ except:
 #     total_accuracy = evaluation.poincare_unsupervised_em(representations, D.Y, n_gaussian,  verbose=False)
 #     results.append(total_accuracy)
 
-from em_tools.poincare_em import RiemannianEM
+from clustering_tools.poincare_em import PoincareEM
 print(representations)
 print(n_gaussian)
-em = RiemannianEM(representations.size(-1), n_gaussian, verbose=False)
+em = PoincareEM(representations.size(-1), n_gaussian, verbose=False)
 em.fit(representations.cuda(), max_iter=10)
 
 import matplotlib.pyplot as plt

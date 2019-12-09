@@ -6,8 +6,8 @@ import io
 import os
 
 
-from em_tools.euclidean_em import GMM, GaussianMixtureSKLearn, GMMSpherical
-from em_tools.euclidean_kmeans import KMeans
+from clustering_tools.euclidean_em import GMM, GaussianMixtureSKLearn, GMMSpherical
+from clustering_tools.euclidean_kmeans import KMeans
 from data_tools import corpora_tools, corpora, data, logger
 from evaluation_tools import evaluation
 
@@ -29,7 +29,8 @@ dataset_dict = { "karate": corpora.load_karate,
             "books": corpora.load_books,
             "blogCatalog": corpora.load_blogCatalog,
             "polblog": corpora.load_polblogs,
-            "adjnoun": corpora.load_adjnoun
+            "adjnoun": corpora.load_adjnoun,
+            "wikipedia": corpora.load_wikipedia
           }
 log_in = logger.JSONLogger(os.path.join(args.file,"log.json"), mod="continue")
 

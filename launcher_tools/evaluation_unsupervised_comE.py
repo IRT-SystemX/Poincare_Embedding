@@ -6,7 +6,7 @@ import pytorch_categorical
 from torch.utils.data import DataLoader
 import os
 from multiprocessing import Process, Manager
-from em_tools.euclidean_em import GaussianMixtureSKLearn
+from clustering_tools.euclidean_em import GaussianMixtureSKLearn
 from data_tools import corpora_tools
 from data_tools import corpora
 from data_tools import data
@@ -38,7 +38,8 @@ dataset_dict = { "karate": corpora.load_karate,
             "books": corpora.load_books,
             "blogCatalog": corpora.load_blogCatalog,
             "polblog": corpora.load_polblogs,
-            "adjnoun": corpora.load_adjnoun
+            "adjnoun": corpora.load_adjnoun,
+            "wikipedia": corpora.load_wikipedia
           }
 log_in = logger.JSONLogger(os.path.join(args.file,"log.json"), mod="continue")
 dataset_name = args.dataset
@@ -75,7 +76,7 @@ R = torch.Tensor(results)
 print("Maximum performances -> ", R.max().item())
 print("Mean performances -> ", R.mean().item())
 print("std performances -> ", R.std().item())
-log_in.append({"evaluation_unsupervised_poincare": {"unsupervised_performances":R.tolist()}})
+log_in.append({"evaluation_unsupervised_come": {"unsupervised_performances":R.tolist()}})
 
 
 
@@ -101,7 +102,7 @@ C = torch.Tensor(conductences)
 print("Maximum conductence -> ", C.max().item())
 print("Mean conductence -> ", C.mean().item())
 print("stdconductence -> ", C.std().item())
-log_in.append({"evaluation_unsupervised_poincare": {"unsupervised_conductence":C.tolist()}})
+log_in.append({"evaluation_unsupervised_come": {"unsupervised_conductence":C.tolist()}})
 
 
 nmi = []
@@ -117,4 +118,4 @@ C = torch.Tensor(nmi)
 print("Maximum nmi -> ", C.max().item())
 print("Mean nmi -> ", C.mean().item())
 print("std nmi -> ", C.std().item())
-log_in.append({"evaluation_unsupervised_poincare_nmi": {"unsupervised_nmi":C.tolist()}})
+log_in.append({"evaluation_unsupervised_come_nmi": {"unsupervised_nmi":C.tolist()}})

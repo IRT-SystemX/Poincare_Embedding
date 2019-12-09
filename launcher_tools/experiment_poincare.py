@@ -7,7 +7,9 @@ from torch.utils.data import DataLoader
 import os
 from multiprocessing import Process, Manager
 from embedding_tools.poincare_embedding import PoincareEmbedding as PEmbed
-from em_tools.poincare_em import RiemannianEM as PEM
+from clustering_tools.poincare_em import PoincareEM as PEM
+from callback_tools.callback import log_callback_em_conductance
+
 from data_tools import corpora_tools
 from data_tools import corpora
 from data_tools import data
@@ -203,8 +205,8 @@ dataset_repeated = corpora_tools.repeat_dataset(dataset_repeated, len(d_rw))
 
 print("Merging dataset")
 embedding_dataset = corpora_tools.zip_datasets(dataset_repeated, d_rw)
-# print(len(embedding_dataset[0]))
-# print(embedding_dataset[29][-1][20:25])
+
+
 training_dataloader = DataLoader(embedding_dataset, 
                             batch_size=args.batch_size, 
                             shuffle=False,
@@ -216,8 +218,8 @@ representation_d = []
 pi_d = []
 mu_d = []
 sigma_d = []
-# if dimension is 2 we can plot 
-# we store colors here
+
+
 if(args.size == 2):
     import matplotlib.pyplot as plt
     import matplotlib.colors as plt_colors
@@ -230,9 +232,17 @@ if(args.size == 2):
 
 
 alpha, beta = args.init_alpha, args.init_beta
+
+# init EM/Embeddings Object
 embedding_alg = PEmbed(len(dataset_index), size=args.size, lr=args.init_lr, cuda=args.cuda, negative_distribution=frequency,
                         optimizer_method=optimizer_dict[args.embedding_optimizer], aggregation=aggregation_dict[args.loss_aggregation])
 em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=False)
+
+# create a callback function to log the conductence
+callback_function = callback_tools.generic_callback({"embeddings": embedding_alg.get_PoincareEmbeddings}, 
+                                {"adjancy_matrix":X, "n_centroid": args.n_centroid},
+                                log_callback_em_conductance)
+
 pi, mu, sigma = None, None, None
 pik = None
 epoch_embedding = args.epoch_embedding_init
@@ -242,11 +252,11 @@ for i in pb:
         embedding_alg.set_lr(args.lr)
         alpha, beta = args.alpha, args.beta
         epoch_embedding = args.epoch_embedding
-
+    # training embeddings
     embedding_alg.fit(training_dataloader, alpha=alpha, beta=beta, gamma=args.gamma, max_iter=epoch_embedding,
-                        pi=pik, mu=mu, sigma=sigma, negative_sampling=args.negative_sampling, distance_coef=args.distance_coef)
-
-    # em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=True)
+                        pi=pik, mu=mu, sigma=sigma, negative_sampling=args.negative_sampling, distance_coef=args.distance_coef,
+                        log_callback=callback_function, logger=logger_object)
+    # if reset em true then reset em algo
     if(args.reset_em):
         em_alg = PEM(args.size, args.n_gaussian, init_mod="kmeans-hyperbolic", verbose=False)
     em_alg.fit(embedding_alg.get_PoincareEmbeddings().cpu(), max_iter=args.em_iter)

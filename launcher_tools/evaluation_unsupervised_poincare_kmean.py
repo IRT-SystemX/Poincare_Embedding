@@ -6,7 +6,8 @@ import pytorch_categorical
 from torch.utils.data import DataLoader
 import os
 from multiprocessing import Process, Manager
-from clustering_tools.poincare_em import PoincareEM
+from em_tools.poincare_em import RiemannianEM 
+from em_tools.poincare_kmeans import PoincareKMeans
 from data_tools import corpora_tools
 from data_tools import corpora
 from data_tools import data
@@ -33,8 +34,7 @@ dataset_dict = { "karate": corpora.load_karate,
             "books": corpora.load_books,
             "blogCatalog": corpora.load_blogCatalog,
             "polblog": corpora.load_polblogs,
-            "adjnoun": corpora.load_adjnoun,
-            "wikipedia": corpora.load_wikipedia
+            "adjnoun": corpora.load_adjnoun
           }
 log_in = logger.JSONLogger(os.path.join(args.file,"log.json"), mod="continue")
 dataset_name = log_in["dataset"]
@@ -59,14 +59,14 @@ else:
   representations = torch.load(os.path.join(args.file,"embeddings.t7"))[0]
 
 for i in tqdm.trange(args.n):
-    total_accuracy = evaluation.poincare_unsupervised_em(representations, D.Y, n_gaussian,  verbose=False)
+    total_accuracy = evaluation.unsupervised_evaluation(representations, D.Y, n_gaussian, PoincareKMeans, verbose=False)
     results.append(total_accuracy)
 
 R = torch.Tensor(results)
 print("Maximum performances -> ", R.max().item())
 print("Mean performances -> ", R.mean().item())
 print("STD performances -> ", R.std().item())
-log_in.append({"evaluation_unsupervised_poincare_precision": {"unsupervised_performances":R.tolist()}})
+log_in.append({"evaluation_unsupervised_poincare_kmean": {"unsupervised_performances":R.tolist()}})
 
 
 
@@ -76,32 +76,32 @@ log_in.append({"evaluation_unsupervised_poincare_precision": {"unsupervised_perf
 
 # print(prediction_mat.sum(0))
 
-conductences = []
-adjency_matrix = X
-for i in tqdm.trange(args.n):
-    algs = PoincareEM(5)
-    algs.fit(representations)
-    prediction = algs.predict(representations)
-    prediction_mat = torch.LongTensor([[ 1 if(y == prediction[i]) else 0 for y in range(5)] for i in range(len(X))])
-    conductences.append(evaluation.mean_conductance(prediction_mat, adjency_matrix))
+# conductences = []
+# adjency_matrix = X
+# for i in tqdm.trange(args.n):
+#     algs = PoincareKMeans(n_gaussian)
+#     algs.fit(representations)
+#     prediction = algs.predict(representations)
+#     prediction_mat = torch.LongTensor([[ 1 if(y == prediction[i]) else 0 for y in range(5)] for i in range(len(X))])
+#     conductences.append(evaluation.mean_conductance(prediction_mat, adjency_matrix))
 
-C = torch.Tensor(conductences)
-print("Maximum conductence -> ", C.max().item())
-print("Mean conductence -> ", C.mean().item())
-print("Mean conductence -> ", C.std().item())
-log_in.append({"evaluation_unsupervised_poincare_conductance": {"unsupervised_conductence":C.tolist()}})
+# C = torch.Tensor(conductences)
+# print("Maximum conductence -> ", C.max().item())
+# print("Mean conductence -> ", C.mean().item())
+# print("Mean conductence -> ", C.std().item())
+# log_in.append({"evaluation_unsupervised_poincare_kmean_conductance": {"unsupervised_conductence":C.tolist()}})
 
-nmi = []
-ground_truth = torch.LongTensor([[ 1 if(y in Y[i]) else 0 for y in range(5)] for i in range(len(X))])
-for i in tqdm.trange(args.n):
-    algs = PoincareEM(5)
-    algs.fit(representations)
-    prediction = algs.predict(representations)
-    prediction_mat = torch.LongTensor([[ 1 if(y == prediction[i]) else 0 for y in range(5)] for i in range(len(X))])
-    nmi.append(evaluation.nmi(prediction_mat, ground_truth))
+# nmi = []
+# ground_truth = torch.LongTensor([[ 1 if(y in Y[i]) else 0 for y in range(5)] for i in range(len(X))])
+# for i in tqdm.trange(args.n):
+#     algs = PoincareKMeans(n_gaussian)
+#     algs.fit(representations)
+#     prediction = algs.predict(representations)
+#     prediction_mat = torch.LongTensor([[ 1 if(y == prediction[i]) else 0 for y in range(5)] for i in range(len(X))])
+#     nmi.append(evaluation.nmi(prediction_mat, ground_truth))
 
-C = torch.Tensor(nmi)
-print("Maximum nmi -> ", C.max().item())
-print("Mean nmi -> ", C.mean().item())
-print("Mean nmi -> ", C.std().item())
-log_in.append({"evaluation_unsupervised_poincare_nmi": {"unsupervised_nmi":C.tolist()}})
+# C = torch.Tensor(nmi)
+# print("Maximum nmi -> ", C.max().item())
+# print("Mean nmi -> ", C.mean().item())
+# print("Mean nmi -> ", C.std().item())
+# log_in.append({"evaluation_unsupervised_poincare_kmean_nmi": {"unsupervised_nmi":C.tolist()}})

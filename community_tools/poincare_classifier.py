@@ -8,12 +8,12 @@ from function_tools import poincare_module as pm
 class PoincareClassifier(object):
     def __init__(self, n_classes):
         self._n_c = n_classes
-    def fit(self, X, Y=None, iteration=500):
+    def fit(self, X, Y=None, iteration=700):
         Y = Y.float()
         self.model = pm.PoincareMLR(X.size(-1), Y.size(-1))
-        print(X.size())
+        print(X.size(), Y.size(-1))
         optimizer_euclidean = optim.Adam(self.model.euclidean_parameters(), lr=1e-1)
-        optimizer_hyperbolic = ph.PoincareBallSGDExp(self.model.poincare_parameters(), lr=1e-2)
+        optimizer_hyperbolic = ph.PoincareBallSGDExp(self.model.poincare_parameters(), lr=5e-2)
 
         criterion = torch.nn.BCEWithLogitsLoss()
 

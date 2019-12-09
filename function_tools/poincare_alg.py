@@ -4,12 +4,12 @@ from torch import nn
 from function_tools import poincare_function as pf
 
 # z and wik must have same dimenssion except if wik is not given
-def barycenter(z, wik=None, lr=5e-3, tau=5e-3, max_iter=math.inf, distance=pf.distance, normed=False, init_method="default"):
+def barycenter(z, wik=None, lr=5e-2, tau=5e-3, max_iter=math.inf, distance=pf.distance, normed=False, init_method="default"):
 
     if(wik is None):
         wik = 1.
-        barycenter = z.mean(0, keepdim=True)
-
+        # barycenter = z.mean(0, keepdim=True)
+        barycenter = z.mean(0, keepdim=True) * 0
     else:
 
         wik = wik.unsqueeze(-1).expand_as(z)
@@ -23,7 +23,7 @@ def barycenter(z, wik=None, lr=5e-3, tau=5e-3, max_iter=math.inf, distance=pf.di
         return z
     iteration = 0
     cvg = math.inf
-
+    # print("barycenter_init", barycenter)
     while(cvg>tau and max_iter>iteration):
 
         iteration+=1
@@ -57,7 +57,7 @@ def barycenter(z, wik=None, lr=5e-3, tau=5e-3, max_iter=math.inf, distance=pf.di
         # # to debug ponderate version
         # print(cvg, iteration, max_iter) 
         pass
-
+    # print("BARYCENTERS -> ", barycenter)
     return barycenter
 
 def test():
