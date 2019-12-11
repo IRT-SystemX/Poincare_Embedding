@@ -82,3 +82,7 @@ def save_dataset_xml(file_path, dataset):
             c_line = c_line[:-1]+"\n"
             m_file.write(c_line)
 
+
+
+def collate_fn_simple(my_list):
+    return torch.cat(my_list)

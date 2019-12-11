@@ -9,6 +9,7 @@ from scipy import io as sio
 from data_tools import dataset_downloader
 from data_tools import data as dts
 from torch.utils.data import DataLoader
+from joblib import Parallel, delayed
 
 class RandomWalkCorpus(Dataset):
     def __init__(self, X, Y, path=True):
@@ -53,18 +54,20 @@ class RandomWalkCorpus(Dataset):
         return len(self.X)
 
 class FixedRandomWalkCorpus(RandomWalkCorpus):
-    def __init__(self, X, Y, path=True, precompute=1):
-        super(PoincareEmbedding, self).__init__(X, Y, path=path)
-        self.precompute=precompute
+    def __init__(self, X, Y, path=True, precompute=1, path_len=10):
+        super(FixedRandomWalkCorpus, self).__init__(X, Y, path=path)
+        self.precompute = precompute
+        self.k = path_len
+        self.p_c = 1
         self.paths = self._precompute()
 
     def _precompute(self):
         precompute = self.precompute
         self.precompute = -1
         paths = []
-        for i in range(precompute):
-            for index in tqdm.trange(len(self)):
-                paths.append(torch.LongTensor(self._walk(index)).unsqueeze(0))
+        for index in tqdm.trange(len(self.X)):
+            for i in range(precompute):
+                    paths.append(torch.LongTensor(self._walk(index)).unsqueeze(0))
         self.precompute = precompute
         return torch.cat(paths,0)
 
@@ -222,6 +225,96 @@ class FlatContextCorpus(Dataset):
         return a, b
     def __len__(self):
         return len(self.context)
+
+
+class RandomContextSize(RandomWalkCorpus):
+    def __init__(self, X, Y, path=True, precompute=1, path_len=10, context_size=5):
+        super(RandomContextSize, self).__init__(X, Y, path=path)
+        self.precompute = precompute
+        self.k = path_len
+        self.p_c = 1
+        self.c_s = context_size
+        self.paths = self._precompute()
+
+    def _precompute(self):
+        precompute = self.precompute
+        self.precompute = -1
+        paths = []
+        for index in tqdm.trange(len(self.X)):
+            for i in range(precompute):
+                    paths.append(torch.LongTensor(self._walk(index)).unsqueeze(0))
+        self.precompute = precompute
+        return torch.cat(paths,0)
+
+
+    def cuda(self):
+        self.paths = self.paths.cuda()
+
+    def cpu(self):
+        self.paths = self.paths.cpu()
+
+    @staticmethod
+    def _context_calc(k, path, max_context):
+        context_size = random.randint(1, max_context -1)
+        v = torch.cat((path[max(0, k - context_size):k],path[k+1: min(len(path), k + context_size)]) ,0)
+        v =  v.unsqueeze(-1).expand(v.size(0), 2).clone()
+        v[:,0] = path[k]
+        return v
+
+    def __getitem__(self, index):
+        path = self.paths[index]
+
+        res = [RandomContextSize._context_calc(i, path, self.c_s) for i in range(len(path))]
+
+        return torch.cat(res, 0)
+
+    def __len__(self):
+        return len(self.paths)
+
+class RandomContextSizeFlat(RandomWalkCorpus):
+    def __init__(self, X, Y, path=True, precompute=1, path_len=10, context_size=5):
+        super(RandomContextSizeFlat, self).__init__(X, Y, path=path)
+        self.precompute = precompute
+        self.k = path_len
+        self.p_c = 1
+        self.c_s = context_size
+        self.paths = self._precompute()
+
+    def _precompute(self):
+        precompute = self.precompute
+        self.precompute = -1
+        paths = []
+        for index in tqdm.trange(len(self.X)):
+            for i in range(precompute):
+                    paths.append(torch.LongTensor(self._walk(index)).unsqueeze(0))
+        self.precompute = precompute
+        return torch.cat(paths,0)
+
+
+    def cuda(self):
+        self.paths = self.paths.cuda()
+
+    def cpu(self):
+        self.paths = self.paths.cpu()
+
+    @staticmethod
+    def _context_calc(k, path, max_context):
+        context_size = random.randint(1, max_context -1)
+        v = torch.cat((path[max(0, k - context_size):k],path[k+1: min(len(path), k + context_size)]) ,0)
+        v =  v.unsqueeze(-1).expand(v.size(0), 2).clone()
+        v[:,0] = path[k]
+        return v
+
+    def __getitem__(self, index):
+
+        path = self.paths[index//self.k]
+
+        res = RandomContextSize._context_calc(index%self.k, path,self.c_s) 
+        return res
+
+    def __len__(self):
+        return len(self.paths) * self.k
+
 
 
 class WeightedFlatContextCorpus(Dataset):

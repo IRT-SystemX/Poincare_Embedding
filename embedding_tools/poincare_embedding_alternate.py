@@ -70,15 +70,16 @@ class PoincareEmbedding(nn.Module):
                 self.optimizer.zero_grad()
                 # getting negative examples
                 if(negative_all is None):
-                    negative_all = self.n_dist.sample( sample_shape=(len(dataloader_o1) *5,example_index_a.size(0),  negative_sampling))
+                    negative_all = self.n_dist.sample( sample_shape=(1000,2*51200,  negative_sampling))
+                    if(self.cuda):
+                        negative_all = negative_all.cuda()
                 if(self.cuda):
-                    negative_all = negative_all.cuda()
                     example_index_a = example_index_a.cuda()
                     example_index_b = example_index_b.cuda()
-                negative = negative_all[random.randint(0, len(dataloader_o1)*5-1)][:example_index_a.size(0)]
+                negative = negative_all[random.randint(0, 999)][:example_index_a.size(0)]
 
                 #getting embedding
-
+                # print(example_index_a.size(), example_index_b.size(), negative.size())
                 example_embedding_a, example_embedding_b = (self.W(example_index_a).squeeze(), 
                                                             self.W(example_index_b).squeeze())
                 negative_embedding = self.W(negative)
