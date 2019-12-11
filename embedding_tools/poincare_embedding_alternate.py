@@ -16,9 +16,11 @@ class PoincareEmbedding(nn.Module):
         self.cuda = cuda
         self.N = n_exemple
         self.W = poincare_module.PoincareEmbedding(n_exemple, size)
+        self.C = poincare_module.PoincareEmbedding(n_exemple, size)
         if(self.cuda):
             self.W.cuda()
-        self.optimizer = optimizer_method(self.W.parameters(), lr=lr)
+            self.C.cuda()
+        self.optimizer = optimizer_method(list(self.W.parameters()) + list(self.C.parameters()), lr=lr)
         self.verbose = verbose
         self.d = poincare_function.poincare_distance
         if(negative_distribution is None):
@@ -70,7 +72,7 @@ class PoincareEmbedding(nn.Module):
                 self.optimizer.zero_grad()
                 # getting negative examples
                 if(negative_all is None):
-                    negative_all = self.n_dist.sample( sample_shape=(1000,2*51200,  negative_sampling))
+                    negative_all = self.n_dist.sample( sample_shape=(1000,2580,  negative_sampling))
                     if(self.cuda):
                         negative_all = negative_all.cuda()
                 if(self.cuda):
@@ -81,8 +83,8 @@ class PoincareEmbedding(nn.Module):
                 #getting embedding
                 # print(example_index_a.size(), example_index_b.size(), negative.size())
                 example_embedding_a, example_embedding_b = (self.W(example_index_a).squeeze(), 
-                                                            self.W(example_index_b).squeeze())
-                negative_embedding = self.W(negative)
+                                                            self.C(example_index_b).squeeze())
+                negative_embedding = self.C(negative).detach()
                 loss_o2 = losses.SGDLoss.O2(example_embedding_a, example_embedding_b,
                                             negative_embedding, coef=distance_coef)
                 loss_value2 += loss_o2.detach().sum().item()
