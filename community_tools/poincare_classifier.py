@@ -24,9 +24,10 @@ class PoincareClassifier(object):
             optimizer_hyperbolic.zero_grad()
 
             pred = self.model(X)
-            # print(pred.max())
-            # print(pred.mean())
+            # print(pred.min())
+
             loss = criterion(pred,Y)
+            # print(loss.mean())
             loss.backward()
 
             optimizer_euclidean.step()
@@ -35,3 +36,6 @@ class PoincareClassifier(object):
     def probs(self, z):
         with torch.no_grad():
             return self.model(z).sigmoid()
+    def predict(self, z):
+        with torch.no_grad():
+            return self.model(z).max(-1)[1]

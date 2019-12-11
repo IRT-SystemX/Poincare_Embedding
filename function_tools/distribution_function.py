@@ -122,6 +122,28 @@ class ZetaPhiStorage(object):
         self.N = N
         self.sigma = sigma
         self.m_zeta_var = (zeta(sigma, N)).detach()
+
+        c1 = self.m_zeta_var.sum() != self.m_zeta_var.sum() 
+        c2 = self.m_zeta_var.sum() == math.inf
+        c3 = self.m_zeta_var.sum() == -math.inf
+        if(c1 or c2 or c3):
+            print("WARNING : ZetaPhiStorage , untracktable normalisation factor :")
+            max_nf = len(sigma)
+
+            limit_nf = ((self.m_zeta_var/self.m_zeta_var) * 0).nonzero()[0].item()
+            self.sigma = self.sigma[0:limit_nf]
+            self.m_zeta_var = self.m_zeta_var[0:limit_nf]
+            if(c1):
+                print("\t Nan value in processing normalisation factor")
+            if(c2 or c3):
+                print("\t +-inf value in processing normalisation factor")
+            
+            print("\t Max variance is now : ", self.sigma[-1])
+            print("\t Number of possible variance is now : "+str(len(self.sigma))+"/"+str(max_nf))
+
+
+
+
         self.phi_inv_var = (self.sigma**3 * log_grad_zeta(self.sigma, N)).detach()
         
     def zeta(self, sigma):

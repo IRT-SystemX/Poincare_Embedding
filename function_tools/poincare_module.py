@@ -25,7 +25,7 @@ class PoincareNN(nn.Module):
 class PoincareMLR(PoincareNN):
     def  __init__(self, features_size, output_size):
         super(PoincareMLR, self).__init__()
-        self.a = nn.Parameter(torch.randn(output_size, features_size) * 1e-3)
+        self.a = nn.Parameter(torch.randn(output_size, features_size))
         self.p = nn.Parameter(torch.randn(output_size, features_size) * 1e-3)
 
     def poincare_parameters(self):
@@ -42,13 +42,28 @@ class PoincareMLR(PoincareNN):
         # output size
         O = self.a.size(0)
 
-        # get the  projection of a to p
+        # use p to 
         p = self.p.unsqueeze(0).expand(N, O, I)
-        lambda_px = pf.lambda_k(self.p)
-        assert(lambda_px.sum() == lambda_px.sum())
-        a_h = ((2*self.a)/lambda_px.expand( O, I)).unsqueeze(0).expand(N, O, I)
+        
+        lambda_p = pf.lambda_k(self.p)
+        # print(self.p.size())
+        # print("all1",torch.sum(self.p ** 2, dim=-1))
+        # print("all2",self.p.norm(2, -1)**2)
+        # print("max",self.p.norm(2, -1).max().item())
+        # print("min",self.p.norm(2, -1).min().item())
 
-        lambda_px = lambda_px.squeeze().unsqueeze(0).expand(N, O)
+        # print("----------------------")
+        # print("all",lambda_px[0].norm(2, -1))
+        # print("max",lambda_px[0].norm(2, -1).max().item())
+        # print("min",lambda_px[0].norm(2, -1).min().item())
+        if(lambda_p.sum() != lambda_p.sum()):
+            print("Error lambda px is none")
+            print(self.p.size())
+            print(self.p)
+        assert(lambda_p.sum() == lambda_p.sum())
+        a_h = ((2*self.a)/lambda_p.expand( O, I)).unsqueeze(0).expand(N, O, I)
+        # print(a_h[0].norm(2,-1))
+        lambda_p = lambda_p.squeeze().unsqueeze(0).expand(N, O)
 
 
         # print(p.norm(2,-1).max())
@@ -66,19 +81,28 @@ class PoincareMLR(PoincareNN):
         try:
             px_dot_a = (minus_p_plus_x * a_h).sum(-1)
             if(px_dot_a.sum() != px_dot_a.sum()):
-                print("la")
                 raise Exception
         except:
-            print(a_h)
-            print(minus_p_plus_x)
+            print("Poincare Module.py ")
+            print("a_h ", a_h[0].norm(2,-1))
+            print("p ",self.p.norm(2, -1)**2)
+            print("p_lh ",lambda_p[0].norm(2, -1))
+            print("a ",self.a)
+            print(minus_p_plus_x.sum() )
+            quit()
         lambda_px = pf.lambda_k(minus_p_plus_x).squeeze()
         # print(lambda_px.size())
         # print(norm_a.size())
         # print(px_dot_a.size())
         # print("norm_a max ", norm_a.max())
         # print("norm_a min ", norm_a.min())
-        # print( (f.arc_sinh((2 * px_dot_a) * lambda_px * (1/norm_a))).max())
-        logit = 2*norm_a * f.arc_sinh((2 * px_dot_a) * lambda_px * (1/norm_a))
+        te = f.arc_sinh((2 * px_dot_a) * lambda_px * (1/norm_a))
+        if(te.sum() != te.sum()):
+            print("te",te.mean(0))
+        llp = lambda_p*norm_a 
+        if(llp.sum() != llp.sum()):
+            print("te",llp.mean(0))
+        logit = lambda_p*norm_a * f.arc_sinh((2 * px_dot_a) * lambda_px * (1/norm_a))
 
         return  logit
 

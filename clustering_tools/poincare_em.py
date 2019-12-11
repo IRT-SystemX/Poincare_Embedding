@@ -92,14 +92,14 @@ class PoincareEM(object):
             print("UPDATE : sigma contain not a number elements")
             quit()  
 
-    def fit(self, z, max_iter=5, lr_mu=5e-2, tau_mu=1e-4, Y=None):
+    def fit(self, z, max_iter=50, lr_mu=5e-2, tau_mu=1e-4, Y=None):
         # if first time fit is called init all parameters
         if(not self._started):
             self._d = z.size(-1)
             self._mu = (torch.rand(self._n_g,self._d ) - 0.5)/self._d 
             self._sigma = torch.rand(self._n_g)/10 +0.8
             self._w = torch.ones(self._n_g)/self._n_g
-            self.zeta_phi = df.ZetaPhiStorage(torch.arange(5e-2, -0.0722 * z.size(-1) + 2.14 , 0.01), self._d)
+            self.zeta_phi = df.ZetaPhiStorage(torch.arange(5e-2, -0.1833 * z.size(-1) + 4.36, 0.01), self._d)
         if(Y is not None):
             # we are in the supervised case
             # the objective is in this case to find the gaussian for each

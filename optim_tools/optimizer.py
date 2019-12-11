@@ -10,7 +10,7 @@ class PoincareOptimizer(Optimizer):
             raise ValueError("Invalid learning rate: {}".format(lr))
         defaults = dict(lr=lr)
         super(PoincareOptimizer, self).__init__(params, defaults)
-        self.eps = 1-1e-3
+        self.eps = 1-1e-2
 
     def __setstate__(self, state):
         super(PoincareOptimizer, self).__setstate__(state)
@@ -48,6 +48,9 @@ class PoincareBallSGDExp(PoincareOptimizer):
         self.first_over = False
     def _optimization_method(self, p, d_p, lr):
         with torch.no_grad():
+            # print("grad" ,-lr*d_p)
+            # if(d_p.sum()!=d_p.sum()):
+            #     d_p[d_p!=d_p] = 0
             a = pf.exp(p, -lr*d_p)
 
             if(((a.norm(2,-1))>=self.eps).max()>0):

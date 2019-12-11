@@ -208,8 +208,7 @@ dataset_o3 = dataset_index
 # print(d_rw[1][0].size())
 # print(len(embedding_dataset[0]))
 # print(embedding_dataset[29][-1][20:25])
-print(dataset_o1[0])
-print(dataset_o1.data[0])
+
 # if(args.cuda):
 #     dataset_o1.cuda()
 #     d_rw.cuda()

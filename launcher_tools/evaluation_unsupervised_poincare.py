@@ -59,6 +59,7 @@ else:
   representations = torch.load(os.path.join(args.file,"embeddings.t7"))[0]
 
 for i in tqdm.trange(args.n):
+    print("Number of gaussian ", n_gaussian)
     total_accuracy = evaluation.poincare_unsupervised_em(representations, D.Y, n_gaussian,  verbose=False)
     results.append(total_accuracy)
 
@@ -79,10 +80,10 @@ log_in.append({"evaluation_unsupervised_poincare_precision": {"unsupervised_perf
 conductences = []
 adjency_matrix = X
 for i in tqdm.trange(args.n):
-    algs = PoincareEM(5)
+    algs = PoincareEM(n_gaussian)
     algs.fit(representations)
     prediction = algs.predict(representations)
-    prediction_mat = torch.LongTensor([[ 1 if(y == prediction[i]) else 0 for y in range(5)] for i in range(len(X))])
+    prediction_mat = torch.LongTensor([[ 1 if(y == prediction[i]) else 0 for y in range(n_gaussian)] for i in range(len(X))])
     conductences.append(evaluation.mean_conductance(prediction_mat, adjency_matrix))
 
 C = torch.Tensor(conductences)
@@ -92,12 +93,12 @@ print("Mean conductence -> ", C.std().item())
 log_in.append({"evaluation_unsupervised_poincare_conductance": {"unsupervised_conductence":C.tolist()}})
 
 nmi = []
-ground_truth = torch.LongTensor([[ 1 if(y in Y[i]) else 0 for y in range(5)] for i in range(len(X))])
+ground_truth = torch.LongTensor([[ 1 if(y in Y[i]) else 0 for y in range(n_gaussian)] for i in range(len(X))])
 for i in tqdm.trange(args.n):
-    algs = PoincareEM(5)
+    algs = PoincareEM(n_gaussian)
     algs.fit(representations)
     prediction = algs.predict(representations)
-    prediction_mat = torch.LongTensor([[ 1 if(y == prediction[i]) else 0 for y in range(5)] for i in range(len(X))])
+    prediction_mat = torch.LongTensor([[ 1 if(y == prediction[i]) else 0 for y in range(n_gaussian)] for i in range(len(X))])
     nmi.append(evaluation.nmi(prediction_mat, ground_truth))
 
 C = torch.Tensor(nmi)

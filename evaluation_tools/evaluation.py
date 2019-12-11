@@ -550,7 +550,7 @@ def poincare_unsupervised_em(z, y, n_distrib, em=None, verbose=False):
 
     # print(em._mu)
     associated_distrib = em.predict(z)
-
+    print("associated distrib", associated_distrib)
     label = associated_distrib.numpy()
     label_source = y.numpy()
 
@@ -570,7 +570,7 @@ def euclidean_unsupervised_em(z, y, n_distrib, em=None, verbose=False):
 
     # print(em._mu)
     associated_distrib = em.predict(z)
-
+    print("associated distrib", associated_distrib)
     label = associated_distrib.numpy()
     label_source = y.numpy()
 
