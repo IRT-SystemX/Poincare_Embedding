@@ -15,8 +15,8 @@ class SGALoss(object):
     def O2(x, y, z, distance=None, coef=1.):
         if(distance is None):
             distance = pf.distance
-        y_reshape = y.unsqueeze(-2).expand_as(z)
-        return SGALoss.O1(x, y, distance=distance, coef=coef) + tf.logsigmoid((distance(y_reshape,z)*coef)**2).sum(-1)
+        x_reshape = x.unsqueeze(-2).expand_as(z)
+        return SGALoss.O1(x, y, distance=distance, coef=coef) + tf.logsigmoid((distance(x_reshape,z)*coef)**2).sum(-1)
     
     # x = BxD
     # pi = BxM

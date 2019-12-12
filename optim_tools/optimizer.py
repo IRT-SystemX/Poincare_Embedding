@@ -51,6 +51,7 @@ class PoincareBallSGDExp(PoincareOptimizer):
             # print("grad" ,-lr*d_p)
             # if(d_p.sum()!=d_p.sum()):
             #     d_p[d_p!=d_p] = 0
+            # print("lr = ", lr)
             a = pf.exp(p, -lr*d_p)
 
             if(((a.norm(2,-1))>=self.eps).max()>0):

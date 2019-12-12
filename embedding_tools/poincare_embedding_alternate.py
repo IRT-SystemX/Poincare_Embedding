@@ -16,10 +16,13 @@ class PoincareEmbedding(nn.Module):
         self.cuda = cuda
         self.N = n_exemple
         self.W = poincare_module.PoincareEmbedding(n_exemple, size)
+        self.C = poincare_module.PoincareEmbedding(n_exemple, size)
         if(self.cuda):
             self.W.cuda()
-        self.optimizer = optimizer_method(self.W.parameters(), lr=lr)
+            self.C.cuda()
+        self.optimizer = optimizer_method(list(self.W.parameters()) + list(self.C.parameters()), lr=lr)
         self.verbose = verbose
+        self.lr = lr
         self.d = poincare_function.poincare_distance
         if(negative_distribution is None):
             self.n_dist = torch.distributions.Categorical(torch.ones(self.N)/self.N)
@@ -67,10 +70,12 @@ class PoincareEmbedding(nn.Module):
             #SGD on O_2
             o_lval = 0 
             for pb_i, (example_index_a, example_index_b) in zip(pb_O2, dataloader_o2):
+                nlr = max(1e-4, self.lr * (1 - 1.0 * (pb_i/len(dataloader_o2)) ))
+                self.set_lr(nlr)
                 self.optimizer.zero_grad()
                 # getting negative examples
                 if(negative_all is None):
-                    negative_all = self.n_dist.sample( sample_shape=(1000,2*51200,  negative_sampling))
+                    negative_all = self.n_dist.sample( sample_shape=(1000,22000,  negative_sampling))
                     if(self.cuda):
                         negative_all = negative_all.cuda()
                 if(self.cuda):
@@ -81,14 +86,14 @@ class PoincareEmbedding(nn.Module):
                 #getting embedding
                 # print(example_index_a.size(), example_index_b.size(), negative.size())
                 example_embedding_a, example_embedding_b = (self.W(example_index_a).squeeze(), 
-                                                            self.W(example_index_b).squeeze())
-                negative_embedding = self.W(negative)
+                                                            self.C(example_index_b).squeeze())
+                negative_embedding = self.C(negative).detach()
                 loss_o2 = losses.SGDLoss.O2(example_embedding_a, example_embedding_b,
                                             negative_embedding, coef=distance_coef)
-                loss_value2 += loss_o2.detach().sum().item()
+                loss_value2 += loss_o2.detach().mean().item()
                 o_lval += loss_o2.detach().mean().item()
                 if(pb_i%200 == 0):
-                    pb_O2.set_postfix({"LO2":o_lval/200 })
+                    pb_O2.set_postfix({"LO2":o_lval/200, "lr":nlr })
                     o_lval = 0
                 self.agg(beta * loss_o2).backward()
                 self.optimizer.step()
@@ -136,6 +141,6 @@ class PoincareEmbedding(nn.Module):
                     self.logger["calback-log"] = calback_log_list
             if(self.verbose):
                 loss_value1 = loss_value1/len(dataloader_o1.dataset)
-                loss_value2 = loss_value2/len(dataloader_o2.dataset)
+                loss_value2 = loss_value2/len(dataloader_o2)
                 loss_value3 = loss_value3/len(dataloader_o3.dataset)
                 progress_bar.set_postfix(dict({"O1":loss_value1, "O2":loss_value2, "O3":loss_value3}).items() | lcres.items())
